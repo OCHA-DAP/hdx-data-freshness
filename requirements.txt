@@ -1,2 +1,2 @@
-deco==0.4.1
+grequests==0.3.0
 -e /home/mcarans/Programming/hdx-python-api
