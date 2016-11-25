@@ -8,7 +8,7 @@ class DBResource(Base):
     id = Column(String, primary_key=True)
     name = Column(String)
     url = Column(String)
-    broken_url = Column(Boolean, default=False)
+    error = Column(String)
     last_modified = Column(DateTime, default=None)
     revision_last_updated = Column(DateTime)
     http_last_modified = Column(DateTime, default=None)

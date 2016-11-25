@@ -11,14 +11,16 @@ import logging
 import time
 import datetime
 
-from deco import concurrent, synchronized
-from sqlalchemy.orm import sessionmaker
+import grequests
 from dateutil import parser
+from requests import HTTPError
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 from hdx.data.resource import Resource
 from hdx.facades.simple import facade
 from hdx.utilities.downloader import Download, DownloadError
+
 from database.base import Base
 from database.dbresource import DBResource
 
@@ -27,30 +29,54 @@ engine = create_engine('sqlite:///resources.db', echo=False)
 Session = sessionmaker(bind=engine)
 
 
-@concurrent
-def get_headers_or_hash(url):
-    try:
-        with Download() as download:
-            download.setup_stream(url, 10)
-            last_modified = download.response.headers.get('Last-Modified', None)
-            if last_modified:
-                return url, 1, last_modified
-            md5hash = download.hash_stream(url)
-            return url, 2, md5hash
-    except DownloadError:
-        return url, 0, None
+def set_metadata(metadata):
+    def hook(resp, **kwargs):
+        resp.metadata = metadata
+        return resp
+    return hook
 
 
-@synchronized
 def check_resources_for_last_modified(last_modified_check):
-    results = dict()
-    for resource_id in last_modified_check:
-        url = last_modified_check[resource_id]
-        results[resource_id] = get_headers_or_hash(url)
+    results = list()
+    reqs = list()
+
+    def exception_handler(req, exc):
+        url, resource_id = req.metadata
+        results.append((resource_id, url, 0, str(exc)))
+
+    with Download() as download:
+        for metadata in last_modified_check:
+            req = grequests.get(metadata[0], timeout=10, session=download.session, callback=set_metadata(metadata))
+            req.metadata = metadata
+            reqs.append(req)
+        count = 0
+        for resp in grequests.imap(reqs, size=100, stream=True, exception_handler=exception_handler):
+            logger.info('Count = %d' % count)
+            count += 1
+            url, resource_id = resp.metadata
+            try:
+                resp.raise_for_status()
+            except HTTPError as e:
+                results.append((resource_id, url, 0, resp.status_code))
+                resp.close()
+                continue
+            last_modified = resp.headers.get('Last-Modified', None)
+            if last_modified:
+                results.append((resource_id, url, 1, last_modified))
+                resp.close()
+                continue
+            download.response = resp
+            try:
+                md5hash = download.hash_stream(url)
+                results.append((resource_id, url, 2, md5hash))
+            except DownloadError as e:
+                results.append((resource_id, url, 0, str(e)))
+            finally:
+                resp.close()
     return results
 
 
-def set_last_modified(dbresource, resource_id, modified_date):
+def set_last_modified(dbresource, modified_date):
     dbresource.http_last_modified = parser.parse(modified_date, ignoretz=True)
     if dbresource.last_modified:
         if dbresource.http_last_modified > dbresource.last_modified:
@@ -69,16 +95,24 @@ def main(configuration):
     proxyhxlstandardorg_count = 0
     scraperwikicom_count = 0
     ourairportscom_count = 0
-    last_modified_check = dict()
+    last_modified_check = list()
     for resource in resources:
-        url = resource['url']
         resource_id = resource['id']
+        url = resource['url']
+        name = resource['name']
         revision_last_updated = resource.get('revision_last_updated', None)
         if revision_last_updated:
             revision_last_updated = parser.parse(revision_last_updated, ignoretz=True)
-        dbresource = DBResource(id=resource_id, name=resource['name'], url=url,
-                                last_modified=revision_last_updated, revision_last_updated=revision_last_updated)
-        session.add(dbresource)
+        dbresource = session.query(DBResource).filter_by(id=resource_id).first()
+        if dbresource is None:
+            dbresource = DBResource(id=resource_id, name=name, url=url,
+                                    last_modified=revision_last_updated, revision_last_updated=revision_last_updated)
+            session.add(dbresource)
+        else:
+            dbresource.name = name
+            dbresource.url = url
+            dbresource.last_modified = revision_last_updated
+            dbresource.revision_last_updated = revision_last_updated
         if 'data.humdata.org' in url:
             datahumdataorg_count += 1
             continue
@@ -94,8 +128,9 @@ def main(configuration):
         if 'ourairports.com' in url:
             ourairportscom_count += 1
             continue
-        last_modified_check[resource_id] = url
+        last_modified_check.append((url, resource_id))
     session.commit()
+    last_modified_check = sorted(last_modified_check)
     start_time = time.time()
     results = check_resources_for_last_modified(last_modified_check)
     logger.info('Execution time: %s seconds' % (time.time() - start_time))
@@ -103,21 +138,20 @@ def main(configuration):
     hash_updated_count = 0
     hash_unchanged_count = 0
     failed_count = 0
-    for resource_id in results:
-        url, status, result = results[resource_id]
+    for resource_id, url, status, result in results:
         dbresource = session.query(DBResource).filter_by(id=resource_id).first()
         if status == 0:
             failed_count += 1
-            dbresource.broken_url = True
+            dbresource.error = result
         elif status == 1:
             lastmodified_count += 1
-            set_last_modified(dbresource, resource_id, result)
+            set_last_modified(dbresource, result)
         elif status == 2:
             if dbresource.md5_hash == result:  # File unchanged
                 hash_unchanged_count += 1
             else:  # File updated
                 dbresource.md5_hash = result
-                dbresource.last_hash_date = datetime.date.today()
+                dbresource.last_hash_date = datetime.datetime.utcnow()
                 hash_updated_count += 1
         else:
             raise ValueError('Invalid status returned!')
