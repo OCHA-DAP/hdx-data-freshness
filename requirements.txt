@@ -1,2 +1,4 @@
-grequests==0.3.0
--e /home/mcarans/Programming/hdx-python-api
+aiodns==1.1.1
+aiohttp==1.1.5
+cchardet==1.1.1
+git+git://github.com/ocha-dap/hdx-python-api.git@master#egg=hdx-python-api
