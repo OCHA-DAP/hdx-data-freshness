@@ -7,16 +7,18 @@ REGISTER:
 Caller script. Designed to call all other functions.
 
 '''
+import functools
 import logging
 import time
 import datetime
 
 import asyncio
+from urllib.parse import urlparse
 
-import async_timeout
-import uvloop
 import aiohttp
 import hashlib
+
+import tqdm
 from dateutil import parser
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -28,30 +30,97 @@ from database.base import Base
 from database.dbresource import DBResource
 
 logger = logging.getLogger(__name__)
-asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 engine = create_engine('sqlite:///resources.db', echo=False)
 Session = sessionmaker(bind=engine)
 md5hash = hashlib.md5()
 
-async def fetch(metadata, session):
+
+
+import asyncio
+import functools
+import time
+import urllib.parse
+
+import aiohttp
+
+
+def throttling(sleep):
+    def decorator(func):
+        last_called = None
+        lock = asyncio.Lock()
+
+        @functools.wraps(func)
+        async def wrapper(*args, **kwargs):
+            nonlocal last_called
+
+            async with lock:
+                now = time.monotonic()
+
+                if last_called is not None:
+                    delta = now - last_called
+
+                    if delta < sleep:
+                        await asyncio.sleep(sleep - delta)
+
+                try:
+                    return await func(*args, **kwargs)
+                finally:
+                    last_called = time.monotonic()
+
+        return wrapper
+
+    return decorator
+
+async def _fetch(metadata, session):
     url, resource_id = metadata
     try:
-        with async_timeout.timeout(10, loop=session.loop):
+        fail = False
+        with aiohttp.Timeout(10, loop=session.loop):
             async with session.get(url) as resp:
-                logger.info(url)
                 if resp.status != 200:
-                    return resource_id, url, 0, resp.status
-                last_modified = resp.headers.get('Last-Modified', None)
-                if last_modified:
-                    return resource_id, url, 1, last_modified
-                while True:
-                    chunk = await resp.content.read(1024)
-                    if not chunk:
-                        break
-                    md5hash.update(chunk)
-                return resource_id, url, 2, md5hash.hexdigest()
+                    fail = True
+                else:
+                    last_modified = resp.headers.get('Last-Modified', None)
+                    if last_modified:
+                        return resource_id, url, 1, last_modified
+        if fail:
+            with aiohttp.Timeout(10, loop=session.loop):
+                async with session.get(url) as resp:
+                    if resp.status != 200:
+                        return resource_id, url, 0, resp.status
+                    last_modified = resp.headers.get('Last-Modified', None)
+                    if last_modified:
+                        return resource_id, url, 1, last_modified
+        with aiohttp.Timeout(300, loop=session.loop):
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    while True:
+                        chunk = await resp.content.read(1024)
+                        if not chunk:
+                            break
+                        md5hash.update(chunk)
+                    return resource_id, url, 2, md5hash.hexdigest()
     except Exception as e:
         return resource_id, url, 0, str(e)
+
+
+_domain_funcq_map = {}
+DOMAIN_CONCURRENCY = 2
+
+async def fetch(metadata, session):
+    domain = urlparse(metadata[0]).hostname
+
+    if domain not in _domain_funcq_map:
+        q = _domain_funcq_map[domain] = asyncio.Queue()
+        for _ in range(DOMAIN_CONCURRENCY):
+            q.put_nowait(throttling(1)(_fetch))
+
+    func = await _domain_funcq_map[domain].get()
+
+    try:
+        return await func(metadata, session)
+    finally:
+        _domain_funcq_map[domain].put_nowait(func)
 
 async def bound_fetch(sem, url, session):
     # Getter function with semaphore.
@@ -65,12 +134,15 @@ async def check_resources_for_last_modified(last_modified_check, loop):
     # create instance of Semaphore
     sem = asyncio.Semaphore(100)
 
-    conn = aiohttp.TCPConnector(conn_timeout=10, limit=10, keepalive_timeout=10)
+    conn = aiohttp.TCPConnector(limit=100)
     async with aiohttp.ClientSession(connector=conn, loop=loop) as session:
         for metadata in last_modified_check:
             task = asyncio.ensure_future(bound_fetch(sem, metadata, session))
             tasks.append(task)
-        return await asyncio.gather(*tasks)
+        responses = []
+        for f in tqdm.tqdm(asyncio.as_completed(tasks), total=len(tasks)):
+            responses.append(await f)
+        return responses
 
 
 def set_last_modified(dbresource, modified_date):
@@ -128,7 +200,6 @@ def main(configuration):
             continue
         last_modified_check.append((url, resource_id))
     session.commit()
-    last_modified_check = sorted(last_modified_check)
     start_time = time.time()
     loop = asyncio.get_event_loop()
     future = asyncio.ensure_future(check_resources_for_last_modified(last_modified_check, loop))
