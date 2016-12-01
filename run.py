@@ -26,6 +26,7 @@ from sqlalchemy import create_engine
 from hdx.data.resource import Resource
 from hdx.facades.simple import facade
 
+import retry
 from database.base import Base
 from database.dbresource import DBResource
 
@@ -71,61 +72,51 @@ def throttling(sleep):
 
     return decorator
 
-async def _fetch(metadata, session):
+async def fetch(metadata, session):
     url, resource_id = metadata
+    async def fn(response):
+        last_modified = response.headers.get('Last-Modified', None)
+        if last_modified:
+            return resource_id, url, 1, last_modified
+        logger.info('Hashing %s' % url)
+        async for chunk in response.content.iter_chunked(1024):
+            if chunk:
+                md5hash.update(chunk)
+        return resource_id, url, 2, md5hash.hexdigest()
+
     try:
-        fail = False
-        with aiohttp.Timeout(10, loop=session.loop):
-            async with session.get(url) as resp:
-                if resp.status != 200:
-                    fail = True
-                else:
-                    last_modified = resp.headers.get('Last-Modified', None)
-                    if last_modified:
-                        return resource_id, url, 1, last_modified
-        if fail:
-            with aiohttp.Timeout(10, loop=session.loop):
-                async with session.get(url) as resp:
-                    if resp.status != 200:
-                        return resource_id, url, 0, resp.status
-                    last_modified = resp.headers.get('Last-Modified', None)
-                    if last_modified:
-                        return resource_id, url, 1, last_modified
-        with aiohttp.Timeout(300, loop=session.loop):
-            async with session.get(url) as resp:
-                if resp.status == 200:
-                    while True:
-                        chunk = await resp.content.read(1024)
-                        if not chunk:
-                            break
-                        md5hash.update(chunk)
-                    return resource_id, url, 2, md5hash.hexdigest()
+        return await retry.send_http(session, 'get', url,
+                                     retries=0,
+                                     interval=0.4,
+                                     backoff=2,
+                                     connect_timeout=10,
+                                     read_timeout=300,
+                                     http_status_codes_to_retry=[429, 500, 502, 503, 504],
+                                     fn=fn)
     except Exception as e:
         return resource_id, url, 0, str(e)
 
 
 _domain_funcq_map = {}
-DOMAIN_CONCURRENCY = 2
 
-async def fetch(metadata, session):
+async def delayed_fetch(metadata, session):
     domain = urlparse(metadata[0]).hostname
-
+    now = time.monotonic()
     if domain not in _domain_funcq_map:
-        q = _domain_funcq_map[domain] = asyncio.Queue()
-        for _ in range(DOMAIN_CONCURRENCY):
-            q.put_nowait(throttling(1)(_fetch))
+        _domain_funcq_map[domain] = now
+    else:
+        delta = now - _domain_funcq_map[domain]
+        if delta < 10:
+            await asyncio.sleep(10 - delta)
+    data = await fetch(metadata, session)
+    _domain_funcq_map[domain] = time.monotonic()
+    return data
 
-    func = await _domain_funcq_map[domain].get()
 
-    try:
-        return await func(metadata, session)
-    finally:
-        _domain_funcq_map[domain].put_nowait(func)
-
-async def bound_fetch(sem, url, session):
+async def bound_fetch(sem, metadata, session):
     # Getter function with semaphore.
     async with sem:
-        return await fetch(url, session)
+        return await fetch(metadata, session)
 
 
 async def check_resources_for_last_modified(last_modified_check, loop):
@@ -134,7 +125,7 @@ async def check_resources_for_last_modified(last_modified_check, loop):
     # create instance of Semaphore
     sem = asyncio.Semaphore(100)
 
-    conn = aiohttp.TCPConnector(limit=100)
+    conn = aiohttp.TCPConnector(conn_timeout=10, keepalive_timeout=10, limit=100)
     async with aiohttp.ClientSession(connector=conn, loop=loop) as session:
         for metadata in last_modified_check:
             task = asyncio.ensure_future(bound_fetch(sem, metadata, session))
