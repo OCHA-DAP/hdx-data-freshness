@@ -7,15 +7,11 @@ REGISTER:
 Caller script. Designed to call all other functions.
 
 '''
-import functools
 import logging
-import time
 import datetime
 
-import asyncio
 from urllib.parse import urlparse
 
-import aiohttp
 import hashlib
 
 import tqdm
@@ -36,11 +32,9 @@ Session = sessionmaker(bind=engine)
 md5hash = hashlib.md5()
 
 
-
 import asyncio
 import functools
 import time
-import urllib.parse
 
 import aiohttp
 
@@ -77,6 +71,7 @@ async def fetch(metadata, session):
     async def fn(response):
         last_modified = response.headers.get('Last-Modified', None)
         if last_modified:
+            response.close()
             return resource_id, url, 1, last_modified
         logger.info('Hashing %s' % url)
         async for chunk in response.content.iter_chunked(1024):
@@ -86,7 +81,7 @@ async def fetch(metadata, session):
 
     try:
         return await retry.send_http(session, 'get', url,
-                                     retries=0,
+                                     retries=5,
                                      interval=0.4,
                                      backoff=2,
                                      connect_timeout=10,
@@ -125,7 +120,7 @@ async def check_resources_for_last_modified(last_modified_check, loop):
     # create instance of Semaphore
     sem = asyncio.Semaphore(100)
 
-    conn = aiohttp.TCPConnector(conn_timeout=10, keepalive_timeout=10, limit=100)
+    conn = aiohttp.TCPConnector(limit=100)
     async with aiohttp.ClientSession(connector=conn, loop=loop) as session:
         for metadata in last_modified_check:
             task = asyncio.ensure_future(bound_fetch(sem, metadata, session))
