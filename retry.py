@@ -33,7 +33,6 @@ async def send_http(session, method, url, *,
                     retries=1,
                     interval=1,
                     backoff=2,
-                    connect_timeout=10,
                     read_timeout=300,
                     http_status_codes_to_retry=HTTP_STATUS_CODES_TO_RETRY,
                     fn=lambda x:x,
@@ -49,6 +48,8 @@ async def send_http(session, method, url, *,
         interval (float): Time to wait before retries
         backoff (int): Multiply interval by this factor after each failure
         read_timeout (float): Time to wait for a response
+        http_status_codes_to_retry (List[int]): List of status codes to retry
+        fn (Callable[[x],x]: Function to call on successful connection
     """
     backoff_interval = interval
     raised_exc = None
@@ -88,8 +89,8 @@ async def send_http(session, method, url, *,
                             code=response.status, message=response.reason)
                     else:
                         raise FailedRequest(
-                            code=response.status, message=exc,
-                            raised=exc.__class__.__name__, url=url)
+                            code=response.status, message='Non-retryable response code',
+                            raised='aiohttp.errors.HttpProcessingError', url=url)
         except (aiohttp.errors.ClientResponseError,
                 aiohttp.errors.ClientRequestError,
                 aiohttp.errors.ClientOSError,
@@ -102,7 +103,7 @@ async def send_http(session, method, url, *,
             except AttributeError:
                 code = ''
             raised_exc = FailedRequest(code=code, message=exc, url=url,
-                                    raised=exc.__class__.__name__)
+                                    raised='%s.%s' % (exc.__class__.__module__, exc.__class__.__qualname__))
         else:
             raised_exc = None
             break
