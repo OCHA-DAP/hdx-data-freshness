@@ -38,7 +38,7 @@ async def fetch(metadata, session):
             response.close()
             return resource_id, url, 1, last_modified
         length = response.headers.get('Content-Length')
-        if length and int(length) > 209715200:
+        if length and int(length) > 419430400:
             response.close()
             return resource_id, url, 0, 'File too large to hash!'
         logger.info('Hashing %s' % url)
@@ -75,7 +75,7 @@ async def check_resources_for_last_modified(last_modified_check, loop):
     # create instance of Semaphore
     sem = asyncio.Semaphore(100)
 
-    conn = aiohttp.TCPConnector(conn_timeout=10, limit=5)
+    conn = aiohttp.TCPConnector(conn_timeout=10, limit=2)
     async with aiohttp.ClientSession(connector=conn, loop=loop) as session:
         for metadata in last_modified_check:
             task = bound_fetch(sem, metadata, session)
@@ -105,18 +105,37 @@ def main(configuration):
     datasets = Dataset.get_all_datasets(configuration, False)
     total_datasets = len(datasets)
     total = 0
+    still_fresh_count = 0
     datahumdataorg_count = 0
     managehdxrwlabsorg_count = 0
     proxyhxlstandardorg_count = 0
     scraperwikicom_count = 0
     ourairportscom_count = 0
+    revision_count = 0
     last_modified_check = list()
     for dataset in datasets:
         dataset_id = dataset['id']
+        dbdataset = session.query(DBDataset).filter_by(id=dataset_id).first()
         resources = dataset.get_resources()
+        fresh = None
+        fresh_days = None
+        update_frequency = dataset.get('data_update_frequency')
+        if update_frequency is not None:
+            update_frequency = int(update_frequency)
+            if update_frequency == 0:
+                fresh = True
+            else:
+                fresh_days = datetime.timedelta(days=update_frequency)
+                if dbdataset:
+                    fresh_end = dbdataset.last_modified + fresh_days
+                    if fresh_end >= datetime.datetime.utcnow():
+                        still_fresh_count += len(resources)
+                        continue
+                    fresh = False
         dataset_last_modified = None
         resource_updated = None
         total += len(resources)
+        dataset_resources = list()
         for resource in resources:
             resource_id = resource['id']
             url = resource['url']
@@ -161,17 +180,19 @@ def main(configuration):
             if 'ourairports.com' in url:
                 ourairportscom_count += 1
                 continue
-            last_modified_check.append((url, resource_id))
+            dataset_resources.append((url, resource_id))
         dataset_name = dataset['name']
         dataset_date = dataset.get('dataset_date')
-        update_frequency = dataset.get('data_update_frequency')
-        if update_frequency:
-            update_frequency = int(update_frequency)
-        dbdataset = session.query(DBDataset).filter_by(id=dataset_id).first()
+        if fresh_days is not None:
+            fresh_end = dataset_last_modified + fresh_days
+            if fresh_end >= datetime.datetime.utcnow():
+                fresh = True
+            else:
+                fresh = False
         if dbdataset is None:
             dbdataset = DBDataset(id=dataset_id, name=dataset_name, dataset_date=dataset_date,
                                   update_frequency=update_frequency, last_modified=dataset_last_modified,
-                                  resource_updated=resource_updated, error=False)
+                                  resource_updated=resource_updated, fresh=fresh, error=False)
             session.add(dbdataset)
         else:
             dbdataset.name = dataset_name
@@ -181,6 +202,11 @@ def main(configuration):
             if dataset_last_modified > dbdataset.last_modified:
                 dbdataset.last_modified = dataset_last_modified
                 dbdataset.resource_updated = resource_updated
+            dbdataset.fresh = fresh
+        if fresh:
+            revision_count += len(dataset_resources)
+        else:
+            last_modified_check += dataset_resources
     session.commit()
 
     start_time = time.time()
@@ -243,8 +269,8 @@ def main(configuration):
     str = 'Resources\n\ndata.humdata.org: %d, manage.hdx.rwlabs.org: %d, ' % (datahumdataorg_count, managehdxrwlabsorg_count)
     str += 'proxy.hxlstandard.org: %d, scraperwiki.com: %d, ' % (proxyhxlstandardorg_count, scraperwikicom_count)
     str += 'ourairports.com: %d\n' % ourairportscom_count
-    str += 'Have Last-Modified: %d, Hash updated: %d, ' % (lastmodified_count, hash_updated_count)
-    str += 'Hash Unchanged: %d\n' % hash_unchanged_count
+    str += 'Still Fresh: %d, Revision Last Updated: %d, Last-Modified: %d, ' % (still_fresh_count, revision_count, lastmodified_count)
+    str += 'Hash updated: %d, Hash Unchanged: %d\n' % (hash_updated_count, hash_unchanged_count)
     str += 'Number Failed: %d, Total resources: %d\nTotal datasets: %s' % (failed_count, total, total_datasets)
     logger.info(str)
 
