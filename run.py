@@ -130,6 +130,8 @@ def main(configuration):
                     fresh_end = dbdataset.last_modified + fresh_days
                     if fresh_end >= datetime.datetime.utcnow():
                         still_fresh_count += len(resources)
+                        for dbresource in session.query(DBResource).filter_by(dataset_id=dataset_id):
+                            dbresource.updated = ''
                         continue
                     fresh = False
         dataset_last_modified = None
@@ -263,6 +265,11 @@ def main(configuration):
         if dataset_last_modified > dbdataset.last_modified:
             dbdataset.last_modified = dataset_last_modified
             dbdataset.resource_updated = resource_updated
+            if dbdataset.update_frequency is not None:
+                fresh_days = datetime.timedelta(days=dbdataset.update_frequency)
+                fresh_end = dataset_last_modified + fresh_days
+                if fresh_end >= datetime.datetime.utcnow():
+                    dbdataset.fresh = True
         dbdataset.error = all_errors
     session.commit()
 
