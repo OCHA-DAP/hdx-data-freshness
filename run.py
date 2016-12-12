@@ -80,20 +80,19 @@ async def check_resources_for_last_modified(last_modified_check, loop):
         for metadata in last_modified_check:
             task = bound_fetch(sem, metadata, session)
             tasks.append(task)
-        responses = []
+        responses = dict()
         for f in tqdm.tqdm(asyncio.as_completed(tasks), total=len(tasks)):
-            responses.append(await f)
+            resource_id, url, status, result = await f
+            responses[resource_id] = (url, status, result)
         return responses
 
 
 def set_last_modified(dbresource, modified_date, updated):
-    if dbresource.last_modified:
-        if modified_date > dbresource.last_modified:
-            dbresource.last_modified = modified_date
-            dbresource.updated = updated
-    else:
+    if modified_date > dbresource.last_modified:
         dbresource.last_modified = modified_date
         dbresource.updated = updated
+
+def calculate_aging():
 
 
 def main(configuration):
@@ -103,13 +102,19 @@ def main(configuration):
     Base.metadata.create_all(engine)
     session = Session()
     datasets = Dataset.get_all_datasets(configuration, False)
+    aging = dict()
+    for key, value in configuration['aging'].items():
+        period = int(key)
+        aging_period = dict()
+        for status, nodays in value:
+            aging_period[status] = datetime.timedelta(days=nodays)
+        aging[period] = aging_period
     total_datasets = len(datasets)
-    total = 0
+    total_resources = 0
     still_fresh_count = 0
     datahumdataorg_count = 0
     managehdxrwlabsorg_count = 0
     proxyhxlstandardorg_count = 0
-    scraperwikicom_count = 0
     ourairportscom_count = 0
     revision_count = 0
     last_modified_check = list()
@@ -117,26 +122,35 @@ def main(configuration):
         dataset_id = dataset['id']
         dbdataset = session.query(DBDataset).filter_by(id=dataset_id).first()
         resources = dataset.get_resources()
+        total_resources += len(resources)
         fresh = None
         fresh_days = None
         update_frequency = dataset.get('data_update_frequency')
         if update_frequency is not None:
             update_frequency = int(update_frequency)
             if update_frequency == 0:
-                fresh = True
+                fresh = 0
+                if dbdataset:
+                    still_fresh_count += len(resources)
+                    for dbresource in session.query(DBResource).filter_by(dataset_id=dataset_id):
+                        dbresource.updated = ''
+                    continue
             else:
                 fresh_days = datetime.timedelta(days=update_frequency)
                 if dbdataset:
                     fresh_end = dbdataset.last_modified + fresh_days
-                    if fresh_end >= datetime.datetime.utcnow():
+                    delta = fresh_end - datetime.datetime.utcnow()
+                    if delta >= aging[update_frequency]['Delinquent']:
+                        fresh = 2
+                    elif delta >= aging[update_frequency]['Overdue']:
+                        fresh = 1
+                    else:
                         still_fresh_count += len(resources)
                         for dbresource in session.query(DBResource).filter_by(dataset_id=dataset_id):
                             dbresource.updated = ''
                         continue
-                    fresh = False
         dataset_last_modified = None
         resource_updated = None
-        total += len(resources)
         dataset_resources = list()
         for resource in resources:
             resource_id = resource['id']
@@ -164,9 +178,7 @@ def main(configuration):
                 dbresource.updated = ''
                 if revision_last_updated > dbresource.revision_last_updated:
                     dbresource.revision_last_updated = revision_last_updated
-                if revision_last_updated > dbresource.last_modified:
-                    dbresource.last_modified = revision_last_updated
-                    dbresource.updated = 'revision'
+                set_last_modified(dbresource, revision_last_updated, 'revision')
             if 'data.humdata.org' in url:
                 datahumdataorg_count += 1
                 continue
@@ -175,9 +187,6 @@ def main(configuration):
                 continue
             if 'proxy.hxlstandard.org' in url:
                 proxyhxlstandardorg_count += 1
-                continue
-            if 'scraperwiki.com' in url:
-                scraperwikicom_count += 1
                 continue
             if 'ourairports.com' in url:
                 ourairportscom_count += 1
@@ -217,12 +226,26 @@ def main(configuration):
     results = loop.run_until_complete(future)
     logger.info('Execution time: %s seconds' % (time.time() - start_time))
 
+    hash_check = list()
+    for resource_id in results:
+        url, status, result = results[resource_id]
+        if status == 2:
+            dbresource = session.query(DBResource).filter_by(id=resource_id).first()
+            if dbresource.md5_hash != result:  # File changed
+                hash_check.append((url, resource_id))
+    start_time = time.time()
+    future = asyncio.ensure_future(check_resources_for_last_modified(hash_check, loop))
+    hash_results = loop.run_until_complete(future)
+    logger.info('Execution time: %s seconds' % (time.time() - start_time))
+
     lastmodified_count = 0
     hash_updated_count = 0
     hash_unchanged_count = 0
+    api_count = 0
     failed_count = 0
     datasets = dict()
-    for resource_id, url, status, result in results:
+    for resource_id in results:
+        url, status, result = results[resource_id]
         dbresource = session.query(DBResource).filter_by(id=resource_id).first()
         dataset_id = dbresource.dataset_id
         datasetinfo = datasets.get(dataset_id, dict())
@@ -239,10 +262,27 @@ def main(configuration):
             if dbresource.md5_hash == result:  # File unchanged
                 hash_unchanged_count += 1
             else:  # File updated
-                hash_updated_count += 1
-                dbresource.md5_hash = result
-                dbresource.last_hash_date = datetime.datetime.utcnow()
-                set_last_modified(dbresource, dbresource.last_hash_date, 'hash')
+                hash_url, hash_status, hash_result = hash_results[resource_id]
+                if hash_status == 0:
+                    failed_count += 1
+                    dbresource.error = result
+                    datasetinfo[resource_id] = None
+                elif hash_status == 1:
+                    lastmodified_count += 1
+                    dbresource.http_last_modified = parser.parse(result, ignoretz=True)
+                    set_last_modified(dbresource, dbresource.http_last_modified, 'http header')
+                    datasetinfo[resource_id] = dbresource.last_modified
+                elif hash_status == 2:
+                    dbresource.md5_hash = hash_result
+                    dbresource.last_hash_date = datetime.datetime.utcnow()
+                    if hash_result == result:
+                        hash_updated_count += 1
+                        set_last_modified(dbresource, dbresource.last_hash_date, 'hash')
+                    else:
+                        api_count += 1
+                        set_last_modified(dbresource, dbresource.last_hash_date, 'api')
+                else:
+                    raise ValueError('Invalid status returned!')
             datasetinfo[resource_id] = dbresource.last_modified
         else:
             raise ValueError('Invalid status returned!')
@@ -274,11 +314,10 @@ def main(configuration):
     session.commit()
 
     str = 'Resources\n\ndata.humdata.org: %d, manage.hdx.rwlabs.org: %d, ' % (datahumdataorg_count, managehdxrwlabsorg_count)
-    str += 'proxy.hxlstandard.org: %d, scraperwiki.com: %d, ' % (proxyhxlstandardorg_count, scraperwikicom_count)
-    str += 'ourairports.com: %d\n' % ourairportscom_count
+    str += 'proxy.hxlstandard.org: %d, ourairports.com: %d\n' % (proxyhxlstandardorg_count, ourairportscom_count)
     str += 'Still Fresh: %d, Revision Last Updated: %d, Last-Modified: %d, ' % (still_fresh_count, revision_count, lastmodified_count)
-    str += 'Hash updated: %d, Hash Unchanged: %d\n' % (hash_updated_count, hash_unchanged_count)
-    str += 'Number Failed: %d, Total resources: %d\nTotal datasets: %s' % (failed_count, total, total_datasets)
+    str += 'Hash updated: %d, Hash Unchanged: %d, API: %d\n' % (hash_updated_count, hash_unchanged_count, api_count)
+    str += 'Number Failed: %d, Total resources: %d\nTotal datasets: %s' % (failed_count, total_resources, total_datasets)
     logger.info(str)
 
 if __name__ == '__main__':

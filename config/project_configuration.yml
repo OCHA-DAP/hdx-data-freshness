@@ -1,2 +1,23 @@
 # Collector specific configuration
-search_query: "name:"
+aging:
+  1:
+    Overdue: 2
+    Delinquent: 3
+  7:
+    Overdue: 14
+    Delinquent: 21
+  14:
+    Overdue: 21
+    Delinquent: 28
+  30:
+    Overdue: 44
+    Delinquent: 60
+  90:
+    Overdue: 120
+    Delinquent: 150
+  180:
+    Overdue: 210
+    Delinquent: 240
+  365:
+    Overdue: 425
+    Delinquent: 455

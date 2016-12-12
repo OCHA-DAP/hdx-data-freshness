@@ -11,7 +11,7 @@ class DBDataset(Base):
     update_frequency = Column(Integer)
     last_modified = Column(DateTime, nullable=False)
     resource_updated = Column(String, nullable=False)
-    fresh = Column(Boolean)
+    fresh = Column(Integer)
     error = Column(Boolean, nullable=False)
 
     def __repr__(self):
