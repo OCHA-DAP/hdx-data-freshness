@@ -49,7 +49,8 @@ class Freshness:
         for key, value in configuration['aging'].items():
             period = int(key)
             aging_period = dict()
-            for status, nodays in value:
+            for status in value:
+                nodays = value[status]
                 aging_period[status] = datetime.timedelta(days=nodays)
             self.aging[period] = aging_period
 
@@ -60,13 +61,11 @@ class Freshness:
             dbdataset = self.session.query(DBDataset).filter_by(id=dataset_id).first()
             resources = dataset.get_resources()
             self.total_resources += len(resources)
-            fresh = None
             fresh_days = None
             update_frequency = dataset.get('data_update_frequency')
             if update_frequency is not None:
                 update_frequency = int(update_frequency)
                 if update_frequency == 0:
-                    fresh = 0
                     if dbdataset:
                         self.still_fresh_count += len(resources)
                         for dbresource in self.session.query(DBResource).filter_by(dataset_id=dataset_id):
@@ -75,7 +74,7 @@ class Freshness:
                 else:
                     fresh_days = datetime.timedelta(days=update_frequency)
                     if dbdataset:
-                        fresh = self.calculate_aging(dbdataset, update_frequency, fresh_days)
+                        fresh = self.calculate_aging(dbdataset.last_modified, update_frequency, fresh_days)
                         if fresh == 0:
                             self.still_fresh_count += len(resources)
                             for dbresource in self.session.query(DBResource).filter_by(dataset_id=dataset_id):
@@ -84,11 +83,11 @@ class Freshness:
             dataset_resources, dataset_last_modified, resource_updated = self.process_resources(dataset_id, resources)
             dataset_name = dataset['name']
             dataset_date = dataset.get('dataset_date')
-            metadata_modified = dataset['metadata_modified']
+            metadata_modified = parser.parse(dataset['metadata_modified'], ignoretz=True)
             if metadata_modified > dataset_last_modified:
                 dataset_last_modified = metadata_modified
                 resource_updated = 'dataset metadata'
-            fresh = self.calculate_aging(dbdataset, update_frequency, fresh_days)
+            fresh = self.calculate_aging(dataset_last_modified, update_frequency, fresh_days)
             if dbdataset is None:
                 dbdataset = DBDataset(id=dataset_id, name=dataset_name, dataset_date=dataset_date,
                                       update_frequency=update_frequency, metadata_modified=metadata_modified,
@@ -120,9 +119,7 @@ class Freshness:
             resource_id = resource['id']
             url = resource['url']
             name = resource['name']
-            revision_last_updated = resource.get('revision_last_updated', None)
-            if revision_last_updated:
-                revision_last_updated = parser.parse(revision_last_updated, ignoretz=True)
+            revision_last_updated = parser.parse(resource['revision_last_updated'], ignoretz=True)
             if dataset_last_modified:
                 if revision_last_updated > dataset_last_modified:
                     dataset_last_modified = revision_last_updated
@@ -240,7 +237,7 @@ class Freshness:
                 update_frequency = dbdataset.update_frequency
                 if update_frequency is not None:
                     fresh_days = datetime.timedelta(days=update_frequency)
-                    dbdataset.fresh = self.calculate_aging(dbdataset, update_frequency, fresh_days)
+                    dbdataset.fresh = self.calculate_aging(dbdataset.last_modified, update_frequency, fresh_days)
             dbdataset.error = all_errors
         self.session.commit()
 
@@ -258,10 +255,10 @@ class Freshness:
             dbresource.last_modified = modified_date
             dbresource.updated = updated
 
-    def calculate_aging(self, dbdataset, update_frequency, fresh_days):
+    def calculate_aging(self, last_modified, update_frequency, fresh_days):
         if fresh_days is None:
             return None
-        fresh_end = dbdataset.last_modified + fresh_days
+        fresh_end = last_modified + fresh_days
         delta = fresh_end - datetime.datetime.utcnow()
         if delta >= self.aging[update_frequency]['Delinquent']:
             return 2
