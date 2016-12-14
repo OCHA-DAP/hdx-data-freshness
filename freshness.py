@@ -78,7 +78,7 @@ class Freshness:
                 else:
                     fresh_days = datetime.timedelta(days=update_frequency)
                     if dbdataset:
-                        fresh = self.calculate_aging(dbdataset.last_modified, update_frequency, fresh_days)
+                        fresh = self.calculate_aging(dbdataset.last_modified, update_frequency)
                         if fresh == 0:
                             self.still_fresh_count += 1
                             for dbresource in self.session.query(DBResource).filter_by(dataset_id=dataset_id):
@@ -88,11 +88,11 @@ class Freshness:
             dataset_name = dataset['name']
             dataset_date = dataset.get('dataset_date')
             metadata_modified = parser.parse(dataset['metadata_modified'], ignoretz=True)
-            if metadata_modified > dataset_last_modified:
-                dataset_last_modified = metadata_modified
-                resource_updated = 'dataset metadata'
+#            if metadata_modified > dataset_last_modified:
+#                dataset_last_modified = metadata_modified
+#                resource_updated = 'dataset metadata'
             if fresh_days is not None:
-                fresh = self.calculate_aging(dataset_last_modified, update_frequency, fresh_days)
+                fresh = self.calculate_aging(dataset_last_modified, update_frequency)
             if dbdataset is None:
                 dbdataset = DBDataset(id=dataset_id, name=dataset_name, dataset_date=dataset_date,
                                       update_frequency=update_frequency, metadata_modified=metadata_modified,
@@ -244,8 +244,7 @@ class Freshness:
                 dbdataset.resource_updated = resource_updated
                 update_frequency = dbdataset.update_frequency
                 if update_frequency is not None:
-                    fresh_days = datetime.timedelta(days=update_frequency)
-                    dbdataset.fresh = self.calculate_aging(dbdataset.last_modified, update_frequency, fresh_days)
+                    dbdataset.fresh = self.calculate_aging(dbdataset.last_modified, update_frequency)
             dbdataset.error = all_errors
         self.session.commit()
 
@@ -268,9 +267,8 @@ class Freshness:
             dbresource.last_modified = modified_date
             dbresource.updated = updated
 
-    def calculate_aging(self, last_modified, update_frequency, fresh_days):
-        fresh_end = last_modified + fresh_days
-        delta = fresh_end - datetime.datetime.utcnow()
+    def calculate_aging(self, last_modified, update_frequency):
+        delta = datetime.datetime.utcnow() - last_modified
         if delta >= self.aging[update_frequency]['Delinquent']:
             return 3
         elif delta >= self.aging[update_frequency]['Overdue']:
