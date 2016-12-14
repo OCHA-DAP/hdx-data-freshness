@@ -32,13 +32,15 @@ class Freshness:
         
         self.datasets = Dataset.get_all_datasets(configuration, False)
         self.total_datasets = len(self.datasets)
-        self.total_resources = 0
         self.still_fresh_count = 0
+        self.never_update = 0
+        self.total_resources = 0
         self.datahumdataorg_count = 0
         self.managehdxrwlabsorg_count = 0
         self.proxyhxlstandardorg_count = 0
         self.ourairportscom_count = 0
         self.revision_count = 0
+        self.metadata_count = 0
         self.lastmodified_count = 0
         self.hash_updated_count = 0
         self.hash_unchanged_count = 0
@@ -61,13 +63,15 @@ class Freshness:
             dbdataset = self.session.query(DBDataset).filter_by(id=dataset_id).first()
             resources = dataset.get_resources()
             self.total_resources += len(resources)
+            fresh = None
             fresh_days = None
             update_frequency = dataset.get('data_update_frequency')
             if update_frequency is not None:
                 update_frequency = int(update_frequency)
                 if update_frequency == 0:
+                    fresh = 0
+                    self.never_update += 1
                     if dbdataset:
-                        self.still_fresh_count += len(resources)
                         for dbresource in self.session.query(DBResource).filter_by(dataset_id=dataset_id):
                             dbresource.updated = ''
                         continue
@@ -76,7 +80,7 @@ class Freshness:
                     if dbdataset:
                         fresh = self.calculate_aging(dbdataset.last_modified, update_frequency, fresh_days)
                         if fresh == 0:
-                            self.still_fresh_count += len(resources)
+                            self.still_fresh_count += 1
                             for dbresource in self.session.query(DBResource).filter_by(dataset_id=dataset_id):
                                 dbresource.updated = ''
                             continue
@@ -87,7 +91,8 @@ class Freshness:
             if metadata_modified > dataset_last_modified:
                 dataset_last_modified = metadata_modified
                 resource_updated = 'dataset metadata'
-            fresh = self.calculate_aging(dataset_last_modified, update_frequency, fresh_days)
+            if fresh_days is not None:
+                fresh = self.calculate_aging(dataset_last_modified, update_frequency, fresh_days)
             if dbdataset is None:
                 dbdataset = DBDataset(id=dataset_id, name=dataset_name, dataset_date=dataset_date,
                                       update_frequency=update_frequency, metadata_modified=metadata_modified,
@@ -104,8 +109,11 @@ class Freshness:
                     dbdataset.last_modified = dataset_last_modified
                     dbdataset.resource_updated = resource_updated
                 dbdataset.fresh = fresh
-            if fresh:
-                self.revision_count += len(dataset_resources)
+            if fresh == 0:
+                if resource_updated == 'dataset metadata':
+                    self.metadata_count += 1
+                else:
+                    self.revision_count += len(dataset_resources)
             else:
                 metadata += dataset_resources
         self.session.commit()
@@ -242,11 +250,16 @@ class Freshness:
         self.session.commit()
 
     def output_counts(self):
-        str = 'Resources\n\ndata.humdata.org: %d, manage.hdx.rwlabs.org: %d, ' % (self.datahumdataorg_count, self.managehdxrwlabsorg_count)
+        str = '\nResources - Total: %d\ndata.humdata.org: %d, ' % (self.total_resources, self.datahumdataorg_count)
+        str += 'manage.hdx.rwlabs.org: % d, ' % self.managehdxrwlabsorg_count
         str += 'proxy.hxlstandard.org: %d, ourairports.com: %d\n' % (self.proxyhxlstandardorg_count, self.ourairportscom_count)
-        str += 'Still Fresh: %d, Revision Last Updated: %d, Last-Modified: %d, ' % (self.still_fresh_count, self.revision_count, self.lastmodified_count)
-        str += 'Hash updated: %d, Hash Unchanged: %d, API: %d\n' % (self.hash_updated_count, self.hash_unchanged_count, self.self.api_count)
-        str += 'Number Failed: %d, Total resources: %d\nTotal datasets: %s' % (self.failed_count, self.total_resources, self.total_datasets)
+        if self.revision_count != 0:
+            str += 'Revision Last Updated: %d, ' % self.revision_count
+        str += 'Last-Modified: %d, ' % self.lastmodified_count
+        str += 'Hash updated: %d, Hash Unchanged: %d, API: %d\n' % (self.hash_updated_count, self.hash_unchanged_count, self.api_count)
+        str += 'Number Failed: %d\n\n' % self.failed_count
+        str += 'Datasets - Total: %s\nStill Fresh: %d, ' % (self.total_datasets, self.still_fresh_count)
+        str += 'Never update frequency: %d, Metadata Updated: %d' % (self.never_update, self.metadata_count)
         logger.info(str)
 
     @staticmethod
@@ -256,13 +269,13 @@ class Freshness:
             dbresource.updated = updated
 
     def calculate_aging(self, last_modified, update_frequency, fresh_days):
-        if fresh_days is None:
-            return None
         fresh_end = last_modified + fresh_days
         delta = fresh_end - datetime.datetime.utcnow()
         if delta >= self.aging[update_frequency]['Delinquent']:
-            return 2
+            return 3
         elif delta >= self.aging[update_frequency]['Overdue']:
+            return 2
+        elif delta >= self.aging[update_frequency]['Due']:
             return 1
         return 0
 
