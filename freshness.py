@@ -258,9 +258,9 @@ class Freshness:
         str += 'Hash updated: %d, Hash Unchanged: %d, API: %d\n' % (self.hash_updated_count, self.hash_unchanged_count, self.api_count)
         str += 'Number Failed: %d\n\n' % self.failed_count
         str += 'Datasets - Total: %s\nStill Fresh: %d, ' % (self.total_datasets, self.still_fresh_count)
-        str += 'Never update frequency: %d, Dataset Metadata Updated: %d, ' % (self.never_update, self.metadata_count)
+        str += 'Never update frequency: %d, Dataset Metadata Updated: %d' % (self.never_update, self.metadata_count)
         if self.revision_count != 0:
-            str += 'Resource Metadata Updated (subset of Dataset Metadata Updated): %d' % self.revision_count
+            str += ', Resource Metadata Updated (subset of Dataset Metadata Updated): %d' % self.revision_count
         logger.info(str)
 
     @staticmethod
