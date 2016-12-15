@@ -64,7 +64,6 @@ class Freshness:
             resources = dataset.get_resources()
             self.total_resources += len(resources)
             fresh = None
-            fresh_days = None
             update_frequency = dataset.get('data_update_frequency')
             if update_frequency is not None:
                 update_frequency = int(update_frequency)
@@ -76,7 +75,6 @@ class Freshness:
                             dbresource.updated = ''
                         continue
                 else:
-                    fresh_days = datetime.timedelta(days=update_frequency)
                     if dbdataset:
                         fresh = self.calculate_aging(dbdataset.last_modified, update_frequency)
                         if fresh == 0:
@@ -88,16 +86,29 @@ class Freshness:
             dataset_name = dataset['name']
             dataset_date = dataset.get('dataset_date')
             metadata_modified = parser.parse(dataset['metadata_modified'], ignoretz=True)
-#            if metadata_modified > dataset_last_modified:
-#                dataset_last_modified = metadata_modified
-#                resource_updated = 'dataset metadata'
-            if fresh_days is not None:
+            if metadata_modified > dataset_last_modified:
+                delta = metadata_modified - dataset_last_modified
+                if delta > datetime.timedelta(minutes=1):
+                    dataset_last_modified = metadata_modified
+                    dataset_updated = 1  # Dataset updated: metadata change not from resource change
+                else:
+                    metadata_created = parser.parse(dataset['metadata_created'], ignoretz=True)
+                    delta = metadata_modified - metadata_created
+                    if delta < datetime.timedelta(seconds=1):
+                        dataset_last_modified = metadata_modified
+                        dataset_updated = 0  # Dataset created: metadata change not from resource change
+                    else:
+                        dataset_updated = 2  # Dataset updated: metadata change from resource change
+            else:
+                raise ValueError('Not possible for metadata_modified < resource revision_last_updated')
+
+            if update_frequency:
                 fresh = self.calculate_aging(dataset_last_modified, update_frequency)
             if dbdataset is None:
                 dbdataset = DBDataset(id=dataset_id, name=dataset_name, dataset_date=dataset_date,
                                       update_frequency=update_frequency, metadata_modified=metadata_modified,
-                                      last_modified=dataset_last_modified, resource_updated=resource_updated,
-                                      fresh=fresh, error=False)
+                                      last_modified=dataset_last_modified, dataset_updated=dataset_updated,
+                                      resource_updated=resource_updated, fresh=fresh, error=False)
                 self.session.add(dbdataset)
             else:
                 dbdataset.name = dataset_name
@@ -107,13 +118,14 @@ class Freshness:
                 dbdataset.resource_updated = ''
                 if dataset_last_modified > dbdataset.last_modified:
                     dbdataset.last_modified = dataset_last_modified
-                    dbdataset.resource_updated = resource_updated
+                    if dataset_updated == 2:
+                        dbdataset.resource_updated = resource_updated
                 dbdataset.fresh = fresh
             if fresh == 0:
-                if resource_updated == 'dataset metadata':
-                    self.metadata_count += 1
-                else:
+                if dataset_updated == 2:
                     self.revision_count += len(dataset_resources)
+                else:
+                    self.metadata_count += 1
             else:
                 metadata += dataset_resources
         self.session.commit()
