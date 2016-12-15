@@ -20,11 +20,11 @@ class DBResource(Base):
     updated = Column(String, nullable=False)
 
     def __repr__(self):
-        output = '<Resource(id=%s, name=%s, url=%s, dataset id = %s, ' % (self.id, self.name, self.url, self.dataset_id)
-        output2 = 'broken=%s, last_modified=%s, revision_last_updated=%s, ' % (self.broken_url, str(self.last_modified),
+        output = '<Resource(id=%s, name=%s, url=%s, dataset id = %s,\n' % (self.id, self.name, self.url, self.dataset_id)
+        output += 'broken=%s, last_modified=%s, revision_last_updated=%s, ' % (self.broken_url, str(self.last_modified),
                                                                                str(self.revision_last_modified))
-        output3 = 'http_last_modified=%s, MD5_hash=%s, hash_date=%s)>' % (str(self.http_last_modified),
+        output += 'http_last_modified=%s, MD5_hash=%s, hash_date=%s)>' % (str(self.http_last_modified),
                                                                           str(self.MD5_hash),
                                                                           str(self.last_hash_date))
-        output4 = 'updated=%s)>' % str(self.updated)
-        return '%s\n%s%s%s' % (output, output2, output3, output4)
+        output += 'updated=%s)>' % str(self.updated)
+        return output

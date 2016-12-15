@@ -82,71 +82,57 @@ class Freshness:
                             for dbresource in self.session.query(DBResource).filter_by(dataset_id=dataset_id):
                                 dbresource.updated = ''
                             continue
-            dataset_resources, dataset_last_modified, resource_updated = self.process_resources(dataset_id, resources)
+            dataset_resources, last_resource_updated, last_resource_modified = self.process_resources(dataset_id, resources)
             dataset_name = dataset['name']
             dataset_date = dataset.get('dataset_date')
             metadata_modified = parser.parse(dataset['metadata_modified'], ignoretz=True)
-            if metadata_modified > dataset_last_modified:
-                delta = metadata_modified - dataset_last_modified
-                if delta > datetime.timedelta(minutes=1):
-                    dataset_last_modified = metadata_modified
-                    dataset_updated = 1  # Dataset updated: metadata change not from resource change
-                else:
-                    metadata_created = parser.parse(dataset['metadata_created'], ignoretz=True)
-                    delta = metadata_modified - metadata_created
-                    if delta < datetime.timedelta(seconds=1):
-                        dataset_last_modified = metadata_modified
-                        dataset_updated = 0  # Dataset created: metadata change not from resource change
-                    else:
-                        dataset_updated = 2  # Dataset updated: metadata change from resource change
-            else:
-                raise ValueError('Not possible for metadata_modified < resource revision_last_updated')
-
             if update_frequency:
-                fresh = self.calculate_aging(dataset_last_modified, update_frequency)
+                fresh = self.calculate_aging(metadata_modified, update_frequency)
             if dbdataset is None:
                 dbdataset = DBDataset(id=dataset_id, name=dataset_name, dataset_date=dataset_date,
                                       update_frequency=update_frequency, metadata_modified=metadata_modified,
-                                      last_modified=dataset_last_modified, dataset_updated=dataset_updated,
-                                      resource_updated=resource_updated, fresh=fresh, error=False)
+                                      last_modified=metadata_modified,
+                                      last_resource_updated=last_resource_updated, last_resource_modified =last_resource_modified,
+                                      fresh=fresh, error=False)
                 self.session.add(dbdataset)
+                if fresh == 0:
+                    self.revision_count += 1
             else:
                 dbdataset.name = dataset_name
                 dbdataset.dataset_date = dataset_date
                 dbdataset.update_frequency = update_frequency
+                if last_resource_modified > dbdataset.last_resource_modified:
+                    dbdataset.last_resource_updated = last_resource_updated
+                    dbdataset.last_resource_modified = last_resource_modified
+                    if fresh == 0 and last_resource_modified > dbdataset.last_modified:
+                        self.revision_count += 1
                 dbdataset.metadata_modified = metadata_modified
-                dbdataset.resource_updated = ''
-                if dataset_last_modified > dbdataset.last_modified:
-                    dbdataset.last_modified = dataset_last_modified
-                    if dataset_updated == 2:
-                        dbdataset.resource_updated = resource_updated
+                if metadata_modified > dbdataset.last_modified:
+                    dbdataset.last_modified = metadata_modified
                 dbdataset.fresh = fresh
             if fresh == 0:
-                if dataset_updated == 2:
-                    self.revision_count += len(dataset_resources)
-                else:
-                    self.metadata_count += 1
+                self.metadata_count += 1
             else:
                 metadata += dataset_resources
         self.session.commit()
         return metadata
 
     def process_resources(self, dataset_id, resources):
-        dataset_last_modified = None
-        resource_updated = None
+        last_resource_updated = None
+        last_resource_modified = None
         dataset_resources = list()
         for resource in resources:
             resource_id = resource['id']
             url = resource['url']
             name = resource['name']
             revision_last_updated = parser.parse(resource['revision_last_updated'], ignoretz=True)
-            if dataset_last_modified:
-                if revision_last_updated > dataset_last_modified:
-                    dataset_last_modified = revision_last_updated
-                    resource_updated = resource_id
+            if last_resource_modified:
+                if revision_last_updated > last_resource_modified:
+                    last_resource_updated = resource_id
+                    last_resource_modified = revision_last_updated
             else:
-                dataset_last_modified = revision_last_updated
-                resource_updated = resource_id
+                last_resource_updated = resource_id
+                last_resource_modified = revision_last_updated
             dbresource = self.session.query(DBResource).filter_by(id=resource_id).first()
             if dbresource is None:
                 dbresource = DBResource(id=resource_id, name=name, dataset_id=dataset_id, url=url,
@@ -174,7 +160,7 @@ class Freshness:
                 self.ourairportscom_count += 1
                 continue
             dataset_resources.append((url, resource_id))
-        return dataset_resources, dataset_last_modified, resource_updated
+        return dataset_resources, last_resource_updated, last_resource_modified
 
     def check_urls(self, metadata):
         results = retrieve(metadata)
@@ -242,18 +228,22 @@ class Freshness:
             dbdataset = self.session.query(DBDataset).filter_by(id=dataset_id).first()
             dataset = datasets[dataset_id]
             dataset_last_modified = dbdataset.last_modified
-            resource_updated = ''
+            last_resource_modified = dbdataset.last_resource_modified
+            last_resource_updated = dbdataset.last_resource_updated
             all_errors = True
             for resource_id in dataset:
-                resource_last_modified = dataset[resource_id]
-                if resource_last_modified:
+                new_last_resource_modified = dataset[resource_id]
+                if new_last_resource_modified:
                     all_errors = False
-                    if resource_last_modified > dataset_last_modified:
-                        dataset_last_modified = resource_last_modified
-                        resource_updated = resource_id
+                    if new_last_resource_modified > last_resource_modified:
+                        last_resource_updated = resource_id
+                        last_resource_modified = new_last_resource_modified
+                    if new_last_resource_modified > dataset_last_modified:
+                        dataset_last_modified = new_last_resource_modified
+            dbdataset.last_resource_updated = last_resource_updated
+            dbdataset.last_resource_modified = last_resource_modified
             if dataset_last_modified > dbdataset.last_modified:
                 dbdataset.last_modified = dataset_last_modified
-                dbdataset.resource_updated = resource_updated
                 update_frequency = dbdataset.update_frequency
                 if update_frequency is not None:
                     dbdataset.fresh = self.calculate_aging(dbdataset.last_modified, update_frequency)
@@ -264,13 +254,13 @@ class Freshness:
         str = '\nResources - Total: %d\ndata.humdata.org: %d, ' % (self.total_resources, self.datahumdataorg_count)
         str += 'manage.hdx.rwlabs.org: % d, ' % self.managehdxrwlabsorg_count
         str += 'proxy.hxlstandard.org: %d, ourairports.com: %d\n' % (self.proxyhxlstandardorg_count, self.ourairportscom_count)
-        if self.revision_count != 0:
-            str += 'Revision Last Updated: %d, ' % self.revision_count
         str += 'Last-Modified: %d, ' % self.lastmodified_count
         str += 'Hash updated: %d, Hash Unchanged: %d, API: %d\n' % (self.hash_updated_count, self.hash_unchanged_count, self.api_count)
         str += 'Number Failed: %d\n\n' % self.failed_count
         str += 'Datasets - Total: %s\nStill Fresh: %d, ' % (self.total_datasets, self.still_fresh_count)
-        str += 'Never update frequency: %d, Metadata Updated: %d' % (self.never_update, self.metadata_count)
+        str += 'Never update frequency: %d, Dataset Metadata Updated: %d, ' % (self.never_update, self.metadata_count)
+        if self.revision_count != 0:
+            str += 'Resource Metadata Updated (subset of Dataset Metadata Updated): %d' % self.revision_count
         logger.info(str)
 
     @staticmethod
