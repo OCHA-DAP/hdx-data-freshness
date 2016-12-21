@@ -18,6 +18,7 @@ from sqlalchemy import create_engine
 from database.base import Base
 from database.dbdataset import DBDataset
 from database.dbresource import DBResource
+from database.dbrun import DBRun
 from retrieval import retrieve
 
 logger = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ class Freshness:
         Base.metadata.create_all(engine)
         self.session = Session()
         
-        self.datasets = Dataset.get_all_datasets(configuration, False)
+        self.datasets = Dataset.get_all_datasets(configuration, False, rows=100)
         self.total_datasets = len(self.datasets)
         self.still_fresh_count = 0
         self.never_update = 0
@@ -55,12 +56,17 @@ class Freshness:
                 nodays = value[status]
                 aging_period[status] = datetime.timedelta(days=nodays)
             self.aging[period] = aging_period
+        self.now = datetime.datetime.utcnow()
+        dbrun = DBRun(run_date=self.now)
+        self.session.add(dbrun)
+        self.session.commit()
 
     def process_datasets(self):
         metadata = list()
         for dataset in self.datasets:
             dataset_id = dataset['id']
-            dbdataset = self.session.query(DBDataset).filter_by(id=dataset_id).first()
+            dbdataset = self.session.query(DBDataset).filter_by(id=dataset_id).\
+                order_by(DBDataset.run_date.desc()).first()
             resources = dataset.get_resources()
             self.total_resources += len(resources)
             fresh = None
@@ -70,46 +76,37 @@ class Freshness:
                 if update_frequency == 0:
                     fresh = 0
                     self.never_update += 1
-                    if dbdataset:
-                        for dbresource in self.session.query(DBResource).filter_by(dataset_id=dataset_id):
-                            dbresource.updated = ''
-                        continue
                 else:
                     if dbdataset:
                         fresh = self.calculate_aging(dbdataset.last_modified, update_frequency)
                         if fresh == 0:
                             self.still_fresh_count += 1
-                            for dbresource in self.session.query(DBResource).filter_by(dataset_id=dataset_id):
-                                dbresource.updated = ''
-                            continue
-            dataset_resources, last_resource_updated, last_resource_modified = self.process_resources(dataset_id, resources)
+            dataset_resources, last_resource_updated, last_resource_modified = \
+                self.process_resources(dataset_id, dbdataset, resources)
             dataset_name = dataset['name']
             dataset_date = dataset.get('dataset_date')
             metadata_modified = parser.parse(dataset['metadata_modified'], ignoretz=True)
             if update_frequency:
                 fresh = self.calculate_aging(metadata_modified, update_frequency)
-            if dbdataset is None:
-                dbdataset = DBDataset(id=dataset_id, name=dataset_name, dataset_date=dataset_date,
+            new_dbdataset = DBDataset(run_date=self.now, id=dataset_id, name=dataset_name, dataset_date=dataset_date,
                                       update_frequency=update_frequency, metadata_modified=metadata_modified,
-                                      last_modified=metadata_modified,
-                                      last_resource_updated=last_resource_updated, last_resource_modified =last_resource_modified,
-                                      fresh=fresh, error=False)
-                self.session.add(dbdataset)
+                                      last_modified=metadata_modified, last_resource_updated=last_resource_updated,
+                                      last_resource_modified=last_resource_modified, fresh=fresh, error=False)
+            if dbdataset is None:
                 if fresh == 0:
                     self.revision_count += 1
             else:
-                dbdataset.name = dataset_name
-                dbdataset.dataset_date = dataset_date
-                dbdataset.update_frequency = update_frequency
                 if last_resource_modified > dbdataset.last_resource_modified:
-                    dbdataset.last_resource_updated = last_resource_updated
-                    dbdataset.last_resource_modified = last_resource_modified
                     if fresh == 0 and last_resource_modified > dbdataset.last_modified:
                         self.revision_count += 1
-                dbdataset.metadata_modified = metadata_modified
-                if metadata_modified > dbdataset.last_modified:
-                    dbdataset.last_modified = metadata_modified
+                else:
+                    new_dbdataset.last_resource_updated = dbdataset.last_resource_updated
+                    new_dbdataset.last_resource_modified = dbdataset.last_resource_modified
+                if metadata_modified <= dbdataset.last_modified:
+                    new_dbdataset.last_modified = dbdataset.last_modified
                 dbdataset.fresh = fresh
+
+            self.session.add(new_dbdataset)
             if fresh == 0:
                 self.metadata_count += 1
             else:
@@ -117,7 +114,7 @@ class Freshness:
         self.session.commit()
         return metadata
 
-    def process_resources(self, dataset_id, resources):
+    def process_resources(self, dataset_id, dbdataset, resources):
         last_resource_updated = None
         last_resource_modified = None
         dataset_resources = list()
@@ -133,20 +130,16 @@ class Freshness:
             else:
                 last_resource_updated = resource_id
                 last_resource_modified = revision_last_updated
-            dbresource = self.session.query(DBResource).filter_by(id=resource_id).first()
-            if dbresource is None:
-                dbresource = DBResource(id=resource_id, name=name, dataset_id=dataset_id, url=url,
+            new_dbresource = DBResource(run_date=self.now, id=resource_id, name=name, dataset_id=dataset_id, url=url,
                                         last_modified=revision_last_updated,
-                                        revision_last_updated=revision_last_updated,
-                                        updated='revision')
-                self.session.add(dbresource)
-            else:
-                dbresource.name = name
-                dbresource.url = url
-                dbresource.updated = ''
-                if revision_last_updated > dbresource.revision_last_updated:
-                    dbresource.revision_last_updated = revision_last_updated
-                self.set_resource_last_modified(dbresource, revision_last_updated, 'revision')
+                                        revision_last_updated=revision_last_updated, updated='revision')
+            if dbdataset is not None:
+                dbresource = self.session.query(DBResource).filter_by(id=resource_id,
+                                                                      run_date=dbdataset.run_date).first()
+                if dbresource is not None:
+                    self.set_resource_last_modified(new_dbresource, dbresource.last_modified, '')
+                    new_dbresource.md5_hash = dbresource.md5_hash
+
             if 'data.humdata.org' in url:
                 self.datahumdataorg_count += 1
                 continue
@@ -159,6 +152,7 @@ class Freshness:
             if 'ourairports.com' in url:
                 self.ourairportscom_count += 1
                 continue
+            self.session.add(new_dbresource)
             dataset_resources.append((url, resource_id))
         return dataset_resources, last_resource_updated, last_resource_modified
 
@@ -169,7 +163,7 @@ class Freshness:
         for resource_id in results:
             url, status, result = results[resource_id]
             if status == 2:
-                dbresource = self.session.query(DBResource).filter_by(id=resource_id).first()
+                dbresource = self.session.query(DBResource).filter_by(id=resource_id, run_date=self.now).first()
                 if dbresource.md5_hash != result:  # File changed
                     hash_check.append((url, resource_id))
         hash_results = retrieve(hash_check)
@@ -179,7 +173,7 @@ class Freshness:
         datasets_lastmodified = dict()
         for resource_id in results:
             url, status, result = results[resource_id]
-            dbresource = self.session.query(DBResource).filter_by(id=resource_id).first()
+            dbresource = self.session.query(DBResource).filter_by(id=resource_id, run_date=self.now).first()
             dataset_id = dbresource.dataset_id
             datasetinfo = datasets_lastmodified.get(dataset_id, dict())
             if status == 0:
@@ -203,17 +197,17 @@ class Freshness:
                     elif hash_status == 1:
                         self.lastmodified_count += 1
                         dbresource.http_last_modified = parser.parse(result, ignoretz=True)
-                        self.set_resource_last_modified(dbresource, dbresource.http_last_modified, 'http header')
+                        self.set_resource_last_modified(dbresource, dbresource.http_last_modified,
+                                                        'http header')
                         datasetinfo[resource_id] = dbresource.last_modified
                     elif hash_status == 2:
                         dbresource.md5_hash = hash_result
-                        dbresource.last_hash_date = datetime.datetime.utcnow()
                         if hash_result == result:
                             self.hash_updated_count += 1
-                            self.set_resource_last_modified(dbresource, dbresource.last_hash_date, 'hash')
+                            self.set_resource_last_modified(dbresource, self.now, 'hash')
                         else:
                             self.api_count += 1
-                            self.set_resource_last_modified(dbresource, dbresource.last_hash_date, 'api')
+                            self.set_resource_last_modified(dbresource, self.now, 'api')
                     else:
                         raise ValueError('Invalid status returned!')
                 datasetinfo[resource_id] = dbresource.last_modified
@@ -225,7 +219,7 @@ class Freshness:
 
     def update_dataset_last_modified(self, datasets):
         for dataset_id in datasets:
-            dbdataset = self.session.query(DBDataset).filter_by(id=dataset_id).first()
+            dbdataset = self.session.query(DBDataset).filter_by(id=dataset_id, run_date=self.now).first()
             dataset = datasets[dataset_id]
             dataset_last_modified = dbdataset.last_modified
             last_resource_modified = dbdataset.last_resource_modified
@@ -253,9 +247,11 @@ class Freshness:
     def output_counts(self):
         str = '\nResources - Total: %d\ndata.humdata.org: %d, ' % (self.total_resources, self.datahumdataorg_count)
         str += 'manage.hdx.rwlabs.org: % d, ' % self.managehdxrwlabsorg_count
-        str += 'proxy.hxlstandard.org: %d, ourairports.com: %d\n' % (self.proxyhxlstandardorg_count, self.ourairportscom_count)
+        str += 'proxy.hxlstandard.org: %d, ourairports.com: %d\n' % (self.proxyhxlstandardorg_count,
+                                                                     self.ourairportscom_count)
         str += 'Last-Modified: %d, ' % self.lastmodified_count
-        str += 'Hash updated: %d, Hash Unchanged: %d, API: %d\n' % (self.hash_updated_count, self.hash_unchanged_count, self.api_count)
+        str += 'Hash updated: %d, Hash Unchanged: %d, API: %d\n' % (self.hash_updated_count, self.hash_unchanged_count,
+                                                                    self.api_count)
         str += 'Number Failed: %d\n\n' % self.failed_count
         str += 'Datasets - Total: %s\nStill Fresh: %d, ' % (self.total_datasets, self.still_fresh_count)
         str += 'Never update frequency: %d, Dataset Metadata Updated: %d' % (self.never_update, self.metadata_count)
@@ -270,7 +266,7 @@ class Freshness:
             dbresource.updated = updated
 
     def calculate_aging(self, last_modified, update_frequency):
-        delta = datetime.datetime.utcnow() - last_modified
+        delta = self.now - last_modified
         if delta >= self.aging[update_frequency]['Delinquent']:
             return 3
         elif delta >= self.aging[update_frequency]['Overdue']:

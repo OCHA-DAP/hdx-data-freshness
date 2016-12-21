@@ -5,6 +5,7 @@ from database.base import Base
 
 
 class DBDataset(Base):
+    run_date = Column(DateTime, primary_key=True)
     id = Column(String, primary_key=True)
     name = Column(String, nullable=False)
     dataset_date = Column(String)
@@ -17,7 +18,8 @@ class DBDataset(Base):
     error = Column(Boolean, nullable=False)
 
     def __repr__(self):
-        output = '<Dataset(id=%s, name=%s, dataset date=%s, ' % (self.id, self.name, str(self.dataset_date))
+        output = '<Dataset(run date =%s, id=%s, name=%s, ' % (str(self.run_date), self.id, self.name)
+        output += 'dataset date=%s, ' % str(self.dataset_date)
         output += 'update frequency=%s,\nlast_modified=%s' % (self.update_frequency, str(self.last_modified))
         output += 'metadata_modified=%s,\n' % (str(self.metadata_modified))
         output += 'Resource %s: last modified=%s,\n' % (str(self.last_resource_updated), str(self.last_resource_modified))

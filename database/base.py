@@ -9,6 +9,4 @@ class HDXBase(object):
     def __tablename__(cls):
         return '%ss' % cls.__name__.lower()
 
-    id = Column(Integer, primary_key=True)
-
 Base = declarative_base(cls=HDXBase)
