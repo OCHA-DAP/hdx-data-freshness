@@ -31,7 +31,7 @@ class Freshness:
         Base.metadata.create_all(engine)
         self.session = Session()
         
-        self.datasets = Dataset.get_all_datasets(configuration, False, rows=100)
+        self.datasets = Dataset.get_all_datasets(configuration, False)
         self.total_datasets = len(self.datasets)
         self.still_fresh_count = 0
         self.never_update = 0
