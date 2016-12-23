@@ -17,7 +17,7 @@ class DBResource(Base):
     revision_last_updated = Column(DateTime, default=None)
     http_last_modified = Column(DateTime, default=None)
     md5_hash = Column(String, default=None)
-    updated = Column(String, nullable=False)
+    what_updated = Column(String, nullable=False)
 
     def __repr__(self):
         output = '<Resource(run date=%s, id=%s, name=%s, ' % (str(self.run_date), self.id, self.name)
@@ -25,5 +25,5 @@ class DBResource(Base):
         output += 'broken=%s, last_modified=%s, revision_last_updated=%s, ' % (self.broken_url, str(self.last_modified),
                                                                                str(self.revision_last_modified))
         output += 'http_last_modified=%s, MD5_hash=%s)>' % (str(self.http_last_modified), str(self.MD5_hash))
-        output += 'updated=%s)>' % str(self.updated)
+        output += 'what_updated=%s)>' % str(self.what_updated)
         return output

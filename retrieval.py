@@ -22,7 +22,8 @@ logger = logging.getLogger(__name__)
 
 
 async def fetch(metadata, session):
-    url, resource_id = metadata
+    url = metadata[0]
+    resource_id = metadata[1]
     async def fn(response):
         last_modified = response.headers.get('Last-Modified')
         if last_modified:
