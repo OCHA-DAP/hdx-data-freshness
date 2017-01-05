@@ -5,7 +5,8 @@ from database.base import Base
 
 
 class DBRun(Base):
-    run_date = Column(DateTime, primary_key=True)
+    run_number = Column(Integer, primary_key=True)
+    run_date = Column(DateTime)
 
     def __repr__(self):
-        return '<Run date =%s>' % str(self.run_date)
+        return '<Run number = %d, Run date =%s>' % (self.run_number, str(self.run_date))

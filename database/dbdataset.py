@@ -1,11 +1,13 @@
 from sqlalchemy import Column, DateTime, Boolean, String
+from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 
 from database.base import Base
+from database.dbrun import DBRun
 
 
 class DBDataset(Base):
-    run_date = Column(DateTime, primary_key=True)
+    run_number = Column(Integer, ForeignKey(DBRun.run_number), primary_key=True)
     id = Column(String, primary_key=True)
     name = Column(String, nullable=False)
     dataset_date = Column(String)
@@ -13,13 +15,13 @@ class DBDataset(Base):
     metadata_modified = Column(DateTime, nullable=False)
     last_modified = Column(DateTime, nullable=False)
     what_updated = Column(String, nullable=False)
-    last_resource_updated = Column(String, nullable=False)
+    last_resource_updated = Column(String, ForeignKey('dbresources.id'), nullable=False)
     last_resource_modified = Column(DateTime, nullable=False)
     fresh = Column(Integer)
     error = Column(Boolean, nullable=False)
 
     def __repr__(self):
-        output = '<Dataset(run date =%s, id=%s, name=%s, ' % (str(self.run_date), self.id, self.name)
+        output = '<Dataset(run number=%d, id=%s, name=%s, ' % (self.run_number, self.id, self.name)
         output += 'dataset date=%s, ' % str(self.dataset_date)
         output += 'update frequency=%s,\nlast_modified=%s' % (self.update_frequency, str(self.last_modified))
         output += 'what updated=%s, metadata_modified=%s,\n' % (str(self.what_updated), str(self.metadata_modified))
