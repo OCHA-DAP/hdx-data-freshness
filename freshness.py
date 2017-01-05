@@ -50,10 +50,11 @@ class Freshness:
             self.aging[period] = aging_period
         self.aging_statuses = {0: 'Fresh', 1: 'Due', 2: 'Overdue', 3: 'Delinquent'}
         self.now = datetime.datetime.utcnow()
-        try:
-            self.previous_run_number = self.session.query(DBRun.run_number).distinct().order_by(DBRun.run_number.desc()).one()[0]
+        self.previous_run_number = self.session.query(DBRun.run_number).distinct().order_by(DBRun.run_number.desc()).first()
+        if self.previous_run_number is not None:
+            self.previous_run_number = self.previous_run_number[0]
             self.run_number = self.previous_run_number + 1
-        except NoResultFound:
+        else:
             self.previous_run_number = None
             self.run_number = 0
         dbrun = DBRun(run_number=self.run_number, run_date=self.now)
@@ -61,7 +62,8 @@ class Freshness:
         self.session.commit()
 
     def process_datasets(self):
-        metadata = list()
+        resources_to_check = list()
+        datasets_to_check = dict()
         for dataset in self.datasets:
             dataset_id = dataset['id']
             self.update_count(self.dataset_what_updated, 'total', dataset_id)
@@ -99,17 +101,19 @@ class Freshness:
                     dbdataset.what_updated = 'nothing'
                     if update_frequency:
                         fresh = self.calculate_aging(previous_dbdataset.last_modified, update_frequency)
+                        dbdataset.fresh = fresh
 
             self.session.add(dbdataset)
+            update_string = '%s, Updated %s' % (self.aging_statuses[fresh], dbdataset.what_updated)
             if fresh == 0:
-                self.update_count(self.dataset_what_updated, '%s, Updated %s' %
-                                  (self.aging_statuses[fresh], dbdataset.what_updated), dataset_id)
+                self.update_count(self.dataset_what_updated, update_string, dataset_id)
                 for url, resource_id, what_updated in dataset_resources:
                     self.update_count(self.resource_what_updated, what_updated, resource_id)
             else:
-                metadata += dataset_resources
+                datasets_to_check[dataset_id] = update_string
+                resources_to_check += dataset_resources
         self.session.commit()
-        return metadata
+        return datasets_to_check, resources_to_check
 
     def process_resources(self, dataset_id, previous_dbdataset, resources):
         last_resource_updated = None
@@ -154,8 +158,8 @@ class Freshness:
                 dataset_resources.append((url, resource_id, dbresource.what_updated))
         return dataset_resources, last_resource_updated, last_resource_modified
 
-    def check_urls(self, metadata):
-        results = retrieve(metadata)
+    def check_urls(self, resources_to_check):
+        results = retrieve(resources_to_check)
 
         hash_check = list()
         for resource_id in results:
@@ -215,11 +219,11 @@ class Freshness:
         self.session.commit()
         return datasets_lastmodified
 
-    def update_dataset_last_modified(self, datasets):
-        for dataset_id in datasets:
+    def update_dataset_last_modified(self, datasets_to_check, datasets_lastmodified):
+        for dataset_id in datasets_lastmodified:
             dbdataset = self.session.query(DBDataset).filter_by(id=dataset_id,
                                                                 run_number=self.run_number).one()
-            dataset = datasets[dataset_id]
+            dataset = datasets_lastmodified[dataset_id]
             dataset_last_modified = dbdataset.last_modified
             dataset_what_updated = dbdataset.what_updated
             last_resource_modified = dbdataset.last_resource_modified
@@ -245,6 +249,11 @@ class Freshness:
             self.update_count(self.dataset_what_updated, '%s, Updated %s' % (self.aging_statuses[dbdataset.fresh],
                                                                              dbdataset.what_updated), dataset_id)
         self.session.commit()
+        for dataset_id in datasets_to_check:
+            if dataset_id in datasets_lastmodified:
+                continue
+            self.update_count(self.dataset_what_updated, datasets_to_check[dataset_id], dataset_id)
+
 
     def output_counts(self):
         def add_what_updated_str(hdxobject_what_updated):

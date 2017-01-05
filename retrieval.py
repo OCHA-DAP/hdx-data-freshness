@@ -77,10 +77,10 @@ async def check_resources_for_last_modified(last_modified_check, loop):
         return responses
 
 
-def retrieve(metadata):
+def retrieve(resources_to_check):
     start_time = time.time()
     loop = asyncio.get_event_loop()
-    future = asyncio.ensure_future(check_resources_for_last_modified(metadata, loop))
+    future = asyncio.ensure_future(check_resources_for_last_modified(resources_to_check, loop))
     results = loop.run_until_complete(future)
     logger.info('Execution time: %s seconds' % (time.time() - start_time))
     return results
