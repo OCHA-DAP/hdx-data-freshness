@@ -15,8 +15,8 @@ from freshness import Freshness
 
 logger = logging.getLogger(__name__)
 
-def main(configuration):
-    freshness = Freshness(configuration)
+def main():
+    freshness = Freshness(save=True)
     datasets_to_check, resources_to_check = freshness.process_datasets()
     results, hash_results = freshness.check_urls(resources_to_check)
     datasets_lastmodified = freshness.process_results(results, hash_results)

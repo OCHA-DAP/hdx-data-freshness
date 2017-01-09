@@ -21,9 +21,9 @@ class DBResource(Base):
 
     def __repr__(self):
         output = '<Resource(run number=%d, id=%s, name=%s, ' % (self.run_number, self.id, self.name)
-        output += 'url=%s, dataset id = %s,\n'%  (self.url, self.dataset_id)
-        output += 'broken=%s, last_modified=%s, revision_last_updated=%s, ' % (self.broken_url, str(self.last_modified),
-                                                                               str(self.revision_last_modified))
-        output += 'http_last_modified=%s, MD5_hash=%s)>' % (str(self.http_last_modified), str(self.MD5_hash))
+        output += 'dataset id = %s,\nurl=%s,\n' % (self.dataset_id, self.url)
+        output += 'error=%s, last_modified=%s, revision_last_updated=%s, ' % (self.error, str(self.last_modified),
+                                                                              str(self.revision_last_updated))
+        output += 'http_last_modified=%s, MD5_hash=%s, ' % (str(self.http_last_modified), str(self.md5_hash))
         output += 'what_updated=%s)>' % str(self.what_updated)
         return output

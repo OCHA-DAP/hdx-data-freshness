@@ -10,7 +10,9 @@ Calculate freshness for all datasets in HDX.
 import logging
 import datetime
 
+import pickle
 from dateutil import parser
+from hdx.configuration import Configuration
 from hdx.data.dataset import Dataset
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -25,14 +27,12 @@ from retrieval import retrieve
 logger = logging.getLogger(__name__)
 
 class Freshness:
-    def __init__(self, configuration):
+    def __init__(self, dbpath='datasets.db', save=False, datasets=None, now=None):
         ''''''
-        engine = create_engine('sqlite:///datasets.db', echo=False)
+        engine = create_engine('sqlite:///%s' % dbpath, echo=False)
         Session = sessionmaker(bind=engine)
         Base.metadata.create_all(engine)
         self.session = Session()
-        
-        self.datasets = Dataset.get_all_datasets(configuration, False, rows=100)
 
         self.never_update = 0
         self.dataset_what_updated = dict()
@@ -41,15 +41,15 @@ class Freshness:
         self.urls_to_ignore = ['data.humdata.org', 'manage.hdx.rwlabs.org', 'proxy.hxlstandard.org', 'ourairports.com']
 
         self.aging = dict()
-        for key, value in configuration['aging'].items():
+        for key, value in Configuration.read()['aging'].items():
             period = int(key)
             aging_period = dict()
             for status in value:
                 nodays = value[status]
                 aging_period[status] = datetime.timedelta(days=nodays)
             self.aging[period] = aging_period
-        self.aging_statuses = {0: 'Fresh', 1: 'Due', 2: 'Overdue', 3: 'Delinquent'}
-        self.now = datetime.datetime.utcnow()
+        self.aging_statuses = {0: '0: Fresh', 1: '1: Due', 2: '2: Overdue', 3: '3: Delinquent',
+                               None: 'Freshness Unavailable'}
         self.previous_run_number = self.session.query(DBRun.run_number).distinct().order_by(DBRun.run_number.desc()).first()
         if self.previous_run_number is not None:
             self.previous_run_number = self.previous_run_number[0]
@@ -57,6 +57,21 @@ class Freshness:
         else:
             self.previous_run_number = None
             self.run_number = 0
+        self.save = save
+        if datasets is None:  # pragma: no cover
+            self.datasets = Dataset.get_all_datasets(include_gallery=False)
+            if save:
+                with open('datasets.pickle', 'wb') as fp:
+                    pickle.dump(self.datasets, fp)
+        else:
+            self.datasets = datasets
+        if now is None:  # pragma: no cover
+            self.now = datetime.datetime.utcnow()
+            if save:
+                with open('now.pickle', 'wb') as fp:
+                    pickle.dump(self.now, fp)
+        else:
+            self.now = now
         dbrun = DBRun(run_number=self.run_number, run_date=self.now)
         self.session.add(dbrun)
         self.session.commit()
@@ -105,7 +120,7 @@ class Freshness:
 
             self.session.add(dbdataset)
             update_string = '%s, Updated %s' % (self.aging_statuses[fresh], dbdataset.what_updated)
-            if fresh == 0:
+            if fresh == 0 or update_frequency is None:
                 self.update_count(self.dataset_what_updated, update_string, dataset_id)
                 for url, resource_id, what_updated in dataset_resources:
                     self.update_count(self.resource_what_updated, what_updated, resource_id)
@@ -158,8 +173,12 @@ class Freshness:
                 dataset_resources.append((url, resource_id, dbresource.what_updated))
         return dataset_resources, last_resource_updated, last_resource_modified
 
-    def check_urls(self, resources_to_check):
-        results = retrieve(resources_to_check)
+    def check_urls(self, resources_to_check, results=None, hash_results=None):
+        if results is None:  # pragma: no cover
+            results = retrieve(resources_to_check)
+            if self.save:
+                with open('results.pickle', 'wb') as fp:
+                    pickle.dump(results, fp)
 
         hash_check = list()
         for resource_id in results:
@@ -169,12 +188,17 @@ class Freshness:
                                                                       run_number=self.run_number).one()
                 if dbresource.md5_hash != result:  # File changed
                     hash_check.append((url, resource_id))
-        hash_results = retrieve(hash_check)
+
+        if hash_results is None:  # pragma: no cover
+            hash_results = retrieve(hash_check)
+            if self.save:
+                with open('hash_results.pickle', 'wb') as fp:
+                    pickle.dump(hash_results, fp)
         return results, hash_results
 
     def process_results(self, results, hash_results):
         datasets_lastmodified = dict()
-        for resource_id in results:
+        for resource_id in sorted(results):
             url, status, result = results[resource_id]
             dbresource = self.session.query(DBResource).filter_by(id=resource_id,
                                                                   run_number=self.run_number).one()
@@ -229,7 +253,7 @@ class Freshness:
             last_resource_modified = dbdataset.last_resource_modified
             last_resource_updated = dbdataset.last_resource_updated
             all_errors = True
-            for resource_id in dataset:
+            for resource_id in sorted(dataset):
                 new_last_resource_modified, new_last_resource_what_updated = dataset[resource_id]
                 if new_last_resource_modified:
                     all_errors = False
@@ -259,7 +283,7 @@ class Freshness:
         def add_what_updated_str(hdxobject_what_updated):
             nonlocal output_str
             output_str += '\n* total: %d *' % len(hdxobject_what_updated['total'])
-            for countstr in hdxobject_what_updated:
+            for countstr in sorted(hdxobject_what_updated):
                 if countstr != 'total':
                     output_str += ',\n%s: %d' % (countstr, len(hdxobject_what_updated[countstr]))
 
@@ -270,6 +294,7 @@ class Freshness:
         output_str += '\n\n%d datasets have update frequency of Never' % self.never_update
 
         logger.info(output_str)
+        return output_str
 
     @staticmethod
     def set_last_modified(dbobject, modified_date, what_updated):

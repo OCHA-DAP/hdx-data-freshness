@@ -1,0 +1,14 @@
+[report]
+omit =
+    */run.py
+    */retrieval.py
+    */retry.py
+    */run.py
+    */python?.?/*
+    */venv/*
+    */site-packages/*
+    */tests/*
+    *__init__*
+
+exclude_lines =
+    if __name__ == '__main__':
