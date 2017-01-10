@@ -22,8 +22,9 @@ from freshness import Freshness
 class TestFreshnessDay0():
     @pytest.fixture(scope='function')
     def configuration(self):
+        hdx_key_file = join('fixtures', '.hdxkey')
         project_config_yaml = join('..', 'config', 'project_configuration.yml')
-        Configuration.create(hdx_site='prod', project_config_yaml=project_config_yaml)
+        Configuration.create(hdx_site='prod', hdx_key_file=hdx_key_file, project_config_yaml=project_config_yaml)
 
     @pytest.fixture(scope='function')
     def nodatabase(self):
