@@ -40,7 +40,8 @@ class Freshness:
         self.dataset_what_updated = dict()
         self.resource_what_updated = dict()
 
-        self.urls_to_ignore = ['data.humdata.org', 'manage.hdx.rwlabs.org', 'proxy.hxlstandard.org', 'ourairports.com']
+        self.urls_internal = ['data.humdata.org', 'manage.hdx.rwlabs.org']
+        self.urls_adhoc_update = ['proxy.hxlstandard.org', 'ourairports.com']
 
         self.aging = dict()
         for key, value in Configuration.read()['aging'].items():
@@ -130,15 +131,25 @@ class Freshness:
                 resources_to_check += dataset_resources
             dataset_name = dataset['name']
             dataset_title = dataset['title']
+            dataset_private = dataset['private']
             organization_id = dataset['organization']['id']
+            dataset_maintainer = dataset['maintainer']
+            dataset_maintainer_email = dataset['maintainer_email']
+            dataset_author = dataset['author']
+            dataset_author_email =  dataset['author_email']
             try:
                 dbinfodataset = self.session.query(DBInfoDataset).filter_by(id=dataset_id).one()
                 dbinfodataset.name = dataset_name
                 dbinfodataset.title = dataset_title
+                dbinfodataset.private = dataset_private
                 dbinfodataset.organization_name = organization_name
+                dbinfodataset.maintainer = dataset_maintainer
+                dbinfodataset.maintainer_email = dataset_maintainer_email
+                dbinfodataset.author = dataset_author
+                dbinfodataset.author_email = dataset_author_email
             except NoResultFound:
                 dbinfodataset = DBInfoDataset(name=dataset_name, id=dataset_id, title=dataset_title,
-                                              organization_id=organization_id)
+                                              private=dataset_private, organization_id=organization_id)
                 self.session.add(dbinfodataset)
             organization_name = dataset['organization']['name']
             organization_title = dataset['organization']['title']
@@ -183,17 +194,28 @@ class Freshness:
                     dbresource.md5_hash = previous_dbresource.md5_hash
                 except NoResultFound:
                     pass
+            self.session.add(dbresource)
 
-            ignore = False
-            for url_substr in self.urls_to_ignore:
+            internal = False
+            for url_substr in self.urls_internal:
                 if url_substr in url:
-                    self.update_count(self.resource_what_updated, url_substr, resource_id)
+                    self.internal_and_adhoc_what_updated(dbresource, 'internal')
+                    internal = True
+                    break
+            ignore = False
+            for url_substr in self.urls_adhoc_update:
+                if url_substr in url:
+                    self.internal_and_adhoc_what_updated(dbresource, 'adhoc')
                     ignore = True
                     break
-            if not ignore:
-                self.session.add(dbresource)
+            if not internal and not ignore:
                 dataset_resources.append((url, resource_id, dbresource.what_updated))
         return dataset_resources, last_resource_updated, last_resource_modified
+
+    def internal_and_adhoc_what_updated(self, dbresource, url_substr):
+        what_updated = '%s-%s' % (url_substr, dbresource.what_updated)
+        dbresource.what_updated = what_updated
+        self.update_count(self.resource_what_updated, dbresource.what_updated, dbresource.id)
 
     def check_urls(self, resources_to_check, results=None, hash_results=None):
         if results is None:  # pragma: no cover

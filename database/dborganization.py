@@ -9,4 +9,4 @@ class DBOrganization(Base):
     title = Column(String, nullable=False)
 
     def __repr__(self):
-        return '<id=%s, name=%s, title=%s>' % (self.id, self.name, self.title)
+        return '<Organization(id=%s, name=%s, title=%s)>' % (self.id, self.name, self.title)
