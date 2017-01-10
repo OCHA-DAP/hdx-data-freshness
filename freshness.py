@@ -29,9 +29,9 @@ from retrieval import retrieve
 logger = logging.getLogger(__name__)
 
 class Freshness:
-    def __init__(self, dbpath='datasets.db', save=False, datasets=None, now=None):
+    def __init__(self, dbpath='sqlite:///freshness.db', save=False, datasets=None, now=None):
         ''''''
-        engine = create_engine('sqlite:///%s' % dbpath, echo=False)
+        engine = create_engine(dbpath, echo=False)
         Session = sessionmaker(bind=engine)
         Base.metadata.create_all(engine)
         self.session = Session()
@@ -136,13 +136,13 @@ class Freshness:
             dataset_maintainer = dataset['maintainer']
             dataset_maintainer_email = dataset['maintainer_email']
             dataset_author = dataset['author']
-            dataset_author_email =  dataset['author_email']
+            dataset_author_email = dataset['author_email']
             try:
                 dbinfodataset = self.session.query(DBInfoDataset).filter_by(id=dataset_id).one()
                 dbinfodataset.name = dataset_name
                 dbinfodataset.title = dataset_title
                 dbinfodataset.private = dataset_private
-                dbinfodataset.organization_name = organization_name
+                dbinfodataset.organization_id = organization_id
                 dbinfodataset.maintainer = dataset_maintainer
                 dbinfodataset.maintainer_email = dataset_maintainer_email
                 dbinfodataset.author = dataset_author
