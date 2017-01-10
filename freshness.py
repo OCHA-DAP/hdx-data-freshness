@@ -19,9 +19,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm.exc import NoResultFound
 
 from database.base import Base
+from database.dbrun import DBRun
 from database.dbdataset import DBDataset
 from database.dbresource import DBResource
-from database.dbrun import DBRun
+from database.dbinfodataset import DBInfoDataset
+from database.dborganization import DBOrganization
 from retrieval import retrieve
 
 logger = logging.getLogger(__name__)
@@ -91,7 +93,6 @@ class Freshness:
             fresh = None
             dataset_resources, last_resource_updated, last_resource_modified = \
                 self.process_resources(dataset_id, previous_dbdataset, resources)
-            dataset_name = dataset['name']
             dataset_date = dataset.get('dataset_date')
             metadata_modified = parser.parse(dataset['metadata_modified'], ignoretz=True)
             update_frequency = dataset.get('data_update_frequency')
@@ -102,11 +103,11 @@ class Freshness:
                     self.never_update += 1
                 else:
                     fresh = self.calculate_aging(metadata_modified, update_frequency)
-            dbdataset = DBDataset(run_number=self.run_number, id=dataset_id, name=dataset_name, dataset_date=dataset_date,
-                                      update_frequency=update_frequency, metadata_modified=metadata_modified,
-                                      last_modified=metadata_modified, what_updated='metadata',
-                                      last_resource_updated=last_resource_updated,
-                                      last_resource_modified=last_resource_modified, fresh=fresh, error=False)
+            dbdataset = DBDataset(run_number=self.run_number, id=dataset_id,
+                                  dataset_date=dataset_date, update_frequency=update_frequency,
+                                  metadata_modified=metadata_modified, last_modified=metadata_modified,
+                                  what_updated='metadata', last_resource_updated=last_resource_updated,
+                                  last_resource_modified=last_resource_modified, fresh=fresh, error=False)
             if previous_dbdataset is not None:
                 if last_resource_modified <= previous_dbdataset.last_resource_modified:
                     dbdataset.last_resource_updated = previous_dbdataset.last_resource_updated
@@ -127,6 +128,27 @@ class Freshness:
             else:
                 datasets_to_check[dataset_id] = update_string
                 resources_to_check += dataset_resources
+            dataset_name = dataset['name']
+            dataset_title = dataset['title']
+            organization_id = dataset['organization']['id']
+            try:
+                dbinfodataset = self.session.query(DBInfoDataset).filter_by(id=dataset_id).one()
+                dbinfodataset.name = dataset_name
+                dbinfodataset.title = dataset_title
+                dbinfodataset.organization_name = organization_name
+            except NoResultFound:
+                dbinfodataset = DBInfoDataset(name=dataset_name, id=dataset_id, title=dataset_title,
+                                              organization_id=organization_id)
+                self.session.add(dbinfodataset)
+            organization_name = dataset['organization']['name']
+            organization_title = dataset['organization']['title']
+            try:
+                dborganization = self.session.query(DBOrganization).filter_by(id=organization_id).one()
+                dborganization.name = organization_name
+                dborganization.title = organization_title
+            except NoResultFound:
+                dborganization = DBOrganization(name=organization_name, id=organization_id, title=organization_title)
+                self.session.add(dborganization)
         self.session.commit()
         return datasets_to_check, resources_to_check
 

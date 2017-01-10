@@ -12,6 +12,8 @@ from hdx.configuration import Configuration
 from os.path import join
 
 from database.dbdataset import DBDataset
+from database.dbinfodataset import DBInfoDataset
+from database.dborganization import DBOrganization
 from database.dbresource import DBResource
 from database.dbrun import DBRun
 from freshness import Freshness
@@ -85,14 +87,24 @@ revision,http header: 62
 Freshness Unavailable, Updated metadata: 348
 
 1521 datasets have update frequency of Never'''
-        dbrun = freshness.session.query(DBRun).one()
-        assert str(dbrun) == '<Run number = 0, Run date =2017-01-09 12:01:13.932811>'
-        dbresource = freshness.session.query(DBResource).first()
-        assert str(dbresource) == '''<Resource(run number=0, id=33bf8136-e0ca-4d80-972e-c99f39fdc99d, name=UNOSAT_CE20130604SYR_Syria_Damage_Assessment_2016_gdb.zip, dataset id = 7d1b4f22-e0fd-400a-9fec-9db8c352c24f,
+
+        dbsession = freshness.session
+        dbrun = dbsession.query(DBRun).one()
+        assert str(dbrun) == '<Run number=0, Run date=2017-01-09 12:01:13.932811>'
+        dbresource = dbsession.query(DBResource).first()
+        assert str(dbresource) == '''<Resource(run number=0, id=33bf8136-e0ca-4d80-972e-c99f39fdc99d, name=UNOSAT_CE20130604SYR_Syria_Damage_Assessment_2016_gdb.zip, dataset id=7d1b4f22-e0fd-400a-9fec-9db8c352c24f,
 url=http://cern.ch/unosat-maps/SY/CE20130604SYR/UNOSAT_CE20130604SYR_Syria_Damage_Assessment_2016_gdb.zip,
 error=None, last_modified=2017-01-09 10:22:11.181572, revision_last_updated=2017-01-09 10:22:11.181572, http_last_modified=None, MD5_hash=None, what_updated=revision)>'''
-        dbdataset = freshness.session.query(DBDataset).first()
-        assert str(dbdataset) == '''<Dataset(run number=0, id=7d1b4f22-e0fd-400a-9fec-9db8c352c24f, name=damage-density-2016-of-idlib-idlib-governorate-syria, dataset date=01/06/2017, update frequency=0,
+        dbdataset = dbsession.query(DBDataset).first()
+        assert str(dbdataset) == '''<Dataset(run number=0, id=7d1b4f22-e0fd-400a-9fec-9db8c352c24f, dataset date=01/06/2017, update frequency=0,
 last_modified=2017-01-09 11:19:19.502612what updated=metadata, metadata_modified=2017-01-09 11:19:19.502612,
 Resource 33bf8136-e0ca-4d80-972e-c99f39fdc99d: last modified=2017-01-09 10:22:11.181572,
 Dataset fresh=0'''
+        count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata').count()
+        assert count == 1883
+        dbinfodataset = dbsession.query(DBInfoDataset).first()
+        assert str(dbinfodataset) == '''<InfoDataset(id=7d1b4f22-e0fd-400a-9fec-9db8c352c24f, name=damage-density-2016-of-idlib-idlib-governorate-syria, title=Syria - Damage density 2016 of Idlib, Idlib Governorate
+organization id=ba5aacba-0633-4364-9528-bc76a3f6cf95)>'''
+        dborganization = dbsession.query(DBOrganization).first()
+        assert str(dborganization) == '''<id=ba5aacba-0633-4364-9528-bc76a3f6cf95, name=un-operational-satellite-appplications-programme-unosat, title=UN Operational Satellite Applications Programme (UNOSAT)>'''
+

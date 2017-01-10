@@ -8,8 +8,7 @@ from database.dbrun import DBRun
 
 class DBDataset(Base):
     run_number = Column(Integer, ForeignKey(DBRun.run_number), primary_key=True)
-    id = Column(String, primary_key=True)
-    name = Column(String, nullable=False)
+    id = Column(String, ForeignKey('dbinfodatasets.id'), primary_key=True)
     dataset_date = Column(String)
     update_frequency = Column(Integer)
     metadata_modified = Column(DateTime, nullable=False)
@@ -21,7 +20,7 @@ class DBDataset(Base):
     error = Column(Boolean, nullable=False)
 
     def __repr__(self):
-        output = '<Dataset(run number=%d, id=%s, name=%s, ' % (self.run_number, self.id, self.name)
+        output = '<Dataset(run number=%d, id=%s, ' % (self.run_number, self.id)
         output += 'dataset date=%s, ' % str(self.dataset_date)
         output += 'update frequency=%s,\nlast_modified=%s' % (self.update_frequency, str(self.last_modified))
         output += 'what updated=%s, metadata_modified=%s,\n' % (str(self.what_updated), str(self.metadata_modified))
