@@ -24,4 +24,4 @@ def main():
     freshness.output_counts()
 
 if __name__ == '__main__':
-    facade(main, hdx_site='prod')
+    facade(main, hdx_read_only=True, hdx_site='prod')
