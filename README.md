@@ -2,6 +2,7 @@
 [![Build Status](https://travis-ci.org/mcarans/hdx-data-freshness.svg?branch=master&ts=1)](https://travis-ci.org/mcarans/hdx-data-freshness) [![Coverage Status](https://coveralls.io/repos/github/mcarans/hdx-data-freshness/badge.svg?branch=master&ts=1)](https://coveralls.io/github/mcarans/hdx-data-freshness?branch=master)
 
 The implementation of HDX freshness in Python reads all the datasets from the [Humanitarian Data Exchange](http://data.humdata.org/) website (using the HDX Python library) and then iterates through them one by one performing a sequence of steps.
+
 1. It gets the dataset's update frequency if it has one. If that update frequency is Never, then the dataset is always fresh.
 
 2. If not, it checks if the dataset and resource metadata have changed - this qualifies as an update from a freshness perspective. It compares the difference between the current time and update time with the update frequency and sets a status: fresh, due, overdue or delinquent.
