@@ -20,4 +20,5 @@ The implementation of HDX freshness in Python reads all the datasets from the [H
 Since there can be temporary connection and download issues with urls, the code has multiple retry functionality with increasing delays. Also as there are many requests to be made, rather than perform them one by one, they are executed concurrently using the asynchronous functionality that has been added to the most recent versions of Python.
 
 ### Usage
-python run.py
+
+    python run.py
