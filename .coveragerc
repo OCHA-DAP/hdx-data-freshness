@@ -1,9 +1,6 @@
 [report]
 omit =
     */run.py
-    */retrieval.py
-    */retry.py
-    */run.py
     */python?.?/*
     */venv/*
     */site-packages/*

@@ -21,7 +21,7 @@ from database.dbrun import DBRun
 from freshness import Freshness
 
 
-class TestFreshnessDay1():
+class TestFreshnessDay1:
     @pytest.fixture(scope='function')
     def configuration(self):
         hdx_key_file = join('fixtures', '.hdxkey')
