@@ -1,3 +1,4 @@
+from sqlalchemy import Boolean
 from sqlalchemy import Column, DateTime, String
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
@@ -17,6 +18,7 @@ class DBResource(Base):
     revision_last_updated = Column(DateTime, default=None)
     http_last_modified = Column(DateTime, default=None)
     md5_hash = Column(String, default=None)
+    api=Column(Boolean)
     what_updated = Column(String, nullable=False)
 
     def __repr__(self):
@@ -25,5 +27,5 @@ class DBResource(Base):
         output += 'error=%s, last_modified=%s, revision_last_updated=%s, ' % (self.error, str(self.last_modified),
                                                                               str(self.revision_last_updated))
         output += 'http_last_modified=%s, MD5_hash=%s, ' % (str(self.http_last_modified), str(self.md5_hash))
-        output += 'what_updated=%s)>' % str(self.what_updated)
+        output += 'api=%s, what_updated=%s)>' % (str(self.api), str(self.what_updated))
         return output

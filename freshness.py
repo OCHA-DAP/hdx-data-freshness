@@ -268,15 +268,16 @@ class Freshness:
                         datasetinfo[resource_id] = (None, None)
                     elif hash_status == 1:
                         dbresource.http_last_modified = parser.parse(result, ignoretz=True)
-                        what_updated = self.set_last_modified(dbresource, dbresource.http_last_modified,
-                                                        'http header')
+                        what_updated = self.set_last_modified(dbresource, dbresource.http_last_modified, 'http header')
                         datasetinfo[resource_id] = (dbresource.last_modified, dbresource.what_updated)
                     elif hash_status == 2:
                         dbresource.md5_hash = hash_result
                         if hash_result == result:
                             what_updated = self.set_last_modified(dbresource, self.now, 'hash')
+                            dbresource.api = False
                         else:
-                            what_updated = self.set_last_modified(dbresource, self.now, 'api')
+                            what_updated = self.add_what_updated(what_updated, 'api')
+                            dbresource.api = True
                         datasetinfo[resource_id] = (dbresource.last_modified, dbresource.what_updated)
                     else:
                         raise ValueError('Invalid status returned!')
