@@ -15,17 +15,20 @@ class DBResource(Base):
     url = Column(String, nullable=False)
     error = Column(String)
     last_modified = Column(DateTime, nullable=False)
+    what_updated = Column(String, nullable=False)
     revision_last_updated = Column(DateTime, default=None)
     http_last_modified = Column(DateTime, default=None)
     md5_hash = Column(String, default=None)
-    api=Column(Boolean)
-    what_updated = Column(String, nullable=False)
+    when_hashed = Column(DateTime)
+    api = Column(Boolean)
 
     def __repr__(self):
         output = '<Resource(run number=%d, id=%s, name=%s, ' % (self.run_number, self.id, self.name)
         output += 'dataset id=%s,\nurl=%s,\n' % (self.dataset_id, self.url)
-        output += 'error=%s, last_modified=%s, revision_last_updated=%s, ' % (self.error, str(self.last_modified),
-                                                                              str(self.revision_last_updated))
-        output += 'http_last_modified=%s, MD5_hash=%s, ' % (str(self.http_last_modified), str(self.md5_hash))
-        output += 'api=%s, what_updated=%s)>' % (str(self.api), str(self.what_updated))
+        output += 'error=%s, last modified=%s, what updated=%s,\n' % (self.error, str(self.last_modified),
+                                                                     str(self.what_updated))
+        output += 'revision last updated=%s, http last modified=%s, ' % (str(self.revision_last_updated),
+                                                                         str(self.http_last_modified))
+        output += 'MD5 hash=%s, when hashed=%s, ' % (str(self.http_last_modified), str(self.when_hashed))
+        output += 'api=%s)>' % str(self.api)
         return output

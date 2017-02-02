@@ -11,9 +11,12 @@ import logging
 import datetime
 
 import pickle
+from urllib.parse import urlparse
+
 from dateutil import parser
 from hdx.configuration import Configuration
 from hdx.data.dataset import Dataset
+from hdx.utilities.dictandlist import dict_of_lists_add, list_distribute_contents
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy.orm.exc import NoResultFound
@@ -36,6 +39,7 @@ class Freshness:
         Base.metadata.create_all(engine)
         self.session = Session()
 
+        self.urls_to_check_count = 0
         self.never_update = 0
         self.dataset_what_updated = dict()
         self.resource_what_updated = dict()
@@ -57,9 +61,12 @@ class Freshness:
         if self.previous_run_number is not None:
             self.previous_run_number = self.previous_run_number[0]
             self.run_number = self.previous_run_number + 1
+            no_resources = self.session.query(DBResource).filter_by(run_number=self.previous_run_number).count()
+            self.no_urls_to_check = int((no_resources / 30) + 1)
         else:
             self.previous_run_number = None
             self.run_number = 0
+            self.no_urls_to_check = 400
         self.save = save
         if datasets is None:  # pragma: no cover
             self.datasets = Dataset.get_all_datasets(include_gallery=False)
@@ -80,11 +87,12 @@ class Freshness:
         self.session.commit()
 
     def process_datasets(self):
+        self.datasets = list_distribute_contents(self.datasets, lambda x: x['organization']['name'])
         resources_to_check = list()
         datasets_to_check = dict()
         for dataset in self.datasets:
             dataset_id = dataset['id']
-            self.update_count(self.dataset_what_updated, 'total', dataset_id)
+            dict_of_lists_add(self.dataset_what_updated, 'total', dataset_id)
             try:
                 previous_dbdataset = self.session.query(DBDataset).filter_by(run_number=self.previous_run_number,
                                                                              id=dataset_id).one()
@@ -123,9 +131,18 @@ class Freshness:
             self.session.add(dbdataset)
             update_string = '%s, Updated %s' % (self.aging_statuses[fresh], dbdataset.what_updated)
             if fresh == 0 or update_frequency is None:
-                self.update_count(self.dataset_what_updated, update_string, dataset_id)
-                for url, resource_id, what_updated in dataset_resources:
-                    self.update_count(self.resource_what_updated, what_updated, resource_id)
+                hash_forced = False
+                for url, resource_id, force_hash, what_updated in dataset_resources:
+                    if force_hash:
+                        hash_forced = True
+                        resources_to_check.append((url, resource_id, True, what_updated))
+                    else:
+                        dict_of_lists_add(self.resource_what_updated, what_updated, resource_id)
+                if hash_forced:
+                    datasets_to_check[dataset_id] = update_string
+                else:
+                    dict_of_lists_add(self.dataset_what_updated, update_string, dataset_id)
+
             else:
                 datasets_to_check[dataset_id] = update_string
                 resources_to_check += dataset_resources
@@ -169,7 +186,7 @@ class Freshness:
         dataset_resources = list()
         for resource in resources:
             resource_id = resource['id']
-            self.update_count(self.resource_what_updated, 'total', resource_id)
+            dict_of_lists_add(self.resource_what_updated, 'total', resource_id)
             url = resource['url']
             name = resource['name']
             revision_last_updated = parser.parse(resource['revision_last_updated'], ignoretz=True)
@@ -192,6 +209,8 @@ class Freshness:
                         dbresource.last_modified = previous_dbresource.last_modified
                         dbresource.what_updated = 'nothing'
                     dbresource.md5_hash = previous_dbresource.md5_hash
+                    dbresource.when_hashed = previous_dbresource.when_hashed
+
                 except NoResultFound:
                     pass
             self.session.add(dbresource)
@@ -208,17 +227,26 @@ class Freshness:
                     self.internal_and_adhoc_what_updated(dbresource, 'adhoc')
                     ignore = True
                     break
-            if not internal and not ignore:
-                dataset_resources.append((url, resource_id, dbresource.what_updated))
+            if self.urls_to_check_count < self.no_urls_to_check and \
+                    (dbresource.when_hashed is None or self.now - dbresource.when_hashed > datetime.timedelta(days=30)):
+                dataset_resources.append((url, resource_id, True, dbresource.what_updated))
+                self.urls_to_check_count += 1
+            elif internal or ignore:
+                dict_of_lists_add(self.resource_what_updated, dbresource.what_updated, dbresource.id)
+            else:
+                dataset_resources.append((url, resource_id, False, dbresource.what_updated))
         return dataset_resources, last_resource_updated, last_resource_modified
 
-    def internal_and_adhoc_what_updated(self, dbresource, url_substr):
+    @staticmethod
+    def internal_and_adhoc_what_updated(dbresource, url_substr):
         what_updated = '%s-%s' % (url_substr, dbresource.what_updated)
         dbresource.what_updated = what_updated
-        self.update_count(self.resource_what_updated, dbresource.what_updated, dbresource.id)
 
     def check_urls(self, resources_to_check, results=None, hash_results=None):
+        def get_domain(x):
+            return urlparse(x[0]).netloc
         if results is None:  # pragma: no cover
+            resources_to_check = list_distribute_contents(resources_to_check, get_domain)
             results = retrieve(resources_to_check)
             if self.save:
                 with open('results.pickle', 'wb') as fp:
@@ -226,65 +254,67 @@ class Freshness:
 
         hash_check = list()
         for resource_id in results:
-            url, status, result = results[resource_id]
-            if status == 2:
+            url, err, http_last_modified, hash, force_hash = results[resource_id]
+            if hash:
                 dbresource = self.session.query(DBResource).filter_by(id=resource_id,
                                                                       run_number=self.run_number).one()
-                if dbresource.md5_hash != result:  # File changed
-                    hash_check.append((url, resource_id))
+                if dbresource.md5_hash != hash:  # File changed
+                    hash_check.append((url, resource_id, force_hash))
 
         if hash_results is None:  # pragma: no cover
+            hash_check = list_distribute_contents(hash_check, get_domain)
             hash_results = retrieve(hash_check)
             if self.save:
                 with open('hash_results.pickle', 'wb') as fp:
                     pickle.dump(hash_results, fp)
+
         return results, hash_results
 
     def process_results(self, results, hash_results):
         datasets_lastmodified = dict()
         for resource_id in sorted(results):
-            url, status, result = results[resource_id]
+            url, err, http_last_modified, hash, force_hash = results[resource_id]
             dbresource = self.session.query(DBResource).filter_by(id=resource_id,
                                                                   run_number=self.run_number).one()
             dataset_id = dbresource.dataset_id
             datasetinfo = datasets_lastmodified.get(dataset_id, dict())
             what_updated = dbresource.what_updated
-            if status == 0:
-                what_updated = self.add_what_updated(what_updated, 'error')
-                dbresource.error = result
-                datasetinfo[resource_id] = (None, None)
-            elif status == 1:
-                dbresource.http_last_modified = parser.parse(result, ignoretz=True)
+            if http_last_modified:
+                dbresource.http_last_modified = http_last_modified
                 what_updated = self.set_last_modified(dbresource, dbresource.http_last_modified, 'http header')
-                datasetinfo[resource_id] = (dbresource.last_modified, dbresource.what_updated)
-            elif status == 2:
-                if dbresource.md5_hash == result:  # File unchanged
+            if hash:
+                dbresource.when_hashed = self.now
+                if dbresource.md5_hash == hash:  # File unchanged
                     what_updated = self.add_what_updated(what_updated, 'same hash')
                 else:  # File updated
-                    hash_url, hash_status, hash_result = hash_results[resource_id]
-                    if hash_status == 0:
-                        what_updated = self.add_what_updated(what_updated, 'error')
-                        dbresource.error = result
-                        datasetinfo[resource_id] = (None, None)
-                    elif hash_status == 1:
-                        dbresource.http_last_modified = parser.parse(result, ignoretz=True)
+                    prev_hash = dbresource.md5_hash
+                    dbresource.md5_hash = hash
+                    hash_url, hash_err, hash_http_last_modified, hash_hash, force_hash = hash_results[resource_id]
+                    if hash_http_last_modified:
+                        dbresource.http_last_modified = hash_http_last_modified
                         what_updated = self.set_last_modified(dbresource, dbresource.http_last_modified, 'http header')
-                        datasetinfo[resource_id] = (dbresource.last_modified, dbresource.what_updated)
-                    elif hash_status == 2:
-                        dbresource.md5_hash = hash_result
-                        if hash_result == result:
-                            what_updated = self.set_last_modified(dbresource, self.now, 'hash')
+                    if hash_hash:
+                        if hash_hash == hash:
+                            if prev_hash is None:   # First occurrence of resource eg. first run - don't use hash
+                                                    # for last modified field (and hence freshness calculation)
+                                dbresource.what_updated = self.add_what_updated(what_updated, 'hash')
+                                what_updated = dbresource.what_updated
+                            else:
+                                what_updated = self.set_last_modified(dbresource, self.now, 'hash')
                             dbresource.api = False
                         else:
+                            dbresource.md5_hash = hash_hash
                             what_updated = self.add_what_updated(what_updated, 'api')
                             dbresource.api = True
-                        datasetinfo[resource_id] = (dbresource.last_modified, dbresource.what_updated)
-                    else:
-                        raise ValueError('Invalid status returned!')
-            else:
-                raise ValueError('Invalid status returned!')
+                    if hash_err:
+                        what_updated = self.add_what_updated(what_updated, 'error')
+                        dbresource.error = hash_err
+            if err:
+                what_updated = self.add_what_updated(what_updated, 'error')
+                dbresource.error = err
+            datasetinfo[resource_id] = (dbresource.error, dbresource.last_modified, dbresource.what_updated)
             datasets_lastmodified[dataset_id] = datasetinfo
-            self.update_count(self.resource_what_updated, what_updated, resource_id)
+            dict_of_lists_add(self.resource_what_updated, what_updated, resource_id)
         self.session.commit()
         return datasets_lastmodified
 
@@ -299,9 +329,10 @@ class Freshness:
             last_resource_updated = dbdataset.last_resource_updated
             all_errors = True
             for resource_id in sorted(dataset):
-                new_last_resource_modified, new_last_resource_what_updated = dataset[resource_id]
-                if new_last_resource_modified:
+                err, new_last_resource_modified, new_last_resource_what_updated = dataset[resource_id]
+                if not err:
                     all_errors = False
+                if new_last_resource_modified:
                     if new_last_resource_modified > last_resource_modified:
                         last_resource_updated = resource_id
                         last_resource_modified = new_last_resource_modified
@@ -315,13 +346,15 @@ class Freshness:
             if update_frequency:
                 dbdataset.fresh = self.calculate_aging(dbdataset.last_modified, update_frequency)
             dbdataset.error = all_errors
-            self.update_count(self.dataset_what_updated, '%s, Updated %s' % (self.aging_statuses[dbdataset.fresh],
-                                                                             dbdataset.what_updated), dataset_id)
+            status = '%s, Updated %s' % (self.aging_statuses[dbdataset.fresh], dbdataset.what_updated)
+            if all_errors:
+                status = '%s,error' % status
+            dict_of_lists_add(self.dataset_what_updated, status, dataset_id)
         self.session.commit()
         for dataset_id in datasets_to_check:
             if dataset_id in datasets_lastmodified:
                 continue
-            self.update_count(self.dataset_what_updated, datasets_to_check[dataset_id], dataset_id)
+            dict_of_lists_add(self.dataset_what_updated, datasets_to_check[dataset_id], dataset_id)
 
 
     def output_counts(self):
@@ -350,16 +383,12 @@ class Freshness:
 
     @staticmethod
     def add_what_updated(prev_what_updated, what_updated):
+        if what_updated in prev_what_updated:
+            return prev_what_updated
         if prev_what_updated != 'nothing':
             return '%s,%s' % (prev_what_updated, what_updated)
         else:
             return what_updated
-
-    @staticmethod
-    def update_count(hdxobject_what_updated, what_updated, hdxobject_id):
-        idlist = hdxobject_what_updated.get(what_updated, list())
-        idlist.append(hdxobject_id)
-        hdxobject_what_updated[what_updated] = idlist
 
     def calculate_aging(self, last_modified, update_frequency):
         delta = self.now - last_modified

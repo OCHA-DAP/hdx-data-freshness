@@ -7,6 +7,8 @@ Unit tests for the freshness class.
 import os
 
 import pickle
+from datetime import timedelta
+
 import pytest
 from hdx.configuration import Configuration
 from os.path import join
@@ -63,66 +65,100 @@ class TestFreshnessDay0:
         output = freshness.output_counts()
         assert output == '''
 *** Resources ***
-* total: 10205 *,
-adhoc-revision: 3068,
-internal-revision: 4921,
-revision: 1829,
-revision,api: 47,
-revision,error: 86,
-revision,hash: 192,
-revision,http header: 62
+* total: 10193 *,
+adhoc-revision: 2995,
+adhoc-revision,error: 2,
+adhoc-revision,hash: 71,
+internal-revision: 4792,
+internal-revision,api: 20,
+internal-revision,hash: 130,
+internal-revision,http header,hash: 6,
+revision: 1676,
+revision,api: 56,
+revision,error: 73,
+revision,hash: 290,
+revision,http header: 60,
+revision,http header,error: 16,
+revision,http header,hash: 6
 
 *** Datasets ***
-* total: 4440 *,
-0: Fresh, Updated metadata: 1883,
-0: Fresh, Updated metadata,revision,hash: 103,
-0: Fresh, Updated metadata,revision,http header: 8,
-1: Due, Updated metadata: 1716,
-2: Overdue, Updated metadata: 12,
-3: Delinquent, Updated metadata: 366,
-3: Delinquent, Updated metadata,revision,http header: 4,
-Freshness Unavailable, Updated metadata: 348
+* total: 4405 *,
+0: Fresh, Updated metadata: 1915,
+0: Fresh, Updated metadata,error: 8,
+0: Fresh, Updated metadata,revision,http header: 9,
+0: Fresh, Updated metadata,revision,http header,error: 7,
+0: Fresh, Updated metadata,revision,http header,hash: 3,
+1: Due, Updated metadata: 11,
+2: Overdue, Updated metadata: 1662,
+2: Overdue, Updated metadata,error: 10,
+3: Delinquent, Updated metadata: 433,
+3: Delinquent, Updated metadata,error: 4,
+3: Delinquent, Updated metadata,internal-revision,http header,hash: 1,
+3: Delinquent, Updated metadata,revision,http header: 3,
+Freshness Unavailable, Updated metadata: 338,
+Freshness Unavailable, Updated metadata,error: 1
 
-1521 datasets have update frequency of Never'''
+1510 datasets have update frequency of Never'''
 
         dbsession = freshness.session
         dbrun = dbsession.query(DBRun).one()
-        assert str(dbrun) == '<Run number=0, Run date=2017-01-09 12:01:13.932811>'
+        assert str(dbrun) == '<Run number=0, Run date=2017-02-01 09:07:30.333492>'
         dbresource = dbsession.query(DBResource).first()
-        assert str(dbresource) == '''<Resource(run number=0, id=33bf8136-e0ca-4d80-972e-c99f39fdc99d, name=UNOSAT_CE20130604SYR_Syria_Damage_Assessment_2016_gdb.zip, dataset id=7d1b4f22-e0fd-400a-9fec-9db8c352c24f,
-url=http://cern.ch/unosat-maps/SY/CE20130604SYR/UNOSAT_CE20130604SYR_Syria_Damage_Assessment_2016_gdb.zip,
-error=None, last_modified=2017-01-09 10:22:11.181572, revision_last_updated=2017-01-09 10:22:11.181572, http_last_modified=None, MD5_hash=None, api=None, what_updated=revision)>'''
+        assert str(dbresource) == '''<Resource(run number=0, id=a67b85ee-50b4-4345-9102-d88bf9091e95, name=South_Sudan_Recent_Conflict_Event_Total_Fatalities.csv, dataset id=84f5cc34-8a17-4e62-a868-821ff3725c0d,
+url=http://data.humdata.org/dataset/84f5cc34-8a17-4e62-a868-821ff3725c0d/resource/a67b85ee-50b4-4345-9102-d88bf9091e95/download/South_Sudan_Recent_Conflict_Event_Total_Fatalities.csv,
+error=None, last modified=2017-01-25 14:38:45.135854, what updated=internal-revision,hash,
+revision last updated=2017-01-25 14:38:45.135854, http last modified=2016-11-16 09:45:18, MD5 hash=2016-11-16 09:45:18, when hashed=2017-02-01 09:07:30.333492, api=False)>'''
         count = dbsession.query(DBResource).filter(DBResource.url.like('%data.humdata.org%')).count()
-        assert count == 2472
-        count = dbsession.query(DBResource).filter_by(what_updated='revision', error=None).count()
-        assert count == 1876
-        count = dbsession.query(DBResource).filter_by(what_updated='revision', api=True).count()
-        assert count == 47
+        assert count == 2499
+        count = dbsession.query(DBResource).filter_by(what_updated='internal-revision', error=None, api=None).count()
+        assert count == 4792
+        count = dbsession.query(DBResource).filter_by(what_updated='internal-revision,hash', error=None, api=False).count()
+        assert count == 130
+        count = dbsession.query(DBResource).filter_by(what_updated='internal-revision,http header,hash', error=None, api=False).count()
+        assert count == 6
+        count = dbsession.query(DBResource).filter_by(what_updated='revision', error=None, api=None).count()
+        assert count == 1676
+        count = dbsession.query(DBResource).filter_by(what_updated='revision', error=None, api=True).count()
+        assert count == 56
         count = dbsession.query(DBResource).filter(DBResource.error.isnot(None)).filter_by(what_updated='revision').count()
-        assert count == 86
+        assert count == 73
+        count = dbsession.query(DBResource).filter_by(what_updated='revision,http header', error=None, api=None).count()
+        assert count == 60
+        count = dbsession.query(DBResource).filter_by(what_updated='revision,http header,hash', error=None, api=False).count()
+        assert count == 6
         dbdataset = dbsession.query(DBDataset).first()
-        assert str(dbdataset) == '''<Dataset(run number=0, id=7d1b4f22-e0fd-400a-9fec-9db8c352c24f, dataset date=01/06/2017, update frequency=0,
-last_modified=2017-01-09 11:19:19.502612what updated=metadata, metadata_modified=2017-01-09 11:19:19.502612,
-Resource 33bf8136-e0ca-4d80-972e-c99f39fdc99d: last modified=2017-01-09 10:22:11.181572,
+        assert str(dbdataset) == '''<Dataset(run number=0, id=84f5cc34-8a17-4e62-a868-821ff3725c0d, dataset date=07/19/2016, update frequency=0,
+last_modified=2017-01-25 14:38:45.137336what updated=metadata, metadata_modified=2017-01-25 14:38:45.137336,
+Resource a67b85ee-50b4-4345-9102-d88bf9091e95: last modified=2017-01-25 14:38:45.135854,
 Dataset fresh=0'''
-        count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata').count()
-        assert count == 1883
-        count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata,revision,hash').count()
-        assert count == 103
+        count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata', error=False).count()
+        assert count == 1915
+        count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata', error=True).count()
+        assert count == 8
+        count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata,revision,http header', error=False).count()
+        assert count == 9
+        count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata,revision,http header', error=True).count()
+        assert count == 7
         count = dbsession.query(DBDataset).filter_by(fresh=1, what_updated='metadata').count()
-        assert count == 1716
-        count = dbsession.query(DBDataset).filter_by(fresh=2, what_updated='metadata').count()
-        assert count == 12
-        count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='metadata,revision,http header').count()
-        assert count == 4
+        assert count == 11
+        count = dbsession.query(DBDataset).filter_by(fresh=2, what_updated='metadata', error=False).count()
+        assert count == 1662
+        count = dbsession.query(DBDataset).filter_by(fresh=2, what_updated='metadata', error=True).count()
+        assert count == 10
+        count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='metadata,internal-revision,http header,hash').count()
+        assert count == 1
+        count = dbsession.query(DBDataset).filter_by(fresh=None, what_updated='metadata', error=False).count()
+        assert count == 338
+        count = dbsession.query(DBDataset).filter_by(fresh=None, what_updated='metadata', error=True).count()
+        assert count == 1
         dbinfodataset = dbsession.query(DBInfoDataset).first()
-        assert str(dbinfodataset) == '''<InfoDataset(id=7d1b4f22-e0fd-400a-9fec-9db8c352c24f, name=damage-density-2016-of-idlib-idlib-governorate-syria, title=Syria - Damage density 2016 of Idlib, Idlib Governorate,
-private=False, organization id=ba5aacba-0633-4364-9528-bc76a3f6cf95,
+        assert str(dbinfodataset) == '''<InfoDataset(id=84f5cc34-8a17-4e62-a868-821ff3725c0d, name=south-sudan-crisis-map-explorer-data, title=South Sudan Crisis Map Explorer Data,
+private=False, organization id=hdx,
 maintainer=None, maintainer email=None, author=None, author email=None)>'''
         count = dbsession.query(DBInfoDataset).count()
-        assert count == 4440
+        assert count == 4405
         dborganization = dbsession.query(DBOrganization).first()
-        assert str(dborganization) == '''<Organization(id=ba5aacba-0633-4364-9528-bc76a3f6cf95, name=un-operational-satellite-appplications-programme-unosat, title=UN Operational Satellite Applications Programme (UNOSAT))>'''
+        assert str(dborganization) == '''<Organization(id=hdx, name=hdx, title=HDX)>'''
         count = dbsession.query(DBOrganization).count()
-        assert count == 178
+        assert count == 179
 

@@ -25,8 +25,8 @@ class FailedRequest(Exception):
         self.code = code
         self.url = url
 
-        super().__init__("code:{c} url={u} message={m} raised={r}".format(
-            c=self.code, u=self.url, m=self.message, r=self.raised))
+        super().__init__('code={c} message={m} raised={r} url={u}'.format(
+            c=self.code, m=self.message, r=self.raised, u=self.url))
 
 
 async def send_http(session, method, url, *,
@@ -81,10 +81,8 @@ async def send_http(session, method, url, *,
                         return await fn(response)
                     elif response.status in http_status_codes_to_retry:
                         logger.error(
-                            'Received invalid response code:%s url:%s error:%s'
-                            ' response:%s', response.status, url, '',
-                            response.reason
-                        )
+                            'Received invalid response code:%s error:%s'
+                            ' response:%s url:%s', response.status, '', response.reason, url)
                         raise aiohttp.errors.HttpProcessingError(
                             code=response.status, message=response.reason)
                     else:
@@ -102,8 +100,8 @@ async def send_http(session, method, url, *,
                 code = exc.code
             except AttributeError:
                 code = ''
-            raised_exc = FailedRequest(code=code, message=exc, url=url,
-                                    raised='%s.%s' % (exc.__class__.__module__, exc.__class__.__qualname__))
+            raised_exc = FailedRequest(code=code, message=exc,
+                                       raised='%s.%s' % (exc.__class__.__module__, exc.__class__.__qualname__), url=url)
         else:
             raised_exc = None
             break

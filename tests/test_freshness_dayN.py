@@ -66,67 +66,84 @@ class TestFreshnessDayN:
         output = freshness.output_counts()
         assert output == '''
 *** Resources ***
-* total: 10207 *,
-adhoc-nothing: 3068,
-api: 14,
-error: 85,
-hash: 1,
-internal-nothing: 4920,
+* total: 10192 *,
+adhoc-nothing: 2986,
+adhoc-nothing,error: 2,
+adhoc-nothing,hash: 80,
+api: 53,
+error: 123,
+hash: 113,
+http header,hash: 1,
+internal-nothing: 4887,
+internal-nothing,hash: 57,
+internal-nothing,http header,hash: 2,
 internal-revision: 1,
-nothing: 2107,
-revision: 6,
-same hash: 5
+nothing: 1703,
+revision: 4,
+same hash: 180
 
 *** Datasets ***
-* total: 4441 *,
-0: Fresh, Updated hash: 1,
+* total: 4404 *,
+0: Fresh, Updated hash: 2,
+0: Fresh, Updated internal-nothing,http header,hash: 1,
 0: Fresh, Updated metadata: 3,
-0: Fresh, Updated nothing: 1985,
-1: Due, Updated nothing: 1718,
-2: Overdue, Updated nothing: 7,
-3: Delinquent, Updated nothing: 379,
-Freshness Unavailable, Updated nothing: 348
+0: Fresh, Updated nothing: 1897,
+0: Fresh, Updated nothing,error: 41,
+1: Due, Updated nothing: 10,
+2: Overdue, Updated nothing: 1660,
+2: Overdue, Updated nothing,error: 10,
+3: Delinquent, Updated nothing: 437,
+3: Delinquent, Updated nothing,error: 4,
+Freshness Unavailable, Updated nothing: 338,
+Freshness Unavailable, Updated nothing,error: 1
 
-1521 datasets have update frequency of Never'''
+1510 datasets have update frequency of Never'''
 
         dbsession = freshness.session
         dbrun = dbsession.query(DBRun).filter_by(run_number=1).one()
-        assert str(dbrun) == '<Run number=1, Run date=2017-01-12 12:14:53.683353>'
+        assert str(dbrun) == '<Run number=1, Run date=2017-02-02 07:46:52.552929>'
         dbresource = dbsession.query(DBResource).first()
-        assert str(dbresource) == '''<Resource(run number=0, id=33bf8136-e0ca-4d80-972e-c99f39fdc99d, name=UNOSAT_CE20130604SYR_Syria_Damage_Assessment_2016_gdb.zip, dataset id=7d1b4f22-e0fd-400a-9fec-9db8c352c24f,
-url=http://cern.ch/unosat-maps/SY/CE20130604SYR/UNOSAT_CE20130604SYR_Syria_Damage_Assessment_2016_gdb.zip,
-error=None, last_modified=2017-01-09 10:22:11.181572, revision_last_updated=2017-01-09 10:22:11.181572, http_last_modified=None, MD5_hash=None, api=None, what_updated=revision)>'''
+        assert str(dbresource) == '''<Resource(run number=0, id=a67b85ee-50b4-4345-9102-d88bf9091e95, name=South_Sudan_Recent_Conflict_Event_Total_Fatalities.csv, dataset id=84f5cc34-8a17-4e62-a868-821ff3725c0d,
+url=http://data.humdata.org/dataset/84f5cc34-8a17-4e62-a868-821ff3725c0d/resource/a67b85ee-50b4-4345-9102-d88bf9091e95/download/South_Sudan_Recent_Conflict_Event_Total_Fatalities.csv,
+error=None, last modified=2017-01-25 14:38:45.135854, what updated=internal-revision,hash,
+revision last updated=2017-01-25 14:38:45.135854, http last modified=2016-11-16 09:45:18, MD5 hash=2016-11-16 09:45:18, when hashed=2017-02-01 09:07:30.333492, api=False)>'''
         count = dbsession.query(DBResource).filter(DBResource.url.like('%data.humdata.org%')).count()
-        assert count == 4944
+        assert count == 4997
         count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='revision', error=None).count()
-        assert count == 6
+        assert count == 4
         count = dbsession.query(DBResource).filter_by(run_number=1, api=True).count()
-        assert count == 14
-        count = dbsession.query(DBResource).filter_by(run_number=1).filter(DBResource.error.isnot(None)).count()
-        assert count == 85
+        assert count == 53
+        count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='adhoc-nothing').filter(DBResource.error.isnot(None)).count()
+        assert count == 2
+        hash_updated = dbsession.query(DBResource.id).filter_by(run_number=1).filter(DBResource.what_updated.like('%hash%'))
+        assert hash_updated.count() == 253
+        count = dbsession.query(DBResource).filter_by(run_number=0).filter(DBResource.md5_hash.isnot(None)).filter(DBResource.id.in_(hash_updated.as_scalar())).count()
+        assert count == 2
+        # select what_updated, api from dbresources where run_number=0 and md5_hash is not null and id in (select id from dbresources where run_number=1 and what_updated like '%hash%');
         dbdataset = dbsession.query(DBDataset).first()
-        assert str(dbdataset) == '''<Dataset(run number=0, id=7d1b4f22-e0fd-400a-9fec-9db8c352c24f, dataset date=01/06/2017, update frequency=0,
-last_modified=2017-01-09 11:19:19.502612what updated=metadata, metadata_modified=2017-01-09 11:19:19.502612,
-Resource 33bf8136-e0ca-4d80-972e-c99f39fdc99d: last modified=2017-01-09 10:22:11.181572,
+        assert str(dbdataset) == '''<Dataset(run number=0, id=84f5cc34-8a17-4e62-a868-821ff3725c0d, dataset date=07/19/2016, update frequency=0,
+last_modified=2017-01-25 14:38:45.137336what updated=metadata, metadata_modified=2017-01-25 14:38:45.137336,
+Resource a67b85ee-50b4-4345-9102-d88bf9091e95: last modified=2017-01-25 14:38:45.135854,
 Dataset fresh=0'''
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='metadata').count()
         assert count == 3
-        count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='nothing').count()
-        assert count == 1985
+        count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='nothing', error=False).count()
+        assert count == 1897
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=1, what_updated='nothing').count()
-        assert count == 1718
-        count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=2, what_updated='nothing').count()
-        assert count == 7
-        count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing').count()
-        assert count == 379
+        assert count == 10
+        count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=2, what_updated='nothing', error=True).count()
+        assert count == 10
+        count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing', error=False).count()
+        assert count == 437
+        count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=None, what_updated='nothing', error=False).count()
+        assert count == 338
         dbinfodataset = dbsession.query(DBInfoDataset).first()
-        assert str(dbinfodataset) == '''<InfoDataset(id=7d1b4f22-e0fd-400a-9fec-9db8c352c24f, name=damage-density-2016-of-idlib-idlib-governorate-syria, title=Syria - Damage density 2016 of Idlib, Idlib Governorate,
-private=False, organization id=ba5aacba-0633-4364-9528-bc76a3f6cf95,
-maintainer=UNOSAT, maintainer email=emergencymapping@unosat.org, author=UNITAR-UNOSAT, author email=emergencymapping@unosat.org)>'''
+        assert str(dbinfodataset) == '''<InfoDataset(id=84f5cc34-8a17-4e62-a868-821ff3725c0d, name=south-sudan-crisis-map-explorer-data, title=South Sudan Crisis Map Explorer Data,
+private=False, organization id=hdx,
+maintainer=mcarans, maintainer email=None, author=None, author email=None)>'''
         count = dbsession.query(DBInfoDataset).count()
-        assert count == 4441
+        assert count == 4405
         dborganization = dbsession.query(DBOrganization).first()
-        assert str(dborganization) == '''<Organization(id=ba5aacba-0633-4364-9528-bc76a3f6cf95, name=un-operational-satellite-appplications-programme-unosat, title=UN Operational Satellite Applications Programme (UNOSAT))>'''
+        assert str(dborganization) == '''<Organization(id=hdx, name=hdx, title=HDX)>'''
         count = dbsession.query(DBOrganization).count()
-        assert count == 178
-
+        assert count == 179
