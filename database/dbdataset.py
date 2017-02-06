@@ -1,5 +1,6 @@
 from sqlalchemy import Column, DateTime, Boolean, String
 from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKeyConstraint
 from sqlalchemy import Integer
 
 from database.base import Base
@@ -14,7 +15,7 @@ class DBDataset(Base):
     metadata_modified = Column(DateTime, nullable=False)
     last_modified = Column(DateTime, nullable=False)
     what_updated = Column(String, nullable=False)
-    last_resource_updated = Column(String, ForeignKey('dbresources.id'), nullable=False)
+    last_resource_updated = Column(String, nullable=False)
     last_resource_modified = Column(DateTime, nullable=False)
     fresh = Column(Integer)
     error = Column(Boolean, nullable=False)

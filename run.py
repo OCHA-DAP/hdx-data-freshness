@@ -16,7 +16,7 @@ from freshness import Freshness
 logger = logging.getLogger(__name__)
 
 def main():
-    freshness = Freshness(save=True)
+    freshness = Freshness(save=True)  # dbpath='postgresql://username:password@localhost:5432/freshness',
     datasets_to_check, resources_to_check = freshness.process_datasets()
     results, hash_results = freshness.check_urls(resources_to_check)
     datasets_lastmodified = freshness.process_results(results, hash_results)

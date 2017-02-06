@@ -93,6 +93,37 @@ class Freshness:
         for dataset in self.datasets:
             dataset_id = dataset['id']
             dict_of_lists_add(self.dataset_what_updated, 'total', dataset_id)
+            organization_id = dataset['organization']['id']
+            organization_name = dataset['organization']['name']
+            organization_title = dataset['organization']['title']
+            try:
+                dborganization = self.session.query(DBOrganization).filter_by(id=organization_id).one()
+                dborganization.name = organization_name
+                dborganization.title = organization_title
+            except NoResultFound:
+                dborganization = DBOrganization(name=organization_name, id=organization_id, title=organization_title)
+                self.session.add(dborganization)
+            dataset_name = dataset['name']
+            dataset_title = dataset['title']
+            dataset_private = dataset['private']
+            dataset_maintainer = dataset['maintainer']
+            dataset_maintainer_email = dataset['maintainer_email']
+            dataset_author = dataset['author']
+            dataset_author_email = dataset['author_email']
+            try:
+                dbinfodataset = self.session.query(DBInfoDataset).filter_by(id=dataset_id).one()
+                dbinfodataset.name = dataset_name
+                dbinfodataset.title = dataset_title
+                dbinfodataset.private = dataset_private
+                dbinfodataset.organization_id = organization_id
+                dbinfodataset.maintainer = dataset_maintainer
+                dbinfodataset.maintainer_email = dataset_maintainer_email
+                dbinfodataset.author = dataset_author
+                dbinfodataset.author_email = dataset_author_email
+            except NoResultFound:
+                dbinfodataset = DBInfoDataset(name=dataset_name, id=dataset_id, title=dataset_title,
+                                              private=dataset_private, organization_id=organization_id)
+                self.session.add(dbinfodataset)
             try:
                 previous_dbdataset = self.session.query(DBDataset).filter_by(run_number=self.previous_run_number,
                                                                              id=dataset_id).one()
@@ -146,37 +177,6 @@ class Freshness:
             else:
                 datasets_to_check[dataset_id] = update_string
                 resources_to_check += dataset_resources
-            dataset_name = dataset['name']
-            dataset_title = dataset['title']
-            dataset_private = dataset['private']
-            organization_id = dataset['organization']['id']
-            dataset_maintainer = dataset['maintainer']
-            dataset_maintainer_email = dataset['maintainer_email']
-            dataset_author = dataset['author']
-            dataset_author_email = dataset['author_email']
-            try:
-                dbinfodataset = self.session.query(DBInfoDataset).filter_by(id=dataset_id).one()
-                dbinfodataset.name = dataset_name
-                dbinfodataset.title = dataset_title
-                dbinfodataset.private = dataset_private
-                dbinfodataset.organization_id = organization_id
-                dbinfodataset.maintainer = dataset_maintainer
-                dbinfodataset.maintainer_email = dataset_maintainer_email
-                dbinfodataset.author = dataset_author
-                dbinfodataset.author_email = dataset_author_email
-            except NoResultFound:
-                dbinfodataset = DBInfoDataset(name=dataset_name, id=dataset_id, title=dataset_title,
-                                              private=dataset_private, organization_id=organization_id)
-                self.session.add(dbinfodataset)
-            organization_name = dataset['organization']['name']
-            organization_title = dataset['organization']['title']
-            try:
-                dborganization = self.session.query(DBOrganization).filter_by(id=organization_id).one()
-                dborganization.name = organization_name
-                dborganization.title = organization_title
-            except NoResultFound:
-                dborganization = DBOrganization(name=organization_name, id=organization_id, title=organization_title)
-                self.session.add(dborganization)
         self.session.commit()
         return datasets_to_check, resources_to_check
 

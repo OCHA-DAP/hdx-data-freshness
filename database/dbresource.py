@@ -1,6 +1,7 @@
 from sqlalchemy import Boolean
 from sqlalchemy import Column, DateTime, String
 from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKeyConstraint
 from sqlalchemy import Integer
 
 from database.base import Base
@@ -11,7 +12,7 @@ class DBResource(Base):
     run_number = Column(Integer, ForeignKey(DBRun.run_number), primary_key=True)
     id = Column(String, primary_key=True)
     name = Column(String, nullable=False)
-    dataset_id = Column(String, ForeignKey('dbdatasets.id'), nullable=False)
+    dataset_id = Column(String, ForeignKey('dbinfodatasets.id'), nullable=False)
     url = Column(String, nullable=False)
     error = Column(String)
     last_modified = Column(DateTime, nullable=False)
