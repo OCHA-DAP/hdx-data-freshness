@@ -7,7 +7,7 @@ RUN apk update && \
     apk add postgresql-dev libffi-dev python3-dev musl-dev build-base && \
     mkdir /hdx-data-freshness && \
     cd /hdx-data-freshness && \
-    curl -so /hdx-data-freshness/reqs.txt \
+    curl -so /hdx-data-freshness/requirements.txt \
         https://raw.githubusercontent.com/OCHA-DAP/hdx-data-freshness/master/requirements.txt && \
     pip install -r requirements.txt && \
     apk del build-base && \
