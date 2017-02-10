@@ -9,16 +9,23 @@
 #
 ##############################################################################
 
-#
-# Database
-#
-database:
-  image: unocha/alpine-base-postgres
+version: "2"
 
-#
-# Program
-#
-hdx-data-freshness:
-  build: .
-  links:
-    - database
+services:
+  #
+  # Database
+  #
+  db:
+    image: unocha/alpine-base-postgres
+
+  #
+  # Program
+  #
+  hdx-data-freshness:
+    build: .
+    volumes:
+      - "./:/hdx-data-freshness"
+    # if you need any port from the container
+    #ports:
+    #  - "8080:80"
+
