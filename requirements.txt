@@ -4,5 +4,4 @@ cchardet==1.1.1
 psycopg2==2.6.2
 sandman2==1.0.6
 tqdm==4.10.0
-git+git://github.com/ckan/ckanapi.git@feedf1bced59c10af1a2835fca48d8cfc8b5a3cb#egg=ckanapi
-git+git://github.com/ocha-dap/hdx-python-api.git@master#egg=hdx-python-api
+https://github.com/ocha-dap/hdx-python-api/zipball/master#egg=hdx-python-api

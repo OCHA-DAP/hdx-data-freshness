@@ -1,0 +1,24 @@
+##############################################################################
+# HDX DATA FRESHNESS:
+#
+#  Database:
+#   - PostgreSQL
+#
+#  Program:
+#   - HDX Data Freshness: for collecting freshness statistics about HDX.
+#
+##############################################################################
+
+#
+# Database
+#
+database:
+  image: unocha/alpine-base-postgres
+
+#
+# Program
+#
+hdx-data-freshness:
+  build: .
+  links:
+    - database
