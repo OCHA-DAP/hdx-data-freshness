@@ -17,6 +17,17 @@ services:
   #
   db:
     image: unocha/alpine-base-postgres
+    env_file:
+      - database.env
+  #
+  # REST api
+  #
+  rest:
+    image: mcarans/alpine-haskell-postgrest
+    ports:
+      - "3000"
+    env_file:
+      - database.env
 
   #
   # Program
@@ -25,7 +36,6 @@ services:
     build: .
     volumes:
       - "./:/hdx-data-freshness"
-    # if you need any port from the container
-    #ports:
-    #  - "8080:80"
+    env_file:
+      - database.env
 

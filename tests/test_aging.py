@@ -91,7 +91,7 @@ class TestAging:
     ])
     def test_aging(self, configuration, nodatabase, now, datasets,
                    days_last_modified, update_frequency, expected_status):
-        freshness = Freshness(dbpath=nodatabase, datasets=datasets, now=now)
+        freshness = Freshness(dbconn=nodatabase, datasets=datasets, now=now)
         last_modified = now - timedelta(days=days_last_modified)
         status = freshness.calculate_aging(last_modified, update_frequency)
         assert status == expected_status
