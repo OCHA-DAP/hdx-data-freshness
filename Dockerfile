@@ -13,6 +13,6 @@ RUN apk update && \
     apk del build-base && \
     rm -rf /var/cache/apk/*
 
-WORKDIR "/hdx-data-freshness"
+WORKDIR "/srv"
 
-CMD [ "python3", "/hdx-data-freshness/run.py", "postgresql://$DB_USER:$DB_PASS@$DB_HOST:$DB_PORT/$DB_NAME" ]
+CMD [ "python3", "/srv/run.py" ]

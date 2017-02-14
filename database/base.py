@@ -1,5 +1,4 @@
-from sqlalchemy import Column
-from sqlalchemy import Integer
+# -*- coding: utf-8 -*-
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.declarative import declared_attr
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from sqlalchemy import Boolean
 from sqlalchemy import Column, String
 from sqlalchemy import ForeignKey

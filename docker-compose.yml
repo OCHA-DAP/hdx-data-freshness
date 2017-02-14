@@ -17,8 +17,6 @@ services:
   #
   db:
     image: unocha/alpine-base-postgres
-    env_file:
-      - database.env
   #
   # REST api
   #
@@ -26,16 +24,17 @@ services:
     image: mcarans/alpine-haskell-postgrest
     ports:
       - "3000"
-    env_file:
-      - database.env
+    environment:
+      DB_URL=${DB_URL}
 
   #
   # Program
   #
-  hdx-data-freshness:
+  app:
     build: .
+    hostname: hdx-data-freshness
     volumes:
-      - "./:/hdx-data-freshness"
-    env_file:
-      - database.env
-
+      - "/:/srv"
+    environment:
+      DB_URL=${DB_URL}
+    command: /srv/run.py

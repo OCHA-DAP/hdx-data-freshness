@@ -1,7 +1,7 @@
+# -*- coding: utf-8 -*-
 from sqlalchemy import Boolean
 from sqlalchemy import Column, DateTime, String
 from sqlalchemy import ForeignKey
-from sqlalchemy import ForeignKeyConstraint
 from sqlalchemy import Integer
 
 from database.base import Base

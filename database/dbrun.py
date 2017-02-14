@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from sqlalchemy import Column, DateTime
 from sqlalchemy import Integer
 

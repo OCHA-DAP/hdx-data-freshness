@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+'''
+Unit tests for the retrieval class.
+
+'''
 from datetime import datetime
 
 from retrieval import retrieve

@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 '''
 Data freshness:
@@ -32,9 +31,9 @@ from retrieval import retrieve
 logger = logging.getLogger(__name__)
 
 class Freshness:
-    def __init__(self, dbconn='sqlite:///freshness.db', save=False, datasets=None, now=None):
+    def __init__(self, db_url='sqlite:///freshness.db', save=False, datasets=None, now=None):
         ''''''
-        engine = create_engine(dbconn, echo=False)
+        engine = create_engine(db_url, echo=False)
         Session = sessionmaker(bind=engine)
         Base.metadata.create_all(engine)
         self.session = Session()
