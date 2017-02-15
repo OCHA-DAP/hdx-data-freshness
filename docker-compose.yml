@@ -37,4 +37,4 @@ services:
       - "/:/srv"
     environment:
       DB_URL=${DB_URL}
-    command: run.py
+    command: __main__.py
