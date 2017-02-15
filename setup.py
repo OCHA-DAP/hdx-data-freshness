@@ -4,6 +4,7 @@ from setuptools import setup, find_packages
 requirements = ['aiodns',
                 'aiohttp',
                 'cchardet',
+                'psycopg2',
                 'tqdm'
                 ]
 
