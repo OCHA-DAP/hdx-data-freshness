@@ -44,6 +44,6 @@ if __name__ == '__main__':
     db_url = args.db_url
     if db_url is None:
         db_url = os.getenv('DB_URL')
-    if '://' not in db_url:
+    if db_url and '://' not in db_url:
         db_url = 'postgresql://%s' % db_url
     main(hdx_site, db_url, args.save)
