@@ -15,4 +15,6 @@ RUN apk update && \
 
 WORKDIR "/srv"
 
+RUN chmod u+x /srv/run.py
+
 CMD [ "python3", "/srv/run.py" ]
