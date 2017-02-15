@@ -13,6 +13,7 @@ import os
 
 from hdx.configuration import Configuration
 from hdx.logging import setup_logging
+from hdx.utilities.path import script_dir_plus_file
 
 from freshness.freshness import Freshness
 
@@ -21,7 +22,9 @@ logger = logging.getLogger(__name__)
 
 
 def main(hdx_site, db_url, save):
-    configuration = Configuration.create(hdx_read_only=True, hdx_site=hdx_site)
+    project_config_yaml = script_dir_plus_file('project_configuration.yml', main)
+    configuration = Configuration.create(hdx_read_only=True, hdx_site=hdx_site,
+                                         project_config_yaml=project_config_yaml)
     logger.info('--------------------------------------------------')
     logger.info('> HDX Site: %s' % configuration.get_hdx_site_url())
     logger.info('> DB URL: %s' % db_url)
