@@ -4,8 +4,7 @@ from setuptools import setup, find_packages
 requirements = ['aiodns',
                 'aiohttp',
                 'cchardet',
-                'tqdm',
-                'hdx-python-api==0.81'
+                'tqdm'
                 ]
 
 setup(
@@ -17,9 +16,6 @@ setup(
     author='Michael Rans',
     author_email='rans@email.com',
     description='HDX Data Freshness',
-    dependency_links=[
-        'https://github.com/ocha-dap/hdx-python-api/archive/master.zip#egg=hdx-python-api-0.81'
-    ],
     install_requires=requirements,
     package_data={
         # Include any package contains *.yml files, include them:
