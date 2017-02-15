@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
+from freshness.database.dbrun import DBRun
 from sqlalchemy import Boolean
 from sqlalchemy import Column, DateTime, String
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 
-from database.base import Base
-from database.dbrun import DBRun
+from freshness.database.base import Base
 
 
 class DBResource(Base):

@@ -14,7 +14,7 @@ import os
 from hdx.configuration import Configuration
 from hdx.logging import setup_logging
 
-from freshness import Freshness
+from freshness.freshness import Freshness
 
 setup_logging()
 logger = logging.getLogger(__name__)

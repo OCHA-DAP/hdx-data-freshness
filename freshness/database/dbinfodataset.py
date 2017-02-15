@@ -3,7 +3,7 @@ from sqlalchemy import Boolean
 from sqlalchemy import Column, String
 from sqlalchemy import ForeignKey
 
-from database.base import Base
+from freshness.database.base import Base
 
 
 class DBInfoDataset(Base):

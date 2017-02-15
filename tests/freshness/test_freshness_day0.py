@@ -4,20 +4,18 @@ Unit tests for the freshness class.
 
 '''
 import os
-
 import pickle
-from datetime import timedelta
+from os.path import join
 
 import pytest
 from hdx.configuration import Configuration
-from os.path import join
 
-from database.dbdataset import DBDataset
-from database.dbinfodataset import DBInfoDataset
-from database.dborganization import DBOrganization
-from database.dbresource import DBResource
-from database.dbrun import DBRun
-from freshness import Freshness
+from freshness.freshness import Freshness
+from freshness.database.dbdataset import DBDataset
+from freshness.database.dbinfodataset import DBInfoDataset
+from freshness.database.dborganization import DBOrganization
+from freshness.database.dbresource import DBResource
+from freshness.database.dbrun import DBRun
 
 
 class TestFreshnessDay0:

@@ -2,7 +2,6 @@ import asyncio
 import logging
 
 import aiohttp
-import sys
 
 logger = logging.getLogger(__name__)
 

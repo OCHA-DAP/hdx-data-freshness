@@ -7,17 +7,17 @@ Retrieval
 Retrieve urls and categorise them
 
 '''
-import sys
-import logging
-import time
 import asyncio
-import aiohttp
 import hashlib
+import logging
+import sys
+import time
 
+import aiohttp
 import tqdm
 from dateutil import parser
 
-import retry
+from freshness import retry
 
 logger = logging.getLogger(__name__)
 

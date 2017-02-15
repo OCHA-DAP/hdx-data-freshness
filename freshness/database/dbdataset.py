@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
+from freshness.database.dbrun import DBRun
 from sqlalchemy import Column, DateTime, Boolean, String
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 
-from database.base import Base
-from database.dbrun import DBRun
+from freshness.database.base import Base
 
 
 class DBDataset(Base):
