@@ -37,4 +37,4 @@ services:
       - "/:/srv"
     environment:
       DB_URL=${DB_URL}
-    command: __main__.py
+    command: python3 -m freshness

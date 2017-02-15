@@ -33,8 +33,8 @@ def main(hdx_site, db_url, save):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Data Freshness')
-    parser.add_argument('-h', '--hdx_site', default=None, help='HDX site to use')
-    parser.add_argument('-u', '--db_url', default=None, help='Database connection string')
+    parser.add_argument('-hs', '--hdx_site', default=None, help='HDX site to use')
+    parser.add_argument('-db', '--db_url', default=None, help='Database connection string')
     parser.add_argument('-s', '--save', default=False, action='store_true', help='Save state for testing')
     args = parser.parse_args()
     hdx_site = args.hdx_site
