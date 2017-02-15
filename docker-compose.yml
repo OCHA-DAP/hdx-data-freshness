@@ -31,10 +31,10 @@ services:
   # Program
   #
   app:
-    build: .
+    image: mcarans/hdx-data-freshness
     hostname: hdx-data-freshness
     volumes:
       - "/:/srv"
     environment:
       DB_URL=${DB_URL}
-    command: python3 /srv/run.py
+    command: run.py

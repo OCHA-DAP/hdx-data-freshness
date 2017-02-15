@@ -2,11 +2,13 @@ FROM mcarans/hdx-python-api
 
 MAINTAINER Michael Rans <rans@email.com>
 
-RUN mkdir /hdx-data-freshness && \
-    cd /hdx-data-freshness && \
-    curl -so /hdx-data-freshness/requirements.txt \
+RUN apk update && \
+    apk add build-base && \
+    curl -so /srv/requirements.txt \
         https://raw.githubusercontent.com/OCHA-DAP/hdx-data-freshness/master/requirements.txt && \
-    pip install -r requirements.txt
+    pip install -r /srv/requirements.txt && \
+    apk del build-base && \
+    rm -rf /var/cache/apk/*
 
 ADD run.py /srv/
 
