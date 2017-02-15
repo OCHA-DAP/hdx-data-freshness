@@ -5,7 +5,7 @@ requirements = ['aiodns',
                 'aiohttp',
                 'cchardet',
                 'tqdm',
-                'hdx-python-api'
+                'hdx-python-api==latest'
                 ]
 
 setup(
@@ -18,7 +18,7 @@ setup(
     author_email='rans@email.com',
     description='HDX Data Freshness',
     dependency_links=[
-        'https://github.com/ocha-dap/hdx-python-api/zipball/master#egg=hdx-python-api'
+        'https://github.com/ocha-dap/hdx-python-api/zipball/master#egg=hdx-python-api-latest'
     ],
     install_requires=requirements,
     package_data={
