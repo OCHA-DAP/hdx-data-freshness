@@ -24,6 +24,7 @@ def main(hdx_site, db_url, save):
     configuration = Configuration.create(hdx_read_only=True, hdx_site=hdx_site)
     logger.info('--------------------------------------------------')
     logger.info('> HDX Site: %s' % configuration.get_hdx_site_url())
+    logger.info('> DB URL: %s' % db_url)
     freshness = Freshness(db_url=db_url, save=save)
     datasets_to_check, resources_to_check = freshness.process_datasets()
     results, hash_results = freshness.check_urls(resources_to_check)
