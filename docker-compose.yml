@@ -25,7 +25,7 @@ services:
     ports:
       - "3000"
     environment:
-      DB_URL=${DB_URL}
+      - DB_URL=${DB_URL}
 
   #
   # Program
@@ -36,5 +36,5 @@ services:
     volumes:
       - "/:/srv"
     environment:
-      DB_URL=${DB_URL}
+      - DB_URL=${DB_URL}
     command: python3 -m freshness
