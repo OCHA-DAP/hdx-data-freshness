@@ -16,7 +16,15 @@ services:
   # Database
   #
   db:
-    image: unocha/alpine-base-postgres
+    image: unocha/alpine-base-postgres:201010-PR90
+    environment:
+      - DB_NAME=${DB_NAME}
+      - DB_PASS=${DB_PASS}
+      - DB_USER=${DB_USER}
+    volumes:
+      - "$DB_VOL_BASE_PATH/freshness-db:/var/lib/pgsql"
+      - "./docker/db-opt:/opt/db"
+
   #
   # REST api
   #
