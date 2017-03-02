@@ -21,7 +21,7 @@ from freshness.database.dbrun import DBRun
 class TestFreshnessDay0:
     @pytest.fixture(scope='function')
     def configuration(self):
-        project_config_yaml = join('..', 'config', 'project_configuration.yml')
+        project_config_yaml = join('..', 'freshness', 'project_configuration.yml')
         Configuration.create(hdx_site='prod', hdx_read_only=True, project_config_yaml=project_config_yaml)
 
     @pytest.fixture(scope='function')
