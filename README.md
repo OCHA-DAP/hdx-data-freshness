@@ -1,5 +1,5 @@
 ### HDX Data Freshness
-[![Build Status](https://travis-ci.org/mcarans/hdx-data-freshness.svg?branch=master&ts=1)](https://travis-ci.org/mcarans/hdx-data-freshness) [![Coverage Status](https://coveralls.io/repos/github/mcarans/hdx-data-freshness/badge.svg?branch=master&ts=1)](https://coveralls.io/github/mcarans/hdx-data-freshness?branch=master)
+[![Build Status](https://travis-ci.org/OCHA-DAP/hdx-data-freshness.svg?branch=master&ts=1)](https://travis-ci.org/OCHA-DAP/hdx-data-freshness) [![Coverage Status](https://coveralls.io/repos/github/OCHA-DAP/hdx-data-freshness/badge.svg?branch=master&ts=1)](https://coveralls.io/github/OCHA-DAP/hdx-data-freshness?branch=master)
 
 The implementation of HDX freshness in Python reads all the datasets from the [Humanitarian Data Exchange](http://data.humdata.org/) website (using the HDX Python library) and then iterates through them one by one performing a sequence of steps.
 
