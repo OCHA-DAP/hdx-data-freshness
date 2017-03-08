@@ -16,25 +16,36 @@ services:
   # Database
   #
   db:
-    image: unocha/alpine-base-postgres
+    image: unocha/alpine-base-postgres:201010-PR90
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
+    volumes:
+      - "$DB_VOL_BASE_PATH/freshness-db:/var/lib/pgsql"
+      - "./docker/db-opt:/opt/db"
+
   #
   # REST api
   #
   rest:
     image: mcarans/alpine-haskell-postgrest
+    depends_on:
+      - "db"
     ports:
-      - "3000"
-    environment:
-      - DB_URL=${DB_URL}
+      - "3000:3000"
+    command: ["dockerize", "-wait", "tcp://db:5432", "postgrest", "$DB_URL", "-a", "$DB_USER"]
 
   #
   # Program
   #
   app:
     image: mcarans/hdx-data-freshness
+    depends_on:
+      - "db"
     hostname: hdx-data-freshness
     volumes:
       - "/:/srv"
     environment:
       - DB_URL=${DB_URL}
-    command: python3 -m freshness
+    command: ["dockerize", "-wait", "tcp://db:5432", "python3", "-m", "freshness"]
