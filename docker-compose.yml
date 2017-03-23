@@ -16,11 +16,11 @@ services:
   # Database
   #
   db:
-    image: unocha/alpine-base-postgres:201010-PR90
+    image: unocha/alpine-postgres:201703-PR116
     environment:
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - DB_NAME=${DB_NAME}
+      - PGSQL_USER=${DB_USER}
+      - PGSQL_PASS=${DB_PASS}
+      - PGSQL_DB=${DB_NAME}
     volumes:
       - "$DB_VOL_BASE_PATH/freshness-db:/var/lib/pgsql"
       - "./docker/db-opt:/opt/db"
