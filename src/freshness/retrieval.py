@@ -15,6 +15,7 @@ import time
 
 import aiohttp
 import tqdm
+import uvloop
 from dateutil import parser
 
 from freshness import retry
@@ -67,27 +68,18 @@ async def fetch(metadata, session):
                                      retries=5,
                                      interval=0.4,
                                      backoff=2,
-                                     read_timeout=300,
                                      http_status_codes_to_retry=[429, 500, 502, 503, 504],
                                      fn=fn)
     except Exception as e:
         return resource_id, url, str(e), None, None, force_hash
 
-async def bound_fetch(sem, metadata, session):
-    # Getter function with semaphore.
-    async with sem:
-        return await fetch(metadata, session)
-
 async def check_urls(urls, loop):
     tasks = list()
 
-    # create instance of Semaphore
-    sem = asyncio.Semaphore(100)
-
-    conn = aiohttp.TCPConnector(conn_timeout=10, limit=2)
-    async with aiohttp.ClientSession(connector=conn, loop=loop) as session:
+    conn = aiohttp.TCPConnector(limit=100, limit_per_host=2, loop=loop)
+    async with aiohttp.ClientSession(connector=conn, read_timeout=300, conn_timeout=10, loop=loop) as session:
         for metadata in urls:
-            task = bound_fetch(sem, metadata, session)
+            task = fetch(metadata, session)
             tasks.append(task)
         responses = dict()
         for f in tqdm.tqdm(asyncio.as_completed(tasks), total=len(tasks)):
@@ -98,7 +90,8 @@ async def check_urls(urls, loop):
 
 def retrieve(urls):
     start_time = time.time()
-    loop = asyncio.get_event_loop()
+    loop = uvloop.new_event_loop()
+    asyncio.set_event_loop(loop)
     future = asyncio.ensure_future(check_urls(urls, loop))
     results = loop.run_until_complete(future)
     logger.info('Execution time: %s seconds' % (time.time() - start_time))

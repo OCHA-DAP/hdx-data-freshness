@@ -12,10 +12,10 @@ import logging
 import os
 
 from hdx.configuration import Configuration
-from hdx.logging import setup_logging
+from hdx.hdx_logging import setup_logging
 from hdx.utilities.path import script_dir_plus_file
 
-from freshness.freshness import Freshness
+from freshness.datafreshness import DataFreshness
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -27,8 +27,11 @@ def main(hdx_site, db_url, save):
                                          project_config_yaml=project_config_yaml)
     logger.info('--------------------------------------------------')
     logger.info('> HDX Site: %s' % configuration.get_hdx_site_url())
-    logger.info('> DB URL: %s' % db_url)
-    freshness = Freshness(db_url=db_url, save=save)
+    if db_url:
+        logger.info('> DB URL: %s' % db_url)
+        freshness = DataFreshness(db_url=db_url, save=save)
+    else:
+        freshness = DataFreshness(save=save)
     datasets_to_check, resources_to_check = freshness.process_datasets()
     results, hash_results = freshness.check_urls(resources_to_check)
     datasets_lastmodified = freshness.process_results(results, hash_results)

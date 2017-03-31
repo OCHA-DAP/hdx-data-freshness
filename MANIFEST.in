@@ -1,0 +1,6 @@
+include *.txt
+include .coveragerc
+include Dockerfile
+include LICENSE
+include pytest.ini
+recursive-include src *.yml

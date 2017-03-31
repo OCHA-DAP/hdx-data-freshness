@@ -30,7 +30,7 @@ from freshness.retrieval import retrieve
 logger = logging.getLogger(__name__)
 
 
-class Freshness:
+class DataFreshness:
     def __init__(self, db_url='sqlite:///freshness.db', save=False, datasets=None, now=None):
         ''''''
         engine = create_engine(db_url, echo=False)
@@ -377,7 +377,7 @@ class Freshness:
     def set_last_modified(dbobject, modified_date, what_updated):
         if modified_date > dbobject.last_modified:
             dbobject.last_modified = modified_date
-            dbobject.what_updated = Freshness.add_what_updated(dbobject.what_updated, what_updated)
+            dbobject.what_updated = DataFreshness.add_what_updated(dbobject.what_updated, what_updated)
         return dbobject.what_updated
 
     @staticmethod

@@ -11,23 +11,24 @@ from os.path import join
 import pytest
 from hdx.configuration import Configuration
 
-from freshness.freshness import Freshness
+from freshness.datafreshness import DataFreshness
 
 
 class TestAging:
     @pytest.fixture(scope='class')
     def configuration(self):
-        project_config_yaml = join('..', 'freshness', 'project_configuration.yml')
+        project_config_yaml = join('src', 'freshness', 'project_configuration.yml')
         Configuration.create(hdx_site='prod', hdx_read_only=True, project_config_yaml=project_config_yaml)
 
     @pytest.fixture(scope='class')
     def now(self):
-        with open('fixtures/day0/now.pickle', 'rb') as fp:
+        fixture = join('tests', 'fixtures', 'day0', 'now.pickle')
+        with open(fixture, 'rb') as fp:
             return pickle.load(fp)
 
     @pytest.fixture(scope='class')
     def nodatabase(self):
-        dbpath = 'test_freshness.db'
+        dbpath = join('tests', 'test_freshness.db')
         try:
             os.remove(dbpath)
         except FileNotFoundError:
@@ -36,7 +37,8 @@ class TestAging:
 
     @pytest.fixture(scope='class')
     def datasets(self):
-        with open('fixtures/day0/datasets.pickle', 'rb') as fp:
+        fixture = join('tests', 'fixtures', 'day0', 'datasets.pickle')
+        with open(fixture, 'rb') as fp:
             return pickle.load(fp)
 
     @pytest.mark.parametrize("days_last_modified,update_frequency,expected_status", [
@@ -84,7 +86,7 @@ class TestAging:
     ])
     def test_aging(self, configuration, nodatabase, now, datasets,
                    days_last_modified, update_frequency, expected_status):
-        freshness = Freshness(db_url=nodatabase, datasets=datasets, now=now)
+        freshness = DataFreshness(db_url=nodatabase, datasets=datasets, now=now)
         last_modified = now - timedelta(days=days_last_modified)
         status = freshness.calculate_aging(last_modified, update_frequency)
         assert status == expected_status

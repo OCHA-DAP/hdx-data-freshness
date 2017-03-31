@@ -11,7 +11,7 @@ from os.path import join
 import pytest
 from hdx.configuration import Configuration
 
-from freshness.freshness import Freshness
+from freshness.datafreshness import DataFreshness
 from freshness.database.dbdataset import DBDataset
 from freshness.database.dbinfodataset import DBInfoDataset
 from freshness.database.dborganization import DBOrganization
@@ -22,41 +22,46 @@ from freshness.database.dbrun import DBRun
 class TestFreshnessDayN:
     @pytest.fixture(scope='function')
     def configuration(self):
-        project_config_yaml = join('..', 'freshness', 'project_configuration.yml')
+        project_config_yaml = join('src', 'freshness', 'project_configuration.yml')
         Configuration.create(hdx_site='prod', hdx_read_only=True, project_config_yaml=project_config_yaml)
 
     @pytest.fixture(scope='function')
     def database(self):
-        dbpath = 'test_freshness.db'
+        dbfile = 'test_freshness.db'
+        dbpath = join('tests', dbfile)
         try:
             os.remove(dbpath)
         except FileNotFoundError:
             pass
-        shutil.copyfile(join('fixtures', 'day0', dbpath), dbpath)
+        shutil.copyfile(join('tests', 'fixtures', 'day0', dbfile), dbpath)
         return 'sqlite:///%s' % dbpath
 
     @pytest.fixture(scope='function')
     def now(self):
-        with open('fixtures/dayN/now.pickle', 'rb') as fp:
+        fixture = join('tests', 'fixtures', 'dayN', 'now.pickle')
+        with open(fixture, 'rb') as fp:
             return pickle.load(fp)
 
     @pytest.fixture(scope='function')
     def datasets(self):
-        with open('fixtures/dayN/datasets.pickle', 'rb') as fp:
+        fixture = join('tests', 'fixtures', 'dayN', 'datasets.pickle')
+        with open(fixture, 'rb') as fp:
             return pickle.load(fp)
 
     @pytest.fixture(scope='function')
     def results(self):
-        with open('fixtures/dayN/results.pickle', 'rb') as fp:
+        fixture = join('tests', 'fixtures', 'dayN', 'results.pickle')
+        with open(fixture, 'rb') as fp:
             return pickle.load(fp)
 
     @pytest.fixture(scope='function')
     def hash_results(self):
-        with open('fixtures/dayN/hash_results.pickle', 'rb') as fp:
+        fixture = join('tests', 'fixtures', 'dayN', 'hash_results.pickle')
+        with open(fixture, 'rb') as fp:
             return pickle.load(fp)
 
     def test_generate_dataset(self, configuration, database, now, datasets, results, hash_results):
-        freshness = Freshness(db_url=database, datasets=datasets, now=now)
+        freshness = DataFreshness(db_url=database, datasets=datasets, now=now)
         datasets_to_check, resources_to_check = freshness.process_datasets()
         results, hash_results = freshness.check_urls(resources_to_check, results=results, hash_results=hash_results)
         datasets_lastmodified = freshness.process_results(results, hash_results)

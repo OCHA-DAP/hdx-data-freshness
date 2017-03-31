@@ -32,7 +32,6 @@ async def send_http(session, method, url, *,
                     retries=1,
                     interval=1,
                     backoff=2,
-                    read_timeout=300,
                     http_status_codes_to_retry=HTTP_STATUS_CODES_TO_RETRY,
                     fn=lambda x:x,
                     **kwargs):
@@ -46,7 +45,6 @@ async def send_http(session, method, url, *,
         retries (int): Number of times to retry in case of failure
         interval (float): Time to wait before retries
         backoff (int): Multiply interval by this factor after each failure
-        read_timeout (float): Time to wait for a response
         http_status_codes_to_retry (List[int]): List of status codes to retry
         fn (Callable[[x],x]: Function to call on successful connection
     """
@@ -74,27 +72,20 @@ async def send_http(session, method, url, *,
             backoff_interval *= backoff
         # logger.info('sending %s %s with %s', method.upper(), url, kwargs)
         try:
-            with aiohttp.Timeout(timeout=read_timeout):
-                async with getattr(session, method)(url, **kwargs) as response:
-                    if response.status == 200:
-                        return await fn(response)
-                    elif response.status in http_status_codes_to_retry:
-                        logger.error(
-                            'Received invalid response code:%s error:%s'
-                            ' response:%s url:%s', response.status, '', response.reason, url)
-                        raise aiohttp.errors.HttpProcessingError(
-                            code=response.status, message=response.reason)
-                    else:
-                        raise FailedRequest(
-                            code=response.status, message='Non-retryable response code',
-                            raised='aiohttp.errors.HttpProcessingError', url=url)
-        except (aiohttp.errors.ClientResponseError,
-                aiohttp.errors.ClientRequestError,
-                aiohttp.errors.ClientOSError,
-                aiohttp.errors.ClientDisconnectedError,
-                aiohttp.errors.ClientTimeoutError,
-                asyncio.TimeoutError,
-                aiohttp.errors.HttpProcessingError) as exc:
+            async with getattr(session, method)(url, **kwargs) as response:
+                if response.status == 200:
+                    return await fn(response)
+                elif response.status in http_status_codes_to_retry:
+                    logger.error(
+                        'Received invalid response code:%s error:%s'
+                        ' response:%s url:%s', response.status, '', response.reason, url)
+                    raise aiohttp.ClientResponseError(
+                        code=response.status, message=response.reason)
+                else:
+                    raise FailedRequest(
+                        code=response.status, message='Non-retryable response code',
+                        raised='aiohttp.ClientResponseError', url=url)
+        except aiohttp.ClientError as exc:
             try:
                 code = exc.code
             except AttributeError:
