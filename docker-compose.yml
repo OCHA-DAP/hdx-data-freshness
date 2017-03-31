@@ -48,4 +48,4 @@ services:
       - "/:/srv"
     environment:
       - DB_URL=${DB_URL}
-    command: ["dockerize", "-wait", "tcp://db:5432", "python3", "-m", "freshness"]
+    command: ["dockerize", "-wait", "tcp://db:5432", "cron", "&&", "tail", "-f", "/var/log/cron.log"]

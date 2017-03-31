@@ -1,0 +1,10 @@
+# 1. Entry: Minute when the process will be started [0-60]
+# 2. Entry: Hour when the process will be started [0-23]
+# 3. Entry: Day of the month when the process will be started [1-28/29/30/31]
+# 4. Entry: Month of the year when the process will be started [1-12]
+# 5. Entry: Weekday when the process will be started [0-6] [0 is Sunday] 
+# or [sun, mon, tue, wed, thu, fri, or sat]
+#
+# Create crontab using:
+# echo "0 0 * * * root python3 -m freshness >> /var/log/cron.log 2>&1" | crontab -
+* * * * * root python3 -m freshness >> /var/log/cron.log 2>&1
