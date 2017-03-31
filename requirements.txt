@@ -3,4 +3,4 @@ aiohttp==1.1.6
 cchardet==1.1.1
 psycopg2==2.6.2
 tqdm==4.10.0
-https://github.com/ocha-dap/hdx-python-api/zipball/master#egg=hdx-python-api
+hdx-python-api==1.0
