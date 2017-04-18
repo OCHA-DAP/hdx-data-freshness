@@ -69,6 +69,7 @@ if __name__ == '__main__':
                     password=password,
                     host=hostname
                 )
+                connection.close()
                 break
             except:
                 time.sleep(1)
