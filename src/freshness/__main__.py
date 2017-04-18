@@ -10,7 +10,10 @@ Caller script. Designed to call all other functions.
 import argparse
 import logging
 import os
+from urllib.parse import urlparse
 
+import psycopg2
+import time
 from hdx.configuration import Configuration
 from hdx.hdx_logging import setup_logging
 from hdx.utilities.path import script_dir_plus_file
@@ -52,4 +55,22 @@ if __name__ == '__main__':
         db_url = os.getenv('DB_URL')
     if db_url and '://' not in db_url:
         db_url = 'postgresql://%s' % db_url
+    if 'postgres' in db_url:
+        while 1:
+            try:
+                result = urlparse(db_url)
+                username = result.username
+                password = result.password
+                database = result.path[1:]
+                hostname = result.hostname
+                connection = psycopg2.connect(
+                    database=database,
+                    user=username,
+                    password=password,
+                    host=hostname
+                )
+                break
+            except:
+                time.sleep(1)
+
     main(hdx_site, db_url, args.save)
