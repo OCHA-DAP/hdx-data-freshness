@@ -63,6 +63,8 @@ if __name__ == '__main__':
                 password = result.password
                 database = result.path[1:]
                 hostname = result.hostname
+                logger.info('Connecting to PostgreSQL - %s:%s@%s:5432/%s' % (username,
+                                                                                  password, hostname, database))
                 connection = psycopg2.connect(
                     database=database,
                     user=username,
