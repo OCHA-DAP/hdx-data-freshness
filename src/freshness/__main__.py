@@ -32,6 +32,27 @@ def main(hdx_site, db_url, save):
     logger.info('> HDX Site: %s' % configuration.get_hdx_site_url())
     if db_url:
         logger.info('> DB URL: %s' % db_url)
+        if 'postgres' in db_url:
+            result = urlparse(db_url)
+            username = result.username
+            password = result.password
+            database = result.path[1:]
+            hostname = result.hostname
+            connecting_string = 'Connecting to PostgreSQL - %s:%s@%s:5432/%s' % (username, password, hostname, database)
+            while True:
+                try:
+                    logger.info(connecting_string)
+                    connection = psycopg2.connect(
+                        database=database,
+                        user=username,
+                        password=password,
+                        host=hostname,
+                        connect_timeout=3
+                    )
+                    connection.close()
+                    break
+                except psycopg2.OperationalError:
+                    time.sleep(1)
         freshness = DataFreshness(db_url=db_url, save=save)
     else:
         freshness = DataFreshness(save=save)
@@ -55,26 +76,4 @@ if __name__ == '__main__':
         db_url = os.getenv('DB_URL')
     if db_url and '://' not in db_url:
         db_url = 'postgresql://%s' % db_url
-    if 'postgres' in db_url:
-        result = urlparse(db_url)
-        username = result.username
-        password = result.password
-        database = result.path[1:]
-        hostname = result.hostname
-        connecting_string = 'Connecting to PostgreSQL - %s:%s@%s:5432/%s' % (username, password, hostname, database)
-        while 1:
-            try:
-                logger.info(connecting_string)
-                connection = psycopg2.connect(
-                    database=database,
-                    user=username,
-                    password=password,
-                    host=hostname,
-                    connect_timeout=3
-                )
-                connection.close()
-                break
-            except psycopg2.OperationalError:
-                time.sleep(1)
-
     main(hdx_site, db_url, args.save)
