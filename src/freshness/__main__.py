@@ -56,24 +56,25 @@ if __name__ == '__main__':
     if db_url and '://' not in db_url:
         db_url = 'postgresql://%s' % db_url
     if 'postgres' in db_url:
+        result = urlparse(db_url)
+        username = result.username
+        password = result.password
+        database = result.path[1:]
+        hostname = result.hostname
+        connecting_string = 'Connecting to PostgreSQL - %s:%s@%s:5432/%s' % (username, password, hostname, database)
         while 1:
             try:
-                result = urlparse(db_url)
-                username = result.username
-                password = result.password
-                database = result.path[1:]
-                hostname = result.hostname
-                logger.info('Connecting to PostgreSQL - %s:%s@%s:5432/%s' % (username,
-                                                                                  password, hostname, database))
+                logger.info(connecting_string)
                 connection = psycopg2.connect(
                     database=database,
                     user=username,
                     password=password,
-                    host=hostname
+                    host=hostname,
+                    connect_timeout=3
                 )
                 connection.close()
                 break
-            except:
+            except psycopg2.OperationalError:
                 time.sleep(1)
 
     main(hdx_site, db_url, args.save)
