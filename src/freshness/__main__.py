@@ -38,7 +38,7 @@ def main(hdx_site, db_url, save):
             password = result.password
             database = result.path[1:]
             hostname = result.hostname
-            connecting_string = 'Connecting to PostgreSQL - %s:%s@%s:5432/%s' % (username, password, hostname, database)
+            connecting_string = 'Checking for PostgreSQL...'
             while True:
                 try:
                     logger.info(connecting_string)
@@ -50,6 +50,7 @@ def main(hdx_site, db_url, save):
                         connect_timeout=3
                     )
                     connection.close()
+                    logger.info('PostgreSQL is running!')
                     break
                 except psycopg2.OperationalError:
                     time.sleep(1)
