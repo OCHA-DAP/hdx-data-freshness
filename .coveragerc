@@ -1,5 +1,6 @@
 [report]
 omit =
+    */setup.py
     */run.py
     */python?.?/*
     */venv/*
