@@ -16,11 +16,6 @@ from freshness.datafreshness import DataFreshness
 
 class TestAging:
     @pytest.fixture(scope='class')
-    def configuration(self):
-        project_config_yaml = join('src', 'freshness', 'project_configuration.yml')
-        Configuration.create(hdx_site='prod', hdx_read_only=True, project_config_yaml=project_config_yaml)
-
-    @pytest.fixture(scope='class')
     def now(self):
         fixture = join('tests', 'fixtures', 'day0', 'now.pickle')
         with open(fixture, 'rb') as fp:
