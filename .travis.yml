@@ -15,7 +15,7 @@ install:
 script: py.test --cov-config .coveragerc --cov-report= --cov=.
 
 #
-# Send coverage report to coveralls.io
+# Send coverage report to coveralls.io.
 #
 after_success:
   - coveralls
