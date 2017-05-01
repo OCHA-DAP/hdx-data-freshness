@@ -26,10 +26,10 @@ logger = logging.getLogger(__name__)
 
 def main(hdx_site, db_url, save):
     project_config_yaml = script_dir_plus_file('project_configuration.yml', main)
-    configuration = Configuration.create(hdx_read_only=True, hdx_site=hdx_site,
+    site_url = Configuration.create(hdx_read_only=True, hdx_site=hdx_site,
                                          project_config_yaml=project_config_yaml)
     logger.info('--------------------------------------------------')
-    logger.info('> HDX Site: %s' % configuration.get_hdx_site_url())
+    logger.info('> HDX Site: %s' % site_url)
     if db_url:
         logger.info('> DB URL: %s' % db_url)
         if 'postgres' in db_url:

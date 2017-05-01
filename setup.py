@@ -69,7 +69,7 @@ setup(
     description='HDX Data Freshness',
     license='MIT',
     url='https://github.com/OCHA-DAP/hdx-data-freshness',
-    version='0.83',
+    version='0.84',
     author='Michael Rans',
     author_email='rans@email.com',
     keywords=['HDX', 'fresh', 'freshness', 'data freshness'],
