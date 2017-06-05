@@ -4,6 +4,7 @@ from sqlalchemy import Column, String
 from sqlalchemy import ForeignKey
 
 from freshness.database.base import Base
+from freshness.database.dborganization import DBOrganization
 
 
 class DBInfoDataset(Base):
@@ -11,7 +12,7 @@ class DBInfoDataset(Base):
     name = Column(String, nullable=False)
     title = Column(String, nullable=False)
     private = Column(Boolean, nullable=False)
-    organization_id = Column(String, ForeignKey('dborganizations.id'), nullable=False)
+    organization_id = Column(String, ForeignKey(DBOrganization.id), nullable=False)
     maintainer = Column(String)
     maintainer_email = Column(String)
     author = Column(String)

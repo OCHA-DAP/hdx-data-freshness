@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from freshness.database.dbinfodataset import DBInfoDataset
 from freshness.database.dbrun import DBRun
 from sqlalchemy import Column, DateTime, Boolean, String
 from sqlalchemy import ForeignKey
@@ -9,7 +10,7 @@ from freshness.database.base import Base
 
 class DBDataset(Base):
     run_number = Column(Integer, ForeignKey(DBRun.run_number), primary_key=True)
-    id = Column(String, ForeignKey('dbinfodatasets.id'), primary_key=True)
+    id = Column(String, ForeignKey(DBInfoDataset.id), primary_key=True)
     dataset_date = Column(String)
     update_frequency = Column(Integer)
     metadata_modified = Column(DateTime, nullable=False)
