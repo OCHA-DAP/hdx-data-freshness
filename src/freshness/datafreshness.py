@@ -11,11 +11,6 @@ import logging
 import pickle
 from urllib.parse import urlparse
 
-from freshness.database.dbdataset import DBDataset
-from freshness.database.dbinfodataset import DBInfoDataset
-from freshness.database.dborganization import DBOrganization
-from freshness.database.dbresource import DBResource
-from freshness.database.dbrun import DBRun
 from dateutil import parser
 from hdx.configuration import Configuration
 from hdx.data.dataset import Dataset
@@ -23,8 +18,14 @@ from hdx.utilities.dictandlist import dict_of_lists_add, list_distribute_content
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.pool import NullPool
 
 from freshness.database.base import Base
+from freshness.database.dbdataset import DBDataset
+from freshness.database.dbinfodataset import DBInfoDataset
+from freshness.database.dborganization import DBOrganization
+from freshness.database.dbresource import DBResource
+from freshness.database.dbrun import DBRun
 from freshness.retrieval import retrieve
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ logger = logging.getLogger(__name__)
 class DataFreshness:
     def __init__(self, db_url='sqlite:///freshness.db', save=False, datasets=None, now=None):
         ''''''
-        engine = create_engine(db_url, echo=False)
+        engine = create_engine(db_url, poolclass=NullPool, echo=False)
         Session = sessionmaker(bind=engine)
         Base.metadata.create_all(engine)
         self.session = Session()
@@ -355,7 +356,6 @@ class DataFreshness:
                 continue
             dict_of_lists_add(self.dataset_what_updated, datasets_to_check[dataset_id], dataset_id)
 
-
     def output_counts(self):
         def add_what_updated_str(hdxobject_what_updated):
             nonlocal output_str
@@ -372,6 +372,9 @@ class DataFreshness:
 
         logger.info(output_str)
         return output_str
+
+    def close(self):
+        self.session.close()
 
     @staticmethod
     def set_last_modified(dbobject, modified_date, what_updated):

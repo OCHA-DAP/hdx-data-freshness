@@ -10,10 +10,10 @@ Caller script. Designed to call all other functions.
 import argparse
 import logging
 import os
+import time
 from urllib.parse import urlparse
 
 import psycopg2
-import time
 from hdx.configuration import Configuration
 from hdx.hdx_logging import setup_logging
 from hdx.utilities.path import script_dir_plus_file
@@ -62,6 +62,7 @@ def main(hdx_site, db_url, save):
     datasets_lastmodified = freshness.process_results(results, hash_results)
     freshness.update_dataset_last_modified(datasets_to_check, datasets_lastmodified)
     freshness.output_counts()
+    freshness.close()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Data Freshness')
