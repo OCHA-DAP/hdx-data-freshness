@@ -3,8 +3,7 @@
 from os.path import join
 
 import pytest
-
-from hdx.configuration import Configuration
+from hdx.hdx_configuration import Configuration
 
 
 @pytest.fixture(scope='function')

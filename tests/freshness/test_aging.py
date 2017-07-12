@@ -9,7 +9,6 @@ from datetime import timedelta
 from os.path import join
 
 import pytest
-from hdx.configuration import Configuration
 
 from freshness.datafreshness import DataFreshness
 

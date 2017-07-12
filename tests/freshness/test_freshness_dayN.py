@@ -9,14 +9,13 @@ import shutil
 from os.path import join
 
 import pytest
-from hdx.configuration import Configuration
 
-from freshness.datafreshness import DataFreshness
 from freshness.database.dbdataset import DBDataset
 from freshness.database.dbinfodataset import DBInfoDataset
 from freshness.database.dborganization import DBOrganization
 from freshness.database.dbresource import DBResource
 from freshness.database.dbrun import DBRun
+from freshness.datafreshness import DataFreshness
 
 
 class TestFreshnessDayN:

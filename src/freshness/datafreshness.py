@@ -12,8 +12,8 @@ import pickle
 from urllib.parse import urlparse
 
 from dateutil import parser
-from hdx.configuration import Configuration
 from hdx.data.dataset import Dataset
+from hdx.hdx_configuration import Configuration
 from hdx.utilities.dictandlist import dict_of_lists_add, list_distribute_contents
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -69,7 +69,7 @@ class DataFreshness:
             self.no_urls_to_check = 400
         self.save = save
         if datasets is None:  # pragma: no cover
-            self.datasets = Dataset.get_all_datasets(include_gallery=False)
+            self.datasets = Dataset.get_all_datasets()
             if save:
                 with open('datasets.pickle', 'wb') as fp:
                     pickle.dump(self.datasets, fp)
@@ -91,6 +91,8 @@ class DataFreshness:
         resources_to_check = list()
         datasets_to_check = dict()
         for dataset in self.datasets:
+            if dataset.get_requestable():
+                continue
             dataset_id = dataset['id']
             dict_of_lists_add(self.dataset_what_updated, 'total', dataset_id)
             organization_id = dataset['organization']['id']
