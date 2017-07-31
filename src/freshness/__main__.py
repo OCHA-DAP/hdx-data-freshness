@@ -63,6 +63,7 @@ def main(hdx_site, db_url, save):
     freshness.update_dataset_last_modified(datasets_to_check, datasets_lastmodified)
     freshness.output_counts()
     freshness.close()
+    logger.info('Freshness completed!')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Data Freshness')
