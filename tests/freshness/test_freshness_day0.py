@@ -93,9 +93,9 @@ revision,http header,hash: 6
 Freshness Unavailable, Updated metadata: 338,
 Freshness Unavailable, Updated metadata,error: 1
 
-0 datasets have update frequency of Live
-1510 datasets have update frequency of Never
-0 datasets have update frequency of Adhoc'''
+1 datasets have update frequency of Live
+1507 datasets have update frequency of Never
+2 datasets have update frequency of Adhoc'''
 
         dbsession = freshness.session
         dbrun = dbsession.query(DBRun).one()

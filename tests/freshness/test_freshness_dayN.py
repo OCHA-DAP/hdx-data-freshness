@@ -94,9 +94,9 @@ same hash: 180
 Freshness Unavailable, Updated nothing: 338,
 Freshness Unavailable, Updated nothing,error: 1
 
-0 datasets have update frequency of Live
-1510 datasets have update frequency of Never
-0 datasets have update frequency of Adhoc'''
+1 datasets have update frequency of Live
+1507 datasets have update frequency of Never
+2 datasets have update frequency of Adhoc'''
 
         dbsession = freshness.session
         dbrun = dbsession.query(DBRun).filter_by(run_number=1).one()
