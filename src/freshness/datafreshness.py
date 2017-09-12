@@ -41,6 +41,8 @@ class DataFreshness:
 
         self.urls_to_check_count = 0
         self.never_update = 0
+        self.live_update = 0
+        self.adhoc_update = 0
         self.dataset_what_updated = dict()
         self.resource_what_updated = dict()
 
@@ -142,7 +144,13 @@ class DataFreshness:
                 update_frequency = int(update_frequency)
                 if update_frequency == 0:
                     fresh = 0
+                    self.live_update += 1
+                elif update_frequency == -1:
+                    fresh = 0
                     self.never_update += 1
+                elif update_frequency == -2:
+                    fresh = 0
+                    self.adhoc_update += 1
                 else:
                     fresh = self.calculate_aging(metadata_modified, update_frequency)
             dbdataset = DBDataset(run_number=self.run_number, id=dataset_id,
@@ -157,7 +165,7 @@ class DataFreshness:
                 if metadata_modified <= previous_dbdataset.last_modified:
                     dbdataset.last_modified = previous_dbdataset.last_modified
                     dbdataset.what_updated = 'nothing'
-                    if update_frequency:
+                    if update_frequency is not None and update_frequency > 0:
                         fresh = self.calculate_aging(previous_dbdataset.last_modified, update_frequency)
                         dbdataset.fresh = fresh
 
@@ -345,7 +353,7 @@ class DataFreshness:
             dbdataset.last_resource_modified = last_resource_modified
             self.set_last_modified(dbdataset, dataset_last_modified, dataset_what_updated)
             update_frequency = dbdataset.update_frequency
-            if update_frequency:
+            if update_frequency is not None and update_frequency > 0:
                 dbdataset.fresh = self.calculate_aging(dbdataset.last_modified, update_frequency)
             dbdataset.error = all_errors
             status = '%s, Updated %s' % (self.aging_statuses[dbdataset.fresh], dbdataset.what_updated)
@@ -370,7 +378,9 @@ class DataFreshness:
         add_what_updated_str(self.resource_what_updated)
         output_str += '\n\n*** Datasets ***'
         add_what_updated_str(self.dataset_what_updated)
-        output_str += '\n\n%d datasets have update frequency of Never' % self.never_update
+        output_str += '\n\n%d datasets have update frequency of Live' % self.live_update
+        output_str += '\n%d datasets have update frequency of Never' % self.never_update
+        output_str += '\n%d datasets have update frequency of Adhoc' % self.adhoc_update
 
         logger.info(output_str)
         return output_str

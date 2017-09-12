@@ -94,7 +94,9 @@ same hash: 180
 Freshness Unavailable, Updated nothing: 338,
 Freshness Unavailable, Updated nothing,error: 1
 
-1510 datasets have update frequency of Never'''
+0 datasets have update frequency of Live
+1510 datasets have update frequency of Never
+0 datasets have update frequency of Adhoc'''
 
         dbsession = freshness.session
         dbrun = dbsession.query(DBRun).filter_by(run_number=1).one()
@@ -118,7 +120,7 @@ revision last updated=2017-01-25 14:38:45.135854, http last modified=2016-11-16 
         assert count == 2
         # select what_updated, api from dbresources where run_number=0 and md5_hash is not null and id in (select id from dbresources where run_number=1 and what_updated like '%hash%');
         dbdataset = dbsession.query(DBDataset).first()
-        assert str(dbdataset) == '''<Dataset(run number=0, id=84f5cc34-8a17-4e62-a868-821ff3725c0d, dataset date=07/19/2016, update frequency=0,
+        assert str(dbdataset) == '''<Dataset(run number=0, id=84f5cc34-8a17-4e62-a868-821ff3725c0d, dataset date=07/19/2016, update frequency=-1,
 last_modified=2017-01-25 14:38:45.137336what updated=metadata, metadata_modified=2017-01-25 14:38:45.137336,
 Resource a67b85ee-50b4-4345-9102-d88bf9091e95: last modified=2017-01-25 14:38:45.135854,
 Dataset fresh=0'''
