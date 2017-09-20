@@ -54,11 +54,11 @@ class TestFreshnessDayN:
         with open(fixture, 'rb') as fp:
             return pickle.load(fp)
 
-    def test_generate_dataset(self, configuration, database, now, datasets, results, hash_results):
+    def test_generate_dataset(self, configuration, database, now, datasets, results, hash_results, resourcecls):
         freshness = DataFreshness(db_url=database, datasets=datasets, now=now)
         datasets_to_check, resources_to_check = freshness.process_datasets()
         results, hash_results = freshness.check_urls(resources_to_check, results=results, hash_results=hash_results)
-        datasets_lastmodified = freshness.process_results(results, hash_results)
+        datasets_lastmodified = freshness.process_results(results, hash_results, resourcecls=resourcecls)
         freshness.update_dataset_last_modified(datasets_to_check, datasets_lastmodified)
         output = freshness.output_counts()
         assert output == '''

@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 
 from dateutil import parser
 from hdx.data.dataset import Dataset
+from hdx.data.resource import Resource
 from hdx.hdx_configuration import Configuration
 from hdx.utilities.dictandlist import dict_of_lists_add, list_distribute_contents
 from sqlalchemy import create_engine
@@ -280,7 +281,7 @@ class DataFreshness:
 
         return results, hash_results
 
-    def process_results(self, results, hash_results):
+    def process_results(self, results, hash_results, resourcecls=Resource):
         datasets_lastmodified = dict()
         for resource_id in sorted(results):
             url, err, http_last_modified, hash, force_hash = results[resource_id]
@@ -289,9 +290,11 @@ class DataFreshness:
             dataset_id = dbresource.dataset_id
             datasetinfo = datasets_lastmodified.get(dataset_id, dict())
             what_updated = dbresource.what_updated
+            patch = False
             if http_last_modified:
                 dbresource.http_last_modified = http_last_modified
                 what_updated = self.set_last_modified(dbresource, dbresource.http_last_modified, 'http header')
+                patch = True
             if hash:
                 dbresource.when_hashed = self.now
                 if dbresource.md5_hash == hash:  # File unchanged
@@ -303,6 +306,7 @@ class DataFreshness:
                     if hash_http_last_modified:
                         dbresource.http_last_modified = hash_http_last_modified
                         what_updated = self.set_last_modified(dbresource, dbresource.http_last_modified, 'http header')
+                        patch = True
                     if hash_hash:
                         if hash_hash == hash:
                             if prev_hash is None:   # First occurrence of resource eg. first run - don't use hash
@@ -311,6 +315,7 @@ class DataFreshness:
                                 what_updated = dbresource.what_updated
                             else:
                                 what_updated = self.set_last_modified(dbresource, self.now, 'hash')
+                            patch = True
                             dbresource.api = False
                         else:
                             dbresource.md5_hash = hash_hash
@@ -325,6 +330,9 @@ class DataFreshness:
             datasetinfo[resource_id] = (dbresource.error, dbresource.last_modified, dbresource.what_updated)
             datasets_lastmodified[dataset_id] = datasetinfo
             dict_of_lists_add(self.resource_what_updated, what_updated, resource_id)
+            if patch:
+                resource = resourcecls.read_from_hdx(resource_id)
+                resource.patch()
         self.session.commit()
         return datasets_lastmodified
 
