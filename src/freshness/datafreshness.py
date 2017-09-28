@@ -290,11 +290,11 @@ class DataFreshness:
             dataset_id = dbresource.dataset_id
             datasetinfo = datasets_lastmodified.get(dataset_id, dict())
             what_updated = dbresource.what_updated
-            patch = False
+            touch = False
             if http_last_modified:
                 dbresource.http_last_modified = http_last_modified
                 what_updated = self.set_last_modified(dbresource, dbresource.http_last_modified, 'http header')
-                patch = True
+                touch = True
             if hash:
                 dbresource.when_hashed = self.now
                 if dbresource.md5_hash == hash:  # File unchanged
@@ -306,7 +306,7 @@ class DataFreshness:
                     if hash_http_last_modified:
                         dbresource.http_last_modified = hash_http_last_modified
                         what_updated = self.set_last_modified(dbresource, dbresource.http_last_modified, 'http header')
-                        patch = True
+                        touch = True
                     if hash_hash:
                         if hash_hash == hash:
                             if prev_hash is None:   # First occurrence of resource eg. first run - don't use hash
@@ -315,7 +315,7 @@ class DataFreshness:
                                 what_updated = dbresource.what_updated
                             else:
                                 what_updated = self.set_last_modified(dbresource, self.now, 'hash')
-                            patch = True
+                            touch = True
                             dbresource.api = False
                         else:
                             dbresource.md5_hash = hash_hash
@@ -330,9 +330,16 @@ class DataFreshness:
             datasetinfo[resource_id] = (dbresource.error, dbresource.last_modified, dbresource.what_updated)
             datasets_lastmodified[dataset_id] = datasetinfo
             dict_of_lists_add(self.resource_what_updated, what_updated, resource_id)
-            if patch:
-                resource = resourcecls.read_from_hdx(resource_id)
-                resource.patch()
+            # if touch:
+            #     try:
+            #         logger.info('Touching: %s' % resource_id)
+            #         resource = resourcecls.read_from_hdx(resource_id)
+            #         if resource:
+            #             resource.touch()
+            #         else:
+            #             logger.error('Touching failed for %s! Resource does not exist.' % resource_id)
+            #     except HDXError:
+            #         logger.exception('Touching failed for %s!')
         self.session.commit()
         return datasets_lastmodified
 
