@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy import Column, String
 
-from freshness.database.base import Base
+from hdx.freshness.database.base import Base
 
 
 class DBOrganization(Base):

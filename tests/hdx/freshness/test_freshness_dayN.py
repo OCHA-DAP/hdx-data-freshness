@@ -10,12 +10,12 @@ from os.path import join
 
 import pytest
 
-from freshness.database.dbdataset import DBDataset
-from freshness.database.dbinfodataset import DBInfoDataset
-from freshness.database.dborganization import DBOrganization
-from freshness.database.dbresource import DBResource
-from freshness.database.dbrun import DBRun
-from freshness.datafreshness import DataFreshness
+from hdx.freshness.database.dbdataset import DBDataset
+from hdx.freshness.database.dbinfodataset import DBInfoDataset
+from hdx.freshness.database.dborganization import DBOrganization
+from hdx.freshness.database.dbresource import DBResource
+from hdx.freshness.database.dbrun import DBRun
+from hdx.freshness.datafreshness import DataFreshness
 
 
 class TestFreshnessDayN:

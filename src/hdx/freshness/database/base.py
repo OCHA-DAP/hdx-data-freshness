@@ -8,4 +8,5 @@ class HDXBase(object):
     def __tablename__(cls):
         return '%ss' % cls.__name__.lower()
 
+
 Base = declarative_base(cls=HDXBase)

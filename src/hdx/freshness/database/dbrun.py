@@ -2,7 +2,7 @@
 from sqlalchemy import Column, DateTime
 from sqlalchemy import Integer
 
-from freshness.database.base import Base
+from hdx.freshness.database.base import Base
 
 
 class DBRun(Base):

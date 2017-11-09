@@ -3,8 +3,8 @@ from sqlalchemy import Boolean
 from sqlalchemy import Column, String
 from sqlalchemy import ForeignKey
 
-from freshness.database.base import Base
-from freshness.database.dborganization import DBOrganization
+from hdx.freshness.database.base import Base
+from hdx.freshness.database.dborganization import DBOrganization
 
 
 class DBInfoDataset(Base):

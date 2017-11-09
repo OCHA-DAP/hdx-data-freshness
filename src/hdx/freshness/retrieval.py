@@ -18,7 +18,7 @@ import tqdm
 import uvloop
 from dateutil import parser
 
-from freshness import retry
+from hdx.freshness import retry
 
 logger = logging.getLogger(__name__)
 

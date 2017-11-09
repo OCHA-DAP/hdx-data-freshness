@@ -18,7 +18,7 @@ from hdx.hdx_configuration import Configuration
 from hdx.hdx_logging import setup_logging
 from hdx.utilities.path import script_dir_plus_file
 
-from freshness.datafreshness import DataFreshness
+from hdx.freshness.datafreshness import DataFreshness
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 def main(hdx_site, db_url, save):
     project_config_yaml = script_dir_plus_file('project_configuration.yml', main)
-    site_url = Configuration.create(hdx_read_only=True, hdx_site=hdx_site,
+    site_url = Configuration.create(hdx_site=hdx_site,
                                     project_config_yaml=project_config_yaml)
     logger.info('--------------------------------------------------')
     logger.info('> HDX Site: %s' % site_url)

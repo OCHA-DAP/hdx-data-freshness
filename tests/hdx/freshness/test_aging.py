@@ -10,7 +10,7 @@ from os.path import join
 
 import pytest
 
-from freshness.datafreshness import DataFreshness
+from hdx.freshness.datafreshness import DataFreshness
 
 
 class TestAging:

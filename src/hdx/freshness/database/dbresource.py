@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-from freshness.database.dbinfodataset import DBInfoDataset
-from freshness.database.dbrun import DBRun
 from sqlalchemy import Boolean
 from sqlalchemy import Column, DateTime, String
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 
-from freshness.database.base import Base
+from hdx.freshness.database.base import Base
+from hdx.freshness.database.dbinfodataset import DBInfoDataset
+from hdx.freshness.database.dbrun import DBRun
 
 
 class DBResource(Base):

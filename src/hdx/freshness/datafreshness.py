@@ -21,13 +21,13 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.pool import NullPool
 
-from freshness.database.base import Base
-from freshness.database.dbdataset import DBDataset
-from freshness.database.dbinfodataset import DBInfoDataset
-from freshness.database.dborganization import DBOrganization
-from freshness.database.dbresource import DBResource
-from freshness.database.dbrun import DBRun
-from freshness.retrieval import retrieve
+from hdx.freshness.database.base import Base
+from hdx.freshness.database.dbdataset import DBDataset
+from hdx.freshness.database.dbinfodataset import DBInfoDataset
+from hdx.freshness.database.dborganization import DBOrganization
+from hdx.freshness.database.dbresource import DBResource
+from hdx.freshness.database.dbrun import DBRun
+from hdx.freshness.retrieval import retrieve
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,13 @@ class DataFreshness:
             self.no_urls_to_check = 400
         self.save = save
         if datasets is None:  # pragma: no cover
+            Configuration.read().set_read_only(True)  # so that we only get public datasets
             self.datasets = Dataset.get_all_datasets()
+            Configuration.read().set_read_only(False)
+            # Configuration.delete()
+            # site_url = Configuration.create(hdx_site='test',
+            #                                 project_config_yaml='src/freshness/project_configuration.yml')
+            # logger.info('Site changed to: %s' % site_url)
             if save:
                 with open('datasets.pickle', 'wb') as fp:
                     pickle.dump(self.datasets, fp)
@@ -339,7 +345,7 @@ class DataFreshness:
             #         else:
             #             logger.error('Touching failed for %s! Resource does not exist.' % resource_id)
             #     except HDXError:
-            #         logger.exception('Touching failed for %s!')
+            #         logger.exception('Touching failed for %s!' % resource_id)
         self.session.commit()
         return datasets_lastmodified
 
