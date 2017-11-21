@@ -100,7 +100,7 @@ class DataFreshness:
         resources_to_check = list()
         datasets_to_check = dict()
         for dataset in self.datasets:
-            if dataset.get_requestable():
+            if dataset.is_requestable():
                 continue
             dataset_id = dataset['id']
             dict_of_lists_add(self.dataset_what_updated, 'total', dataset_id)
