@@ -9,4 +9,4 @@ RUN apk add --no-cache --update postgresql-dev && \
     rm -r /root/.cache && \
     rm -rf /var/lib/apk/*
 
-CMD ["python3", "-m", "freshness"]
+CMD ["python3", "-m", "hdx.freshness"]
