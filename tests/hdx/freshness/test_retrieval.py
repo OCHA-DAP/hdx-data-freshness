@@ -19,7 +19,9 @@ class TestRetrieve:
         assert result == {'1': (url1, None, None, '35757fc63e863d962dfc8d5f01d9d121', False),
                           '2': (url2, None, datetime(2014, 6, 7, 0, 41, 49), None, False),
                           '3': (url3, 'code=404 message=Non-retryable response code raised=aiohttp.ClientResponseError url=https://github.com/mcarans/hdx-data-freshness/raw/d1616d76c3b6b8ef5029eb6964b93cde688efd53/tests/fixtures/day0/notfound', None, None, False),
-                          '4': (url4, 'code= message=[Errno -2] Cannot connect to host lala:None ssl:False [Name or service not known] raised=aiohttp.client_exceptions.ClientConnectorError url=file://lala', None, None, False),
+                          '4': (url4,
+                                'code= message=Cannot connect to host lala:None ssl:False [Name or service not known] raised=aiohttp.client_exceptions.ClientConnectorError url=file://lala',
+                                None, None, False),
                           '5': (url1, None, None, '35757fc63e863d962dfc8d5f01d9d121', True),
                           '6': (url2, None, datetime(2014, 6, 7, 0, 41, 49), 'c9313c2fe19195b91f00ab06cdc0f97b', True)
                           }
