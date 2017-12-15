@@ -64,18 +64,16 @@ class TestFreshnessDayN:
         assert output == '''
 *** Resources ***
 * total: 10192 *,
-adhoc-nothing: 2986,
-adhoc-nothing,error: 2,
-adhoc-nothing,hash: 80,
+adhoc-nothing: 2584,
 api: 53,
-error: 123,
-hash: 113,
+error: 125,
+hash: 193,
 http header,hash: 1,
 internal-nothing: 4887,
 internal-nothing,hash: 57,
 internal-nothing,http header,hash: 2,
 internal-revision: 1,
-nothing: 1703,
+nothing: 2105,
 revision: 4,
 same hash: 180
 
@@ -84,17 +82,16 @@ same hash: 180
 0: Fresh, Updated hash: 2,
 0: Fresh, Updated internal-nothing,http header,hash: 1,
 0: Fresh, Updated metadata: 3,
-0: Fresh, Updated nothing: 1897,
-0: Fresh, Updated nothing,error: 41,
+0: Fresh, Updated nothing: 2142,
+0: Fresh, Updated nothing,error: 42,
 1: Due, Updated nothing: 10,
-2: Overdue, Updated nothing: 1660,
+2: Overdue, Updated nothing: 1426,
 2: Overdue, Updated nothing,error: 10,
 3: Delinquent, Updated nothing: 437,
 3: Delinquent, Updated nothing,error: 4,
-Freshness Unavailable, Updated nothing: 338,
-Freshness Unavailable, Updated nothing,error: 1
+Freshness Unavailable, Updated nothing: 327
 
-1 datasets have update frequency of Live
+247 datasets have update frequency of Live
 1507 datasets have update frequency of Never
 2 datasets have update frequency of Adhoc'''
 
@@ -113,7 +110,7 @@ revision last updated=2017-01-25 14:38:45.135854, http last modified=2016-11-16 
         count = dbsession.query(DBResource).filter_by(run_number=1, api=True).count()
         assert count == 53
         count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='adhoc-nothing').filter(DBResource.error.isnot(None)).count()
-        assert count == 2
+        assert count == 0
         hash_updated = dbsession.query(DBResource.id).filter_by(run_number=1).filter(DBResource.what_updated.like('%hash%'))
         assert hash_updated.count() == 253
         count = dbsession.query(DBResource).filter_by(run_number=0).filter(DBResource.md5_hash.isnot(None)).filter(DBResource.id.in_(hash_updated.as_scalar())).count()
@@ -127,7 +124,7 @@ Dataset fresh=0'''
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='metadata').count()
         assert count == 3
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='nothing', error=False).count()
-        assert count == 1897
+        assert count == 2142
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=1, what_updated='nothing').count()
         assert count == 10
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=2, what_updated='nothing', error=True).count()
@@ -135,7 +132,7 @@ Dataset fresh=0'''
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing', error=False).count()
         assert count == 437
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=None, what_updated='nothing', error=False).count()
-        assert count == 338
+        assert count == 327
         dbinfodataset = dbsession.query(DBInfoDataset).first()
         assert str(dbinfodataset) == '''<InfoDataset(id=84f5cc34-8a17-4e62-a868-821ff3725c0d, name=south-sudan-crisis-map-explorer-data, title=South Sudan Crisis Map Explorer Data,
 private=False, organization id=hdx,

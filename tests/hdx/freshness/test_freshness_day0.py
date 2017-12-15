@@ -61,39 +61,36 @@ class TestFreshnessDay0:
         assert output == '''
 *** Resources ***
 * total: 10193 *,
-adhoc-revision: 2995,
-adhoc-revision,error: 2,
-adhoc-revision,hash: 71,
+adhoc-revision: 2584,
 internal-revision: 4792,
 internal-revision,api: 20,
 internal-revision,hash: 130,
 internal-revision,http header,hash: 6,
-revision: 1676,
+revision: 2087,
 revision,api: 56,
-revision,error: 73,
-revision,hash: 290,
+revision,error: 75,
+revision,hash: 361,
 revision,http header: 60,
 revision,http header,error: 16,
 revision,http header,hash: 6
 
 *** Datasets ***
 * total: 4405 *,
-0: Fresh, Updated metadata: 1915,
-0: Fresh, Updated metadata,error: 8,
+0: Fresh, Updated metadata: 2160,
+0: Fresh, Updated metadata,error: 9,
 0: Fresh, Updated metadata,revision,http header: 9,
 0: Fresh, Updated metadata,revision,http header,error: 7,
 0: Fresh, Updated metadata,revision,http header,hash: 3,
 1: Due, Updated metadata: 11,
-2: Overdue, Updated metadata: 1662,
+2: Overdue, Updated metadata: 1428,
 2: Overdue, Updated metadata,error: 10,
 3: Delinquent, Updated metadata: 433,
 3: Delinquent, Updated metadata,error: 4,
 3: Delinquent, Updated metadata,internal-revision,http header,hash: 1,
 3: Delinquent, Updated metadata,revision,http header: 3,
-Freshness Unavailable, Updated metadata: 338,
-Freshness Unavailable, Updated metadata,error: 1
+Freshness Unavailable, Updated metadata: 327
 
-1 datasets have update frequency of Live
+247 datasets have update frequency of Live
 1507 datasets have update frequency of Never
 2 datasets have update frequency of Adhoc'''
 
@@ -114,11 +111,11 @@ revision last updated=2017-01-25 14:38:45.135854, http last modified=2016-11-16 
         count = dbsession.query(DBResource).filter_by(what_updated='internal-revision,http header,hash', error=None, api=False).count()
         assert count == 6
         count = dbsession.query(DBResource).filter_by(what_updated='revision', error=None, api=None).count()
-        assert count == 1676
+        assert count == 2087
         count = dbsession.query(DBResource).filter_by(what_updated='revision', error=None, api=True).count()
         assert count == 56
         count = dbsession.query(DBResource).filter(DBResource.error.isnot(None)).filter_by(what_updated='revision').count()
-        assert count == 73
+        assert count == 75
         count = dbsession.query(DBResource).filter_by(what_updated='revision,http header', error=None, api=None).count()
         assert count == 60
         count = dbsession.query(DBResource).filter_by(what_updated='revision,http header,hash', error=None, api=False).count()
@@ -129,9 +126,9 @@ last_modified=2017-01-25 14:38:45.137336what updated=metadata, metadata_modified
 Resource a67b85ee-50b4-4345-9102-d88bf9091e95: last modified=2017-01-25 14:38:45.135854,
 Dataset fresh=0'''
         count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata', error=False).count()
-        assert count == 1915
+        assert count == 2160
         count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata', error=True).count()
-        assert count == 8
+        assert count == 9
         count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata,revision,http header', error=False).count()
         assert count == 9
         count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata,revision,http header', error=True).count()
@@ -139,15 +136,15 @@ Dataset fresh=0'''
         count = dbsession.query(DBDataset).filter_by(fresh=1, what_updated='metadata').count()
         assert count == 11
         count = dbsession.query(DBDataset).filter_by(fresh=2, what_updated='metadata', error=False).count()
-        assert count == 1662
+        assert count == 1428
         count = dbsession.query(DBDataset).filter_by(fresh=2, what_updated='metadata', error=True).count()
         assert count == 10
         count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='metadata,internal-revision,http header,hash').count()
         assert count == 1
         count = dbsession.query(DBDataset).filter_by(fresh=None, what_updated='metadata', error=False).count()
-        assert count == 338
+        assert count == 327
         count = dbsession.query(DBDataset).filter_by(fresh=None, what_updated='metadata', error=True).count()
-        assert count == 1
+        assert count == 0
         dbinfodataset = dbsession.query(DBInfoDataset).first()
         assert str(dbinfodataset) == '''<InfoDataset(id=84f5cc34-8a17-4e62-a868-821ff3725c0d, name=south-sudan-crisis-map-explorer-data, title=South Sudan Crisis Map Explorer Data,
 private=False, organization id=hdx,

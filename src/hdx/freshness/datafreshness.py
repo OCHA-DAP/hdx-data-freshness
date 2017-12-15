@@ -48,7 +48,7 @@ class DataFreshness:
         self.resource_what_updated = dict()
 
         self.urls_internal = ['data.humdata.org', 'manage.hdx.rwlabs.org']
-        self.urls_adhoc_update = ['proxy.hxlstandard.org', 'ourairports.com']
+        self.urls_adhoc_update = ['proxy.hxlstandard.org']
 
         self.aging = dict()
         for key, value in Configuration.read()['aging'].items():
