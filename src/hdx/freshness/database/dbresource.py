@@ -21,7 +21,8 @@ class DBResource(Base):
     revision_last_updated = Column(DateTime, default=None)
     http_last_modified = Column(DateTime, default=None)
     md5_hash = Column(String, default=None)
-    when_hashed = Column(DateTime)
+    when_hashed = Column(DateTime, default=None)
+    when_checked = Column(DateTime, default=None)
     api = Column(Boolean)
 
     def __repr__(self):
@@ -32,5 +33,6 @@ class DBResource(Base):
         output += 'revision last updated=%s, http last modified=%s, ' % (str(self.revision_last_updated),
                                                                          str(self.http_last_modified))
         output += 'MD5 hash=%s, when hashed=%s, ' % (str(self.http_last_modified), str(self.when_hashed))
+        output += 'when checked=%s, ' % str(self.when_checked)
         output += 'api=%s)>' % str(self.api)
         return output

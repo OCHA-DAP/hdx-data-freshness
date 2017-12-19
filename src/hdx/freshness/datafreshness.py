@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 '''
 Data freshness:
----------
+--------------
 
 Calculate freshness for all datasets in HDX.
 
 '''
 import datetime
 import logging
-import pickle
 from urllib.parse import urlparse
 
 from dateutil import parser
@@ -28,13 +27,16 @@ from hdx.freshness.database.dborganization import DBOrganization
 from hdx.freshness.database.dbresource import DBResource
 from hdx.freshness.database.dbrun import DBRun
 from hdx.freshness.retrieval import retrieve
+from hdx.freshness.testdata.serialize import serialize_datasets, serialize_now, serialize_results, serialize_hashresults
 
 logger = logging.getLogger(__name__)
 
 
 class DataFreshness:
-    def __init__(self, db_url='sqlite:///freshness.db', save=False, datasets=None, now=None):
+    def __init__(self, db_url=None, testsession=None, datasets=None, now=None):
         ''''''
+        if db_url is None:
+            db_url = 'sqlite:///freshness.db'
         engine = create_engine(db_url, poolclass=NullPool, echo=False)
         Session = sessionmaker(bind=engine)
         Base.metadata.create_all(engine)
@@ -70,7 +72,8 @@ class DataFreshness:
             self.previous_run_number = None
             self.run_number = 0
             self.no_urls_to_check = 400
-        self.save = save
+
+        self.testsession = testsession
         if datasets is None:  # pragma: no cover
             Configuration.read().set_read_only(True)  # so that we only get public datasets
             self.datasets = Dataset.get_all_datasets()
@@ -79,23 +82,21 @@ class DataFreshness:
             # site_url = Configuration.create(hdx_site='test',
             #                                 project_config_yaml='src/freshness/project_configuration.yml')
             # logger.info('Site changed to: %s' % site_url)
-            if save:
-                with open('datasets.pickle', 'wb') as fp:
-                    pickle.dump(self.datasets, fp)
+            if self.testsession:
+                serialize_datasets(self.testsession, self.datasets)
         else:
             self.datasets = datasets
         if now is None:  # pragma: no cover
             self.now = datetime.datetime.utcnow()
-            if save:
-                with open('now.pickle', 'wb') as fp:
-                    pickle.dump(self.now, fp)
+            if self.testsession:
+                serialize_now(self.testsession, self.now)
         else:
             self.now = now
         dbrun = DBRun(run_number=self.run_number, run_date=self.now)
         self.session.add(dbrun)
         self.session.commit()
 
-    def process_datasets(self):
+    def process_datasets(self, forced_hash_ids=None):
         self.datasets = list_distribute_contents(self.datasets, lambda x: x['organization']['name'])
         resources_to_check = list()
         datasets_to_check = dict()
@@ -143,7 +144,7 @@ class DataFreshness:
             resources = dataset.get_resources()
             fresh = None
             dataset_resources, last_resource_updated, last_resource_modified = \
-                self.process_resources(dataset_id, previous_dbdataset, resources)
+                self.process_resources(dataset_id, previous_dbdataset, resources, forced_hash_ids=forced_hash_ids)
             dataset_date = dataset.get('dataset_date')
             metadata_modified = parser.parse(dataset['metadata_modified'], ignoretz=True)
             update_frequency = dataset.get('data_update_frequency')
@@ -197,7 +198,7 @@ class DataFreshness:
         self.session.commit()
         return datasets_to_check, resources_to_check
 
-    def process_resources(self, dataset_id, previous_dbdataset, resources):
+    def process_resources(self, dataset_id, previous_dbdataset, resources, forced_hash_ids=None):
         last_resource_updated = None
         last_resource_modified = None
         dataset_resources = list()
@@ -244,8 +245,14 @@ class DataFreshness:
                     self.internal_and_adhoc_what_updated(dbresource, 'adhoc')
                     ignore = True
                     break
-            if self.urls_to_check_count < self.no_urls_to_check and \
-                    (dbresource.when_hashed is None or self.now - dbresource.when_hashed > datetime.timedelta(days=30)):
+            if forced_hash_ids:
+                forced_hash = resource_id in forced_hash_ids
+            else:
+                forced_hash = self.urls_to_check_count < self.no_urls_to_check and \
+                              (
+                                      dbresource.when_checked is None or self.now - dbresource.when_checked > datetime.timedelta(
+                                  days=30))
+            if forced_hash:
                 dataset_resources.append((url, resource_id, True, dbresource.what_updated))
                 self.urls_to_check_count += 1
             elif internal or ignore:
@@ -265,9 +272,8 @@ class DataFreshness:
         if results is None:  # pragma: no cover
             resources_to_check = list_distribute_contents(resources_to_check, get_domain)
             results = retrieve(resources_to_check)
-            if self.save:
-                with open('results.pickle', 'wb') as fp:
-                    pickle.dump(results, fp)
+            if self.testsession:
+                serialize_results(self.testsession, results)
 
         hash_check = list()
         for resource_id in results:
@@ -281,9 +287,8 @@ class DataFreshness:
         if hash_results is None:  # pragma: no cover
             hash_check = list_distribute_contents(hash_check, get_domain)
             hash_results = retrieve(hash_check)
-            if self.save:
-                with open('hash_results.pickle', 'wb') as fp:
-                    pickle.dump(hash_results, fp)
+            if self.testsession:
+                serialize_hashresults(self.testsession, hash_results)
 
         return results, hash_results
 
@@ -302,6 +307,7 @@ class DataFreshness:
                 what_updated = self.set_last_modified(dbresource, dbresource.http_last_modified, 'http header')
                 touch = True
             if hash:
+                dbresource.when_checked = self.now
                 dbresource.when_hashed = self.now
                 if dbresource.md5_hash == hash:  # File unchanged
                     what_updated = self.add_what_updated(what_updated, 'same hash')
@@ -331,6 +337,7 @@ class DataFreshness:
                         what_updated = self.add_what_updated(what_updated, 'error')
                         dbresource.error = hash_err
             if err:
+                dbresource.when_checked = self.now
                 what_updated = self.add_what_updated(what_updated, 'error')
                 dbresource.error = err
             datasetinfo[resource_id] = (dbresource.error, dbresource.last_modified, dbresource.what_updated)

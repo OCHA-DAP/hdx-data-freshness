@@ -17,8 +17,12 @@ import psycopg2
 from hdx.hdx_configuration import Configuration
 from hdx.utilities.easy_logging import setup_logging
 from hdx.utilities.path import script_dir_plus_file
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
 from hdx.freshness.datafreshness import DataFreshness
+from hdx.freshness.testdata.testbase import TestBase
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -54,9 +58,14 @@ def main(hdx_key, hdx_site, db_url, save):
                     break
                 except psycopg2.OperationalError:
                     time.sleep(1)
-        freshness = DataFreshness(db_url=db_url, save=save)
-    else:
-        freshness = DataFreshness(save=save)
+    testsession = None
+    if save:
+        engine = create_engine('sqlite:///test_serialize.db', poolclass=NullPool, echo=False)
+        Session = sessionmaker(bind=engine)
+        TestBase.metadata.create_all(engine)
+        testsession = Session()
+    freshness = DataFreshness(db_url=db_url, testsession=testsession)
+
     datasets_to_check, resources_to_check = freshness.process_datasets()
     results, hash_results = freshness.check_urls(resources_to_check)
     datasets_lastmodified = freshness.process_results(results, hash_results)

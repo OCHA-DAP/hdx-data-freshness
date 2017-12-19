@@ -4,10 +4,12 @@ Unit tests for the freshness class.
 
 '''
 import os
-import pickle
 from os.path import join
 
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.database.dbinfodataset import DBInfoDataset
@@ -15,6 +17,10 @@ from hdx.freshness.database.dborganization import DBOrganization
 from hdx.freshness.database.dbresource import DBResource
 from hdx.freshness.database.dbrun import DBRun
 from hdx.freshness.datafreshness import DataFreshness
+from hdx.freshness.testdata.dbtestresult import DBTestResult
+from hdx.freshness.testdata.serialize import deserialize_now, deserialize_datasets, deserialize_results, \
+    deserialize_hashresults
+from hdx.freshness.testdata.testbase import TestBase
 
 
 class TestFreshnessDay0:
@@ -27,132 +33,134 @@ class TestFreshnessDay0:
             pass
         return 'sqlite:///%s' % dbpath
 
-    @pytest.fixture(scope='function')
-    def now(self):
-        fixture = join('tests', 'fixtures', 'day0', 'now.pickle')
-        with open(fixture, 'rb') as fp:
-            return pickle.load(fp)
+    @pytest.fixture(scope='class')
+    def serializedbsession(self):
+        dbpath = join('tests', 'fixtures', 'day0', 'test_serialize.db')
+        engine = create_engine('sqlite:///%s' % dbpath, poolclass=NullPool, echo=False)
+        Session = sessionmaker(bind=engine)
+        TestBase.metadata.create_all(engine)
+        return Session()
 
     @pytest.fixture(scope='function')
-    def datasets(self):
-        fixture = join('tests', 'fixtures', 'day0', 'datasets.pickle')
-        with open(fixture, 'rb') as fp:
-            return pickle.load(fp)
+    def now(self, serializedbsession):
+        return deserialize_now(serializedbsession)
 
     @pytest.fixture(scope='function')
-    def results(self):
-        fixture = join('tests', 'fixtures', 'day0', 'results.pickle')
-        with open(fixture, 'rb') as fp:
-            return pickle.load(fp)
+    def datasets(self, serializedbsession):
+        return deserialize_datasets(serializedbsession)
 
     @pytest.fixture(scope='function')
-    def hash_results(self):
-        fixture = join('tests', 'fixtures', 'day0', 'hash_results.pickle')
-        with open(fixture, 'rb') as fp:
-            return pickle.load(fp)
+    def results(self, serializedbsession):
+        return deserialize_results(serializedbsession)
 
-    def test_generate_dataset(self, configuration, nodatabase, now, datasets, results, hash_results, resourcecls):
+    @pytest.fixture(scope='function')
+    def hash_results(self, serializedbsession):
+        return deserialize_hashresults(serializedbsession)
+
+    @pytest.fixture(scope='function')
+    def forced_hash_ids(self, serializedbsession):
+        forced_hash_ids = serializedbsession.query(DBTestResult.id).filter_by(force_hash=1)
+        return [x[0] for x in forced_hash_ids]
+
+    def test_generate_dataset(self, configuration, nodatabase, now, datasets, results, hash_results, forced_hash_ids,
+                              resourcecls):
         freshness = DataFreshness(db_url=nodatabase, datasets=datasets, now=now)
-        datasets_to_check, resources_to_check = freshness.process_datasets()
+        datasets_to_check, resources_to_check = freshness.process_datasets(forced_hash_ids=forced_hash_ids)
         results, hash_results = freshness.check_urls(resources_to_check, results=results, hash_results=hash_results)
         datasets_lastmodified = freshness.process_results(results, hash_results, resourcecls=resourcecls)
         freshness.update_dataset_last_modified(datasets_to_check, datasets_lastmodified)
         output = freshness.output_counts()
         assert output == '''
 *** Resources ***
-* total: 10193 *,
-adhoc-revision: 2584,
-internal-revision: 4792,
-internal-revision,api: 20,
-internal-revision,hash: 130,
-internal-revision,http header,hash: 6,
-revision: 2087,
-revision,api: 56,
-revision,error: 75,
-revision,hash: 361,
-revision,http header: 60,
-revision,http header,error: 16,
-revision,http header,hash: 6
+* total: 660 *,
+adhoc-revision: 44,
+internal-revision: 56,
+revision: 508,
+revision,api: 4,
+revision,error: 27,
+revision,hash: 8,
+revision,http header: 13
 
 *** Datasets ***
-* total: 4405 *,
-0: Fresh, Updated metadata: 2160,
-0: Fresh, Updated metadata,error: 9,
-0: Fresh, Updated metadata,revision,http header: 9,
-0: Fresh, Updated metadata,revision,http header,error: 7,
-0: Fresh, Updated metadata,revision,http header,hash: 3,
-1: Due, Updated metadata: 11,
-2: Overdue, Updated metadata: 1428,
-2: Overdue, Updated metadata,error: 10,
-3: Delinquent, Updated metadata: 433,
-3: Delinquent, Updated metadata,error: 4,
-3: Delinquent, Updated metadata,internal-revision,http header,hash: 1,
-3: Delinquent, Updated metadata,revision,http header: 3,
-Freshness Unavailable, Updated metadata: 327
+* total: 103 *,
+0: Fresh, Updated metadata: 66,
+0: Fresh, Updated metadata,revision,http header: 8,
+2: Overdue, Updated metadata: 1,
+3: Delinquent, Updated metadata: 18,
+3: Delinquent, Updated metadata,error: 5,
+3: Delinquent, Updated metadata,revision,http header: 1,
+Freshness Unavailable, Updated metadata: 4
 
-247 datasets have update frequency of Live
-1507 datasets have update frequency of Never
-2 datasets have update frequency of Adhoc'''
+15 datasets have update frequency of Live
+19 datasets have update frequency of Never
+0 datasets have update frequency of Adhoc'''
 
         dbsession = freshness.session
         dbrun = dbsession.query(DBRun).one()
-        assert str(dbrun) == '<Run number=0, Run date=2017-02-01 09:07:30.333492>'
+        assert str(dbrun) == '<Run number=0, Run date=2017-12-18 16:03:33.208327>'
         dbresource = dbsession.query(DBResource).first()
-        assert str(dbresource) == '''<Resource(run number=0, id=a67b85ee-50b4-4345-9102-d88bf9091e95, name=South_Sudan_Recent_Conflict_Event_Total_Fatalities.csv, dataset id=84f5cc34-8a17-4e62-a868-821ff3725c0d,
-url=http://data.humdata.org/dataset/84f5cc34-8a17-4e62-a868-821ff3725c0d/resource/a67b85ee-50b4-4345-9102-d88bf9091e95/download/South_Sudan_Recent_Conflict_Event_Total_Fatalities.csv,
-error=None, last modified=2017-01-25 14:38:45.135854, what updated=internal-revision,hash,
-revision last updated=2017-01-25 14:38:45.135854, http last modified=2016-11-16 09:45:18, MD5 hash=2016-11-16 09:45:18, when hashed=2017-02-01 09:07:30.333492, api=False)>'''
+        assert str(dbresource) == '''<Resource(run number=0, id=b21d6004-06b5-41e5-8e3e-0f28140bff64, name=Topline Numbers.csv, dataset id=a2150ad9-2b87-49f5-a6b2-c85dff366b75,
+url=https://docs.google.com/spreadsheets/d/e/2PACX-1vRjFRZGLB8IMp0anSGR1tcGxwJgkyx0bTN9PsinqtaLWKHBEfz77LkinXeVqIE_TsGVt-xM6DQzXpkJ/pub?gid=0&single=true&output=csv,
+error=None, last modified=2017-12-16 15:11:15.202742, what updated=revision,hash,
+revision last updated=2017-12-16 15:11:15.202742, http last modified=None, MD5 hash=None, when hashed=2017-12-18 16:03:33.208327, when checked=2017-12-18 16:03:33.208327, api=False)>'''
+        count = dbsession.query(DBResource).filter_by(what_updated='adhoc-revision', error=None, api=None).count()
+        assert count == 44
         count = dbsession.query(DBResource).filter(DBResource.url.like('%data.humdata.org%')).count()
-        assert count == 2499
-        count = dbsession.query(DBResource).filter_by(what_updated='internal-revision', error=None, api=None).count()
-        assert count == 4792
-        count = dbsession.query(DBResource).filter_by(what_updated='internal-revision,hash', error=None, api=False).count()
-        assert count == 130
-        count = dbsession.query(DBResource).filter_by(what_updated='internal-revision,http header,hash', error=None, api=False).count()
-        assert count == 6
-        count = dbsession.query(DBResource).filter_by(what_updated='revision', error=None, api=None).count()
-        assert count == 2087
-        count = dbsession.query(DBResource).filter_by(what_updated='revision', error=None, api=True).count()
         assert count == 56
+        count = dbsession.query(DBResource).filter_by(what_updated='internal-revision', error=None, api=None).count()
+        assert count == 56
+        count = dbsession.query(DBResource).filter_by(what_updated='internal-revision,hash', error=None, api=False).count()
+        assert count == 0
+        count = dbsession.query(DBResource).filter_by(what_updated='internal-revision,http header,hash', error=None, api=False).count()
+        assert count == 0
+        count = dbsession.query(DBResource).filter_by(what_updated='revision', error=None, api=None).count()
+        assert count == 508
+        count = dbsession.query(DBResource).filter_by(what_updated='revision', error=None, api=True).count()
+        assert count == 4
         count = dbsession.query(DBResource).filter(DBResource.error.isnot(None)).filter_by(what_updated='revision').count()
-        assert count == 75
+        assert count == 27
+        count = dbsession.query(DBResource).filter_by(what_updated='revision,hash', error=None, api=False).count()
+        assert count == 8
         count = dbsession.query(DBResource).filter_by(what_updated='revision,http header', error=None, api=None).count()
-        assert count == 60
+        assert count == 13
         count = dbsession.query(DBResource).filter_by(what_updated='revision,http header,hash', error=None, api=False).count()
-        assert count == 6
+        assert count == 0
         dbdataset = dbsession.query(DBDataset).first()
-        assert str(dbdataset) == '''<Dataset(run number=0, id=84f5cc34-8a17-4e62-a868-821ff3725c0d, dataset date=07/19/2016, update frequency=-1,
-last_modified=2017-01-25 14:38:45.137336what updated=metadata, metadata_modified=2017-01-25 14:38:45.137336,
-Resource a67b85ee-50b4-4345-9102-d88bf9091e95: last modified=2017-01-25 14:38:45.135854,
-Dataset fresh=0'''
+        assert str(dbdataset) == '''<Dataset(run number=0, id=a2150ad9-2b87-49f5-a6b2-c85dff366b75, dataset date=09/21/2017, update frequency=1,
+last_modified=2017-12-16 15:11:15.204215what updated=metadata, metadata_modified=2017-12-16 15:11:15.204215,
+Resource b21d6004-06b5-41e5-8e3e-0f28140bff64: last modified=2017-12-16 15:11:15.202742,
+Dataset fresh=2'''
         count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata', error=False).count()
-        assert count == 2160
+        assert count == 66
         count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata', error=True).count()
-        assert count == 9
+        assert count == 0
         count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata,revision,http header', error=False).count()
-        assert count == 9
+        assert count == 8
         count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata,revision,http header', error=True).count()
-        assert count == 7
+        assert count == 0
         count = dbsession.query(DBDataset).filter_by(fresh=1, what_updated='metadata').count()
-        assert count == 11
+        assert count == 0
         count = dbsession.query(DBDataset).filter_by(fresh=2, what_updated='metadata', error=False).count()
-        assert count == 1428
+        assert count == 1
         count = dbsession.query(DBDataset).filter_by(fresh=2, what_updated='metadata', error=True).count()
-        assert count == 10
-        count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='metadata,internal-revision,http header,hash').count()
+        assert count == 0
+        count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='metadata', error=False).count()
+        assert count == 18
+        count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='metadata', error=True).count()
+        assert count == 5
+        count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='metadata,revision,http header').count()
         assert count == 1
         count = dbsession.query(DBDataset).filter_by(fresh=None, what_updated='metadata', error=False).count()
-        assert count == 327
+        assert count == 4
         count = dbsession.query(DBDataset).filter_by(fresh=None, what_updated='metadata', error=True).count()
         assert count == 0
         dbinfodataset = dbsession.query(DBInfoDataset).first()
-        assert str(dbinfodataset) == '''<InfoDataset(id=84f5cc34-8a17-4e62-a868-821ff3725c0d, name=south-sudan-crisis-map-explorer-data, title=South Sudan Crisis Map Explorer Data,
+        assert str(dbinfodataset) == '''<InfoDataset(id=a2150ad9-2b87-49f5-a6b2-c85dff366b75, name=rohingya-displacement-topline-figures, title=Rohingya Displacement Topline Figures,
 private=False, organization id=hdx,
 maintainer=None, maintainer email=None, author=None, author email=None)>'''
         count = dbsession.query(DBInfoDataset).count()
-        assert count == 4405
+        assert count == 103
         dborganization = dbsession.query(DBOrganization).first()
         assert str(dborganization) == '''<Organization(id=hdx, name=hdx, title=HDX)>'''
         count = dbsession.query(DBOrganization).count()
-        assert count == 179
-
+        assert count == 40

@@ -4,7 +4,6 @@ Unit tests for the freshness class.
 
 '''
 import os
-import pickle
 import shutil
 from os.path import join
 
@@ -16,6 +15,7 @@ from hdx.freshness.database.dborganization import DBOrganization
 from hdx.freshness.database.dbresource import DBResource
 from hdx.freshness.database.dbrun import DBRun
 from hdx.freshness.datafreshness import DataFreshness
+from hdx.freshness.testdata import deserialize
 
 
 class TestFreshnessDayN:
@@ -32,27 +32,23 @@ class TestFreshnessDayN:
 
     @pytest.fixture(scope='function')
     def now(self):
-        fixture = join('tests', 'fixtures', 'dayN', 'now.pickle')
-        with open(fixture, 'rb') as fp:
-            return pickle.load(fp)
+        fixture = join('tests', 'fixtures', 'dayN', 'now')
+        return deserialize(fixture)
 
     @pytest.fixture(scope='function')
     def datasets(self):
-        fixture = join('tests', 'fixtures', 'dayN', 'datasets.pickle')
-        with open(fixture, 'rb') as fp:
-            return pickle.load(fp)
+        fixture = join('tests', 'fixtures', 'dayN', 'datasets')
+        return deserialize(fixture)
 
     @pytest.fixture(scope='function')
     def results(self):
-        fixture = join('tests', 'fixtures', 'dayN', 'results.pickle')
-        with open(fixture, 'rb') as fp:
-            return pickle.load(fp)
+        fixture = join('tests', 'fixtures', 'dayN', 'results')
+        return deserialize(fixture)
 
     @pytest.fixture(scope='function')
     def hash_results(self):
-        fixture = join('tests', 'fixtures', 'dayN', 'hash_results.pickle')
-        with open(fixture, 'rb') as fp:
-            return pickle.load(fp)
+        fixture = join('tests', 'fixtures', 'dayN', 'hash_results')
+        return deserialize(fixture)
 
     def test_generate_dataset(self, configuration, database, now, datasets, results, hash_results, resourcecls):
         freshness = DataFreshness(db_url=database, datasets=datasets, now=now)
@@ -102,7 +98,7 @@ Freshness Unavailable, Updated nothing: 327
         assert str(dbresource) == '''<Resource(run number=0, id=a67b85ee-50b4-4345-9102-d88bf9091e95, name=South_Sudan_Recent_Conflict_Event_Total_Fatalities.csv, dataset id=84f5cc34-8a17-4e62-a868-821ff3725c0d,
 url=http://data.humdata.org/dataset/84f5cc34-8a17-4e62-a868-821ff3725c0d/resource/a67b85ee-50b4-4345-9102-d88bf9091e95/download/South_Sudan_Recent_Conflict_Event_Total_Fatalities.csv,
 error=None, last modified=2017-01-25 14:38:45.135854, what updated=internal-revision,hash,
-revision last updated=2017-01-25 14:38:45.135854, http last modified=2016-11-16 09:45:18, MD5 hash=2016-11-16 09:45:18, when hashed=2017-02-01 09:07:30.333492, api=False)>'''
+revision last updated=2017-01-25 14:38:45.135854, http last modified=2016-11-16 09:45:18, MD5 hash=2016-11-16 09:45:18, when hashed=2017-02-01 09:07:30.333492, when checked=2017-02-01 09:07:30.333492, api=False)>'''
         count = dbsession.query(DBResource).filter(DBResource.url.like('%data.humdata.org%')).count()
         assert count == 4997
         count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='revision', error=None).count()
