@@ -4,8 +4,7 @@ Unit tests for the aging code.
 
 '''
 import os
-import pickle
-from datetime import timedelta
+from datetime import timedelta, datetime
 from os.path import join
 
 import pytest
@@ -14,12 +13,6 @@ from hdx.freshness.datafreshness import DataFreshness
 
 
 class TestAging:
-    @pytest.fixture(scope='class')
-    def now(self):
-        fixture = join('tests', 'fixtures', 'day0', 'now.pickle')
-        with open(fixture, 'rb') as fp:
-            return pickle.load(fp)
-
     @pytest.fixture(scope='class')
     def nodatabase(self):
         dbpath = join('tests', 'test_freshness.db')
@@ -30,10 +23,12 @@ class TestAging:
         return 'sqlite:///%s' % dbpath
 
     @pytest.fixture(scope='class')
+    def now(self):
+        return datetime.utcnow()
+
+    @pytest.fixture(scope='class')
     def datasets(self):
-        fixture = join('tests', 'fixtures', 'day0', 'datasets.pickle')
-        with open(fixture, 'rb') as fp:
-            return pickle.load(fp)
+        return list()
 
     @pytest.mark.parametrize("days_last_modified,update_frequency,expected_status", [
         (0, 1, 0),
