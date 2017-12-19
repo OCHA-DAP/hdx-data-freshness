@@ -45,7 +45,7 @@ def get_readme():
     return readme_file.read()
 
 requirements = ['aiodns',
-                'aiohttp>=2.3.3',
+                'aiohttp>=2.3.6',
                 'cchardet',
                 'psycopg2',
                 'tqdm',
@@ -70,7 +70,7 @@ setup(
     description='HDX Data Freshness',
     license='MIT',
     url='https://github.com/OCHA-DAP/hdx-data-freshness',
-    version='0.99.9',
+    version='1.0.0',
     author='Michael Rans',
     author_email='rans@email.com',
     keywords=['HDX', 'fresh', 'freshness', 'data freshness'],
