@@ -61,7 +61,7 @@ async def fetch(metadata, session):
                                                                                          url)
             if http_last_modified:
                 return resource_id, url, err, http_last_modified, None, force_hash
-            raise type(e)(err).with_traceback(sys.exc_info()[2])
+            raise type(exc)(err).with_traceback(sys.exc_info()[2])
 
     try:
         return await retry.send_http(session, 'get', url,
