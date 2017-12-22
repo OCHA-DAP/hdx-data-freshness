@@ -44,13 +44,13 @@ def get_readme():
     readme_file = open(script_dir_plus_file('README.rst', get_readme), encoding='utf-8')
     return readme_file.read()
 
+
 requirements = ['aiodns',
                 'aiohttp>=2.3.6',
-                'cchardet',
                 'psycopg2',
                 'tqdm',
                 'uvloop',
-                'hdx-python-api>=2.6.7'
+                'hdx-python-api>=2.6.8'
                 ]
 
 classifiers = [
@@ -70,7 +70,7 @@ setup(
     description='HDX Data Freshness',
     license='MIT',
     url='https://github.com/OCHA-DAP/hdx-data-freshness',
-    version='1.0.1',
+    version='1.0.2',
     author='Michael Rans',
     author_email='rans@email.com',
     keywords=['HDX', 'fresh', 'freshness', 'data freshness'],
