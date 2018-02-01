@@ -20,9 +20,10 @@ class DBTestDataset(TestBase):
     metadata_modified = Column(String, nullable=False)
     update_frequency = Column(String)
     is_requestdata_type = Column(Boolean)
+    dataset_location = Column(String)
 
     def __repr__(self):
-        output = '<Dataset(id=%s, name=%s' % (self.id, self.name)
+        output = '<Dataset(id=%s, name=%s' % (self.id, self.dataset_name)
         output += 'organisation name=%s, dataset date=%s, ' % (self.organization_name, self.dataset_date)
         output += 'update frequency=%s, metadata_modified=%s)>' % (self.update_frequency, self.metadata_modified)
         return output

@@ -122,6 +122,7 @@ class DataFreshness:
             dataset_maintainer_email = dataset['maintainer_email']
             dataset_author = dataset['author']
             dataset_author_email = dataset['author_email']
+            dataset_location = ','.join([x['name'] for x in dataset['groups']])
             try:
                 dbinfodataset = self.session.query(DBInfoDataset).filter_by(id=dataset_id).one()
                 dbinfodataset.name = dataset_name
@@ -132,9 +133,13 @@ class DataFreshness:
                 dbinfodataset.maintainer_email = dataset_maintainer_email
                 dbinfodataset.author = dataset_author
                 dbinfodataset.author_email = dataset_author_email
+                dbinfodataset.location = dataset_location
             except NoResultFound:
                 dbinfodataset = DBInfoDataset(name=dataset_name, id=dataset_id, title=dataset_title,
-                                              private=dataset_private, organization_id=organization_id)
+                                              private=dataset_private, organization_id=organization_id,
+                                              maintainer=dataset_maintainer, maintainer_email=dataset_maintainer_email,
+                                              author=dataset_author, author_email=dataset_author_email,
+                                              location=dataset_location)
                 self.session.add(dbinfodataset)
             try:
                 previous_dbdataset = self.session.query(DBDataset).filter_by(run_number=self.previous_run_number,
