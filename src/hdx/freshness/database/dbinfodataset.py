@@ -13,7 +13,7 @@ class DBInfoDataset(Base):
     title = Column(String, nullable=False)
     private = Column(Boolean, nullable=False)
     organization_id = Column(String, ForeignKey(DBOrganization.id), nullable=False)
-    location = Column(String, nullable=False)
+    location = Column(String)
     maintainer = Column(String)
     maintainer_email = Column(String)
     author = Column(String)
