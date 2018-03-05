@@ -11,7 +11,6 @@ import argparse
 import logging
 import os
 import time
-from tempfile import gettempdir
 from urllib.parse import urlparse
 
 import psycopg2
@@ -30,8 +29,6 @@ logger = logging.getLogger(__name__)
 
 
 def main(hdx_key, user_agent, preprefix, hdx_site, db_url, save):
-    folder = gettempdir()
-
     project_config_yaml = script_dir_plus_file('project_configuration.yml', main)
     site_url = Configuration.create(hdx_key=hdx_key, hdx_site=hdx_site,
                                     user_agent=user_agent, preprefix=preprefix,
