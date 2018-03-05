@@ -48,6 +48,7 @@ class DataFreshness:
         self.adhoc_update = 0
         self.dataset_what_updated = dict()
         self.resource_what_updated = dict()
+        self.touch_count = 0
 
         self.urls_internal = ['data.humdata.org', 'manage.hdx.rwlabs.org']
         self.urls_adhoc_update = ['proxy.hxlstandard.org']
@@ -78,9 +79,11 @@ class DataFreshness:
             Configuration.read().set_read_only(True)  # so that we only get public datasets
             self.datasets = Dataset.get_all_datasets()
             Configuration.read().set_read_only(False)
+            # Uncomment below 4 lines for testing
             # Configuration.delete()
             # site_url = Configuration.create(hdx_site='test',
-            #                                 project_config_yaml='src/freshness/project_configuration.yml')
+            #                                 user_agent_config_yaml=join(expanduser('~'), '.freshnessuseragent.yml'),
+            #                                 project_config_yaml='src/hdx/freshness/project_configuration.yml')
             # logger.info('Site changed to: %s' % site_url)
             if self.testsession:
                 serialize_datasets(self.testsession, self.datasets)
@@ -348,16 +351,19 @@ class DataFreshness:
             datasetinfo[resource_id] = (dbresource.error, dbresource.last_modified, dbresource.what_updated)
             datasets_lastmodified[dataset_id] = datasetinfo
             dict_of_lists_add(self.resource_what_updated, what_updated, resource_id)
-            # if touch:
-            #     try:
-            #         logger.info('Touching: %s' % resource_id)
-            #         resource = resourcecls.read_from_hdx(resource_id)
-            #         if resource:
-            #             resource.touch()
-            #         else:
-            #             logger.error('Touching failed for %s! Resource does not exist.' % resource_id)
-            #     except HDXError:
-            #         logger.exception('Touching failed for %s!' % resource_id)
+            # Uncomment if touch... for touching resources
+            if touch:
+                self.touch_count += 1
+                # logger.info('Touch count: %d' % self.touch_count)
+                # try:
+                #     logger.info('Touching: %s' % resource_id)
+                #     resource = resourcecls.read_from_hdx(resource_id)
+                #     if resource:
+                #         resource.touch()
+                #     else:
+                #         logger.error('Touching failed for %s! Resource does not exist.' % resource_id)
+                # except HDXError:
+                #     logger.exception('Touching failed for %s!' % resource_id)
         self.session.commit()
         return datasets_lastmodified
 

@@ -3,4 +3,4 @@ aiohttp==2.3.9
 psycopg2==2.7.3.2
 tqdm==4.19.5
 uvloop==0.9.1
-hdx-python-api==2.7.5
+hdx-python-api==2.7.8

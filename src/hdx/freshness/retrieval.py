@@ -27,6 +27,7 @@ async def fetch(metadata, session):
     url = metadata[0]
     resource_id = metadata[1]
     force_hash = metadata[2]
+
     async def fn(response):
         last_modified_str = response.headers.get('Last-Modified')
         http_last_modified = None
@@ -65,19 +66,20 @@ async def fetch(metadata, session):
 
     try:
         return await retry.send_http(session, 'get', url,
-                                     retries=5,
-                                     interval=0.4,
-                                     backoff=2,
+                                     retries=2,
+                                     interval=1,
+                                     backoff=4,
                                      http_status_codes_to_retry=[429, 500, 502, 503, 504],
                                      fn=fn)
     except Exception as e:
         return resource_id, url, str(e), None, None, force_hash
 
+
 async def check_urls(urls, loop):
     tasks = list()
 
     conn = aiohttp.TCPConnector(limit=100, limit_per_host=2, loop=loop)
-    async with aiohttp.ClientSession(connector=conn, read_timeout=300, conn_timeout=10, loop=loop) as session:
+    async with aiohttp.ClientSession(connector=conn, read_timeout=300, loop=loop) as session:
         for metadata in urls:
             task = fetch(metadata, session)
             tasks.append(task)
@@ -95,4 +97,6 @@ def retrieve(urls):
     future = asyncio.ensure_future(check_urls(urls, loop))
     results = loop.run_until_complete(future)
     logger.info('Execution time: %s seconds' % (time.time() - start_time))
+    loop.run_until_complete(asyncio.sleep(0.250))
+    loop.close()
     return results
