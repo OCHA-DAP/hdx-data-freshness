@@ -46,11 +46,11 @@ def get_readme():
 
 
 requirements = ['aiodns',
-                'aiohttp>=2.3.9',
+                'aiohttp==2.3.9',
                 'psycopg2',
                 'tqdm',
                 'uvloop',
-                'hdx-python-api>=2.7.5'
+                'hdx-python-api>=2.8.7'
                 ]
 
 classifiers = [
