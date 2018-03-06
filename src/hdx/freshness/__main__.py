@@ -91,6 +91,8 @@ if __name__ == '__main__':
     user_agent = args.user_agent
     if user_agent is None:
         user_agent = os.getenv('USER_AGENT')
+        if user_agent is None:
+            user_agent = 'freshness'
     preprefix = args.preprefix
     if preprefix is None:
         preprefix = os.getenv('PREPREFIX')
