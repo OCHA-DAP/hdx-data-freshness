@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 """Global fixtures"""
+from collections import UserDict
 from os.path import join
 
 import pytest
@@ -15,7 +16,7 @@ def configuration():
 
 @pytest.fixture(scope='session')
 def resourcecls():
-    class MyResource:
+    class MyResource(UserDict, object):
         @staticmethod
         def read_from_hdx(id):
             return MyResource()

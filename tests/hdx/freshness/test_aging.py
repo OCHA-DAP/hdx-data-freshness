@@ -30,7 +30,7 @@ class TestAging:
     def datasets(self):
         return list()
 
-    @pytest.mark.parametrize("days_last_modified,update_frequency,expected_status", [
+    @pytest.mark.parametrize('days_last_modified,update_frequency,expected_status', [
         (0, 1, 0),
         (0, 7, 0),
         (0, 365, 0),
