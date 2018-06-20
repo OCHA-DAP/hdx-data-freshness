@@ -73,7 +73,7 @@ class DataFreshness:
         else:
             self.previous_run_number = None
             self.run_number = 0
-            self.no_urls_to_check = 400
+            self.no_urls_to_check = 1600
 
         self.testsession = testsession
         if datasets is None:  # pragma: no cover
