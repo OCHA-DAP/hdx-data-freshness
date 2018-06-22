@@ -306,9 +306,10 @@ class DataFreshness:
             what_updated = dbresource.what_updated
             touch = False
             if http_last_modified:
-                dbresource.http_last_modified = http_last_modified
-                what_updated = self.set_last_modified(dbresource, dbresource.http_last_modified, 'http header')
-                touch = True
+                if dbresource.http_last_modified is None or http_last_modified > dbresource.http_last_modified:
+                    dbresource.http_last_modified = http_last_modified
+                    what_updated, touch = self.set_last_modified(dbresource, dbresource.http_last_modified,
+                                                                 'http header')
             if hash:
                 dbresource.when_checked = self.now
                 dbresource.when_hashed = self.now
@@ -319,9 +320,10 @@ class DataFreshness:
                     dbresource.md5_hash = hash
                     hash_url, hash_err, hash_http_last_modified, hash_hash, force_hash = hash_results[resource_id]
                     if hash_http_last_modified:
-                        dbresource.http_last_modified = hash_http_last_modified
-                        what_updated = self.set_last_modified(dbresource, dbresource.http_last_modified, 'http header')
-                        touch = True
+                        if dbresource.http_last_modified is None or hash_http_last_modified > dbresource.http_last_modified:
+                            dbresource.http_last_modified = hash_http_last_modified
+                            what_updated, touch = self.set_last_modified(dbresource, dbresource.http_last_modified,
+                                                                         'http header')
                     if hash_hash:
                         if hash_hash == hash:
                             if prev_hash is None:   # First occurrence of resource eg. first run - don't use hash
@@ -329,8 +331,8 @@ class DataFreshness:
                                 dbresource.what_updated = self.add_what_updated(what_updated, 'hash')
                                 what_updated = dbresource.what_updated
                             else:
-                                what_updated = self.set_last_modified(dbresource, self.now, 'hash')
-                            touch = True
+                                what_updated, _ = self.set_last_modified(dbresource, self.now, 'hash')
+                                touch = True
                             dbresource.api = False
                         else:
                             dbresource.md5_hash = hash_hash
@@ -428,7 +430,10 @@ class DataFreshness:
         if modified_date > dbobject.last_modified:
             dbobject.last_modified = modified_date
             dbobject.what_updated = DataFreshness.add_what_updated(dbobject.what_updated, what_updated)
-        return dbobject.what_updated
+            update = True
+        else:
+            update = False
+        return dbobject.what_updated, update
 
     @staticmethod
     def add_what_updated(prev_what_updated, what_updated):

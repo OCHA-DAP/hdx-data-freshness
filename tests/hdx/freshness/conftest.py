@@ -17,12 +17,15 @@ def configuration():
 @pytest.fixture(scope='session')
 def resourcecls():
     class MyResource(UserDict, object):
+        def __init__(self):
+            self.data = {'a': '1'}
+
         @staticmethod
         def read_from_hdx(id):
             return MyResource()
 
         @staticmethod
-        def patch():
+        def touch():
             pass
 
     return MyResource
