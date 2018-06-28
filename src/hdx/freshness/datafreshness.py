@@ -231,6 +231,7 @@ class DataFreshness:
                         dbresource.what_updated = 'nothing'
                     dbresource.md5_hash = previous_dbresource.md5_hash
                     dbresource.when_hashed = previous_dbresource.when_hashed
+                    dbresource.when_checked = previous_dbresource.when_checked
 
                 except NoResultFound:
                     pass
@@ -252,9 +253,8 @@ class DataFreshness:
                 forced_hash = resource_id in forced_hash_ids
             else:
                 forced_hash = self.urls_to_check_count < self.no_urls_to_check and \
-                              (
-                                      dbresource.when_checked is None or self.now - dbresource.when_checked > datetime.timedelta(
-                                  days=30))
+                              (dbresource.when_checked is None or
+                               self.now - dbresource.when_checked > datetime.timedelta(days=30))
             if forced_hash:
                 dataset_resources.append((url, resource_id, True, dbresource.what_updated))
                 self.urls_to_check_count += 1
