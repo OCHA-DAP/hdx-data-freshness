@@ -47,7 +47,7 @@ def get_readme():
 
 requirements = ['aiodns',
                 'aiohttp',
-                'psycopg2',
+                'psycopg2-binary',
                 'tqdm',
                 'uvloop',
                 'hdx-python-api>=3.1.1'
