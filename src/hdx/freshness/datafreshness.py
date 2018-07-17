@@ -307,9 +307,10 @@ class DataFreshness:
             touch = False
             if http_last_modified:
                 if dbresource.http_last_modified is None or http_last_modified > dbresource.http_last_modified:
+                    what_updated, newtouch = self.set_last_modified(dbresource, http_last_modified, 'http header')
+                    if newtouch and dbresource.http_last_modified is not None:
+                        touch = True
                     dbresource.http_last_modified = http_last_modified
-                    what_updated, touch = self.set_last_modified(dbresource, dbresource.http_last_modified,
-                                                                 'http header')
             if hash:
                 dbresource.when_checked = self.now
                 dbresource.when_hashed = self.now
@@ -321,11 +322,11 @@ class DataFreshness:
                     hash_url, hash_err, hash_http_last_modified, hash_hash, force_hash = hash_results[resource_id]
                     if hash_http_last_modified:
                         if dbresource.http_last_modified is None or hash_http_last_modified > dbresource.http_last_modified:
-                            dbresource.http_last_modified = hash_http_last_modified
-                            what_updated, newtouch = self.set_last_modified(dbresource, dbresource.http_last_modified,
+                            what_updated, newtouch = self.set_last_modified(dbresource, hash_http_last_modified,
                                                                             'http header')
-                            if newtouch:
+                            if newtouch and dbresource.http_last_modified is not None:
                                 touch = True
+                            dbresource.http_last_modified = hash_http_last_modified
 
                     if hash_hash:
                         if hash_hash == hash:
