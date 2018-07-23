@@ -164,6 +164,10 @@ class DataFreshness:
                     self.adhoc_update += 1
                 else:
                     fresh = self.calculate_aging(metadata_modified, update_frequency)
+            if len(resources) == 0:
+                if last_resource_updated is None:
+                    last_resource_updated = 'NO RESOURCES'
+                    last_resource_modified = datetime.datetime(1970, 1, 1, 0, 0)
             dbdataset = DBDataset(run_number=self.run_number, id=dataset_id,
                                   dataset_date=dataset_date, update_frequency=update_frequency,
                                   metadata_modified=metadata_modified, last_modified=metadata_modified,
