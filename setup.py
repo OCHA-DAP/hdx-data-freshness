@@ -50,7 +50,7 @@ requirements = ['aiodns',
                 'psycopg2-binary',
                 'tqdm',
                 'uvloop',
-                'hdx-python-api>=3.1.2'
+                'hdx-python-api>=3.1.1'
                 ]
 
 classifiers = [
@@ -70,7 +70,7 @@ setup(
     description='HDX Data Freshness',
     license='MIT',
     url='https://github.com/OCHA-DAP/hdx-data-freshness',
-    version='1.1.5',
+    version='1.1.6',
     author='Michael Rans',
     author_email='rans@email.com',
     keywords=['HDX', 'fresh', 'freshness', 'data freshness'],
