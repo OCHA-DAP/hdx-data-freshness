@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class DataFreshness:
-    def __init__(self, db_url=None, testsession=None, datasets=None, now=None):
+    def __init__(self, db_url=None, testsession=None, datasets=None, now=None, do_touch=False):
         ''''''
         if db_url is None:
             db_url = 'sqlite:///freshness.db'
@@ -50,6 +50,7 @@ class DataFreshness:
         self.dataset_what_updated = dict()
         self.resource_what_updated = dict()
         self.touch_count = 0
+        self.do_touch = do_touch
 
         self.urls_internal = ['data.humdata.org', 'manage.hdx.rwlabs.org']
         self.urls_adhoc_update = ['proxy.hxlstandard.org']
@@ -356,7 +357,7 @@ class DataFreshness:
             datasetinfo[resource_id] = (dbresource.error, dbresource.last_modified, dbresource.what_updated)
             datasets_lastmodified[dataset_id] = datasetinfo
             dict_of_lists_add(self.resource_what_updated, what_updated, resource_id)
-            if touch:
+            if touch and self.do_touch:
                 self.touch_count += 1
                 logger.info('Touch count: %d' % self.touch_count)
                 try:

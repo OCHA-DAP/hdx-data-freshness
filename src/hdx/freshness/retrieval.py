@@ -10,7 +10,6 @@ Retrieve urls and categorise them
 import asyncio
 import hashlib
 import logging
-import sys
 import time
 
 import aiohttp
@@ -62,14 +61,14 @@ async def fetch(metadata, session):
                                                                                          url)
             if http_last_modified:
                 return resource_id, url, err, http_last_modified, None, force_hash
-            raise type(exc)(err).with_traceback(sys.exc_info()[2])
+            raise aiohttp.ClientResponseError(code=code, message=err,
+                                              request_info=response.request_info, history=response.history) from exc
 
     try:
         return await retry.send_http(session, 'get', url,
                                      retries=2,
-                                     interval=1,
+                                     interval=5,
                                      backoff=4,
-                                     http_status_codes_to_retry=[429, 500, 502, 503, 504],
                                      fn=fn)
     except Exception as e:
         return resource_id, url, str(e), None, None, force_hash
@@ -79,7 +78,8 @@ async def check_urls(urls, loop):
     tasks = list()
 
     conn = aiohttp.TCPConnector(limit=100, limit_per_host=2, loop=loop)
-    async with aiohttp.ClientSession(connector=conn, read_timeout=300, loop=loop) as session:
+    timeout = aiohttp.ClientTimeout(total=5 * 60)
+    async with aiohttp.ClientSession(connector=conn, timeout=timeout, loop=loop) as session:
         for metadata in urls:
             task = fetch(metadata, session)
             tasks.append(task)

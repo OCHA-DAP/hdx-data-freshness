@@ -80,7 +80,8 @@ async def send_http(session, method, url, *,
                         'Received invalid response code:%s error:%s'
                         ' response:%s url:%s', response.status, '', response.reason, url)
                     raise aiohttp.ClientResponseError(
-                        code=response.status, message=response.reason)
+                        code=response.status, message=response.reason, request_info=response.request_info,
+                        history=response.history)
                 else:
                     raise FailedRequest(
                         code=response.status, message='Non-retryable response code',
@@ -91,6 +92,9 @@ async def send_http(session, method, url, *,
             except AttributeError:
                 code = ''
             raised_exc = FailedRequest(code=code, message=exc,
+                                       raised='%s.%s' % (exc.__class__.__module__, exc.__class__.__qualname__), url=url)
+        except asyncio.TimeoutError as exc:
+            raised_exc = FailedRequest(code='', message='asyncio.TimeoutError',
                                        raised='%s.%s' % (exc.__class__.__module__, exc.__class__.__qualname__), url=url)
         else:
             raised_exc = None
