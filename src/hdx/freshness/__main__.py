@@ -65,7 +65,7 @@ def main(hdx_key, user_agent, preprefix, hdx_site, db_url, save):
         Session = sessionmaker(bind=engine)
         TestBase.metadata.create_all(engine)
         testsession = Session()
-    freshness = DataFreshness(db_url=db_url, testsession=testsession, do_touch=True)
+    freshness = DataFreshness(db_url=db_url, testsession=testsession, do_touch=False)
 
     datasets_to_check, resources_to_check = freshness.process_datasets()
     results, hash_results = freshness.check_urls(resources_to_check)

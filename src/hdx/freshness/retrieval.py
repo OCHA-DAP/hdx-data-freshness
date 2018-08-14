@@ -18,6 +18,7 @@ import uvloop
 from dateutil import parser
 
 from hdx.freshness import retry
+from hdx.freshness.ratelimiter import RateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -77,9 +78,10 @@ async def fetch(metadata, session):
 async def check_urls(urls, loop):
     tasks = list()
 
-    conn = aiohttp.TCPConnector(limit=100, limit_per_host=2, loop=loop)
+    conn = aiohttp.TCPConnector(limit=100, limit_per_host=1, loop=loop)
     timeout = aiohttp.ClientTimeout(total=5 * 60)
     async with aiohttp.ClientSession(connector=conn, timeout=timeout, loop=loop) as session:
+        session = RateLimiter(session)
         for metadata in urls:
             task = fetch(metadata, session)
             tasks.append(task)

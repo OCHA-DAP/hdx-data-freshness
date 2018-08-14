@@ -57,7 +57,7 @@ async def send_http(session, method, url, *,
 
     if retries == -1:  # -1 means retry indefinitely
         attempt = -1
-    elif retries == 0: # Zero means don't retry
+    elif retries == 0:  # Zero means don't retry
         attempt = 1
     else:  # any other value means retry N times
         attempt = retries + 1
@@ -72,7 +72,7 @@ async def send_http(session, method, url, *,
             backoff_interval *= backoff
         # logger.info('sending %s %s with %s', method.upper(), url, kwargs)
         try:
-            async with getattr(session, method)(url, **kwargs) as response:
+            async with await getattr(session, method)(url, **kwargs) as response:
                 if response.status == 200:
                     return await fn(response)
                 elif response.status in http_status_codes_to_retry:
