@@ -79,7 +79,7 @@ async def check_urls(urls, loop):
     tasks = list()
 
     conn = aiohttp.TCPConnector(limit=100, limit_per_host=1, loop=loop)
-    timeout = aiohttp.ClientTimeout(total=5 * 60)
+    timeout = aiohttp.ClientTimeout(total=60 * 60, sock_connect=30, sock_read=30)
     async with aiohttp.ClientSession(connector=conn, timeout=timeout, loop=loop) as session:
         session = RateLimiter(session)
         for metadata in urls:
