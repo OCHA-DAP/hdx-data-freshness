@@ -28,7 +28,7 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
-def main(hdx_key, user_agent, preprefix, hdx_site, db_url, save):
+def main(hdx_key, user_agent, preprefix, hdx_site, db_url, do_touch, save):
     project_config_yaml = script_dir_plus_file('project_configuration.yml', main)
     site_url = Configuration.create(hdx_key=hdx_key, hdx_site=hdx_site,
                                     user_agent=user_agent, preprefix=preprefix,
@@ -65,7 +65,7 @@ def main(hdx_key, user_agent, preprefix, hdx_site, db_url, save):
         Session = sessionmaker(bind=engine)
         TestBase.metadata.create_all(engine)
         testsession = Session()
-    freshness = DataFreshness(db_url=db_url, testsession=testsession, do_touch=True)
+    freshness = DataFreshness(db_url=db_url, testsession=testsession, do_touch=do_touch)
 
     datasets_to_check, resources_to_check = freshness.process_datasets()
     results, hash_results = freshness.check_urls(resources_to_check)
@@ -83,6 +83,7 @@ if __name__ == '__main__':
     parser.add_argument('-pp', '--preprefix', default=None, help='preprefix')
     parser.add_argument('-hs', '--hdx_site', default=None, help='HDX site to use')
     parser.add_argument('-db', '--db_url', default=None, help='Database connection string')
+    parser.add_argument('-dt', '--donttouch', default=False, action='store_true', help="Don't touch datasets")
     parser.add_argument('-s', '--save', default=False, action='store_true', help='Save state for testing')
     args = parser.parse_args()
     hdx_key = args.hdx_key
@@ -104,4 +105,4 @@ if __name__ == '__main__':
         db_url = os.getenv('DB_URL')
     if db_url and '://' not in db_url:
         db_url = 'postgresql://%s' % db_url
-    main(hdx_key, user_agent, preprefix, hdx_site, db_url, args.save)
+    main(hdx_key, user_agent, preprefix, hdx_site, db_url, not args.donttouch, args.save)
