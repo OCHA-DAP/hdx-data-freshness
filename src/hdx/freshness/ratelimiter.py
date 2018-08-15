@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 
 
 class RateLimiter:
-    RATE = 10 / 90
+    RATE = 10 / 60
     MAX_TOKENS = 10
 
     def __init__(self, session):

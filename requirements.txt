@@ -2,5 +2,5 @@ aiodns==1.1.1
 aiohttp==3.3.2
 psycopg2-binary==2.7.5
 tqdm==4.24.0
-uvloop==0.11.1
+uvloop==0.11.2
 hdx-python-api==3.1.9
