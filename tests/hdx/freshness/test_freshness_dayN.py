@@ -68,6 +68,9 @@ class TestFreshnessDayN:
     def test_generate_dataset(self, configuration, database, now, datasets, results, hash_results, forced_hash_ids,
                               resourcecls):
         freshness = DataFreshness(db_url=database, datasets=datasets, now=now)
+        dbsession = freshness.session
+        dbsession.execute(
+            "INSERT INTO dbresources(run_number,id,name,dataset_id,url,error,last_modified,what_updated,revision_last_updated,http_last_modified,md5_hash,when_hashed,when_checked,api) VALUES (-1,'010ab2d2-8f98-409b-a1f0-4707ad6c040a','sidih_190.csv','54d6b4b8-8cc9-42d3-82ce-3fa4fd3d9be1','https://ds-ec2.scraperwiki.com/egzfk1p/siqsxsgjnxgk3r2/cgi-bin/csv/sidih_190.csv',NULL,'2015-05-07 14:44:56.599079','','2015-05-07 14:44:56.599079',NULL,'999','2017-12-16 16:03:33.208327','2017-12-16 16:03:33.208327','0');")
         datasets_to_check, resources_to_check = freshness.process_datasets(forced_hash_ids=forced_hash_ids)
         results, hash_results = freshness.check_urls(resources_to_check, results=results, hash_results=hash_results)
         datasets_lastmodified = freshness.process_results(results, hash_results, resourcecls=resourcecls)
@@ -78,13 +81,14 @@ class TestFreshnessDayN:
 * total: 660 *,
 adhoc-nothing: 44,
 api: 4,
-error: 15,
+error: 14,
 hash: 3,
 http header: 1,
 internal-nothing: 45,
 internal-nothing,error: 2,
 internal-revision: 9,
 nothing: 531,
+repeat hash: 1,
 same hash: 6
 
 *** Datasets ***
@@ -94,8 +98,8 @@ same hash: 6
 0: Fresh, Updated metadata: 3,
 0: Fresh, Updated nothing: 70,
 2: Overdue, Updated nothing: 1,
-3: Delinquent, Updated nothing: 18,
-3: Delinquent, Updated nothing,error: 5,
+3: Delinquent, Updated nothing: 19,
+3: Delinquent, Updated nothing,error: 4,
 Freshness Unavailable, Updated nothing: 3,
 Freshness Unavailable, Updated nothing,error: 1
 
@@ -103,7 +107,6 @@ Freshness Unavailable, Updated nothing,error: 1
 19 datasets have update frequency of Never
 0 datasets have update frequency of Adhoc'''
 
-        dbsession = freshness.session
         dbrun = dbsession.query(DBRun).filter_by(run_number=1).one()
         assert str(dbrun) == '<Run number=1, Run date=2017-12-19 10:53:28.606889>'
         dbresource = dbsession.query(DBResource).first()
@@ -128,9 +131,9 @@ revision last updated=2017-12-16 15:11:15.202742, http last modified=None, MD5 h
         assert count == 2
         # select what_updated, api from dbresources where run_number=0 and md5_hash is not null and id in (select id from dbresources where run_number=1 and what_updated like '%hash%');
         hash_updated = dbsession.query(DBResource.id).filter_by(run_number=1).filter(DBResource.what_updated.like('%hash%'))
-        assert hash_updated.count() == 3
+        assert hash_updated.count() == 4
         count = dbsession.query(DBResource).filter_by(run_number=0).filter(DBResource.md5_hash.isnot(None)).filter(DBResource.id.in_(hash_updated.as_scalar())).count()
-        assert count == 1
+        assert count == 2
         dbdataset = dbsession.query(DBDataset).first()
         assert str(dbdataset) == '''<Dataset(run number=0, id=a2150ad9-2b87-49f5-a6b2-c85dff366b75, dataset date=09/21/2017, update frequency=1,
 last_modified=2017-12-16 15:11:15.204215what updated=metadata, metadata_modified=2017-12-16 15:11:15.204215,
@@ -145,9 +148,9 @@ Dataset fresh=2'''
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=2, what_updated='nothing', error=False).count()
         assert count == 1
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing', error=False).count()
-        assert count == 18
+        assert count == 19
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing', error=True).count()
-        assert count == 5
+        assert count == 4
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=None, what_updated='nothing', error=False).count()
         assert count == 3
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=None, what_updated='nothing',

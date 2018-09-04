@@ -339,11 +339,14 @@ class DataFreshness:
                                 dbresource.what_updated = self.add_what_updated(what_updated, 'hash')
                                 what_updated = dbresource.what_updated
                             else:
-                                what_updated, _ = self.set_last_modified(dbresource, self.now, 'hash')
                                 # Check if hash has occurred before
                                 # select distinct md5_hash from dbresources where id = '714ef7b5-a303-4e4f-be2f-03b2ce2933c7' and md5_hash='2f3cd6a6fce5ad4d7001780846ad87a7';
-                                if not self.session.query(exists().where(
+                                if self.session.query(exists().where(
                                         and_(DBResource.id == resource_id, DBResource.md5_hash == hash))).scalar():
+                                    dbresource.what_updated = self.add_what_updated(what_updated, 'repeat hash')
+                                    what_updated = dbresource.what_updated
+                                else:
+                                    what_updated, _ = self.set_last_modified(dbresource, self.now, 'hash')
                                     touch = True
                             dbresource.api = False
                         else:
