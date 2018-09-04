@@ -16,7 +16,7 @@ from hdx.data.hdxobject import HDXError
 from hdx.data.resource import Resource
 from hdx.hdx_configuration import Configuration
 from hdx.utilities.dictandlist import dict_of_lists_add, list_distribute_contents
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, exists, and_
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.pool import NullPool
@@ -322,8 +322,7 @@ class DataFreshness:
                 if dbresource.md5_hash == hash:  # File unchanged
                     what_updated = self.add_what_updated(what_updated, 'same hash')
                 else:  # File updated
-                    prev_hash = dbresource.md5_hash
-                    dbresource.md5_hash = hash
+                    hash_to_set = hash
                     hash_url, hash_err, hash_http_last_modified, hash_hash, force_hash = hash_results[resource_id]
                     if hash_http_last_modified:
                         if dbresource.http_last_modified is None or hash_http_last_modified > dbresource.http_last_modified:
@@ -335,21 +334,26 @@ class DataFreshness:
 
                     if hash_hash:
                         if hash_hash == hash:
-                            if prev_hash is None:   # First occurrence of resource eg. first run - don't use hash
+                            if dbresource.md5_hash is None:  # First occurrence of resource eg. first run - don't use hash
                                                     # for last modified field (and hence freshness calculation)
                                 dbresource.what_updated = self.add_what_updated(what_updated, 'hash')
                                 what_updated = dbresource.what_updated
                             else:
                                 what_updated, _ = self.set_last_modified(dbresource, self.now, 'hash')
-                                touch = True
+                                # Check if hash has occurred before
+                                # select distinct md5_hash from dbresources where id = '714ef7b5-a303-4e4f-be2f-03b2ce2933c7' and md5_hash='2f3cd6a6fce5ad4d7001780846ad87a7';
+                                if not self.session.query(exists().where(
+                                        and_(DBResource.id == resource_id, DBResource.md5_hash == hash))).scalar():
+                                    touch = True
                             dbresource.api = False
                         else:
-                            dbresource.md5_hash = hash_hash
+                            hash_to_set = hash_hash
                             what_updated = self.add_what_updated(what_updated, 'api')
                             dbresource.api = True
                     if hash_err:
                         what_updated = self.add_what_updated(what_updated, 'error')
                         dbresource.error = hash_err
+                    dbresource.md5_hash = hash_to_set
             if err:
                 dbresource.when_checked = self.now
                 what_updated = self.add_what_updated(what_updated, 'error')
