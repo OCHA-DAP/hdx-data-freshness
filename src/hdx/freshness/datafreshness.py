@@ -91,12 +91,16 @@ class DataFreshness:
                 serialize_now(self.testsession, self.now)
         else:
             self.now = now
+
+    def spread_datasets(self):
+        self.datasets = list_distribute_contents(self.datasets, lambda x: x['organization']['name'])
+
+    def add_new_run(self):
         dbrun = DBRun(run_number=self.run_number, run_date=self.now)
         self.session.add(dbrun)
         self.session.commit()
 
     def process_datasets(self, forced_hash_ids=None):
-        self.datasets = list_distribute_contents(self.datasets, lambda x: x['organization']['name'])
         resources_to_check = list()
         datasets_to_check = dict()
         for dataset in self.datasets:

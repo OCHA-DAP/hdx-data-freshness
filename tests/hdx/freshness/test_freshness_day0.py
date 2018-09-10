@@ -65,6 +65,8 @@ class TestFreshnessDay0:
     def test_generate_dataset(self, configuration, nodatabase, now, datasets, results, hash_results, forced_hash_ids,
                               resourcecls):
         freshness = DataFreshness(db_url=nodatabase, datasets=datasets, now=now)
+        freshness.spread_datasets()
+        freshness.add_new_run()
         datasets_to_check, resources_to_check = freshness.process_datasets(forced_hash_ids=forced_hash_ids)
         results, hash_results = freshness.check_urls(resources_to_check, results=results, hash_results=hash_results)
         datasets_lastmodified = freshness.process_results(results, hash_results, resourcecls=resourcecls)
