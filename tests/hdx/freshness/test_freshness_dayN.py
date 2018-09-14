@@ -81,7 +81,6 @@ class TestFreshnessDayN:
         assert output == '''
 *** Resources ***
 * total: 660 *,
-adhoc-nothing: 44,
 api: 4,
 error: 14,
 hash: 3,
@@ -89,7 +88,7 @@ http header: 1,
 internal-nothing: 45,
 internal-nothing,error: 2,
 internal-revision: 9,
-nothing: 531,
+nothing: 575,
 repeat hash: 1,
 same hash: 6
 

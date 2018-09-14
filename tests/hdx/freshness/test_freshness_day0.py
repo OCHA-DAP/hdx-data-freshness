@@ -75,9 +75,8 @@ class TestFreshnessDay0:
         assert output == '''
 *** Resources ***
 * total: 660 *,
-adhoc-revision: 44,
 internal-revision: 56,
-revision: 508,
+revision: 552,
 revision,api: 4,
 revision,error: 27,
 revision,hash: 8,
@@ -105,8 +104,6 @@ Freshness Unavailable, Updated metadata: 4
 url=https://docs.google.com/spreadsheets/d/e/2PACX-1vRjFRZGLB8IMp0anSGR1tcGxwJgkyx0bTN9PsinqtaLWKHBEfz77LkinXeVqIE_TsGVt-xM6DQzXpkJ/pub?gid=0&single=true&output=csv,
 error=None, last modified=2017-12-16 15:11:15.202742, what updated=revision,hash,
 revision last updated=2017-12-16 15:11:15.202742, http last modified=None, MD5 hash=None, when hashed=2017-12-18 16:03:33.208327, when checked=2017-12-18 16:03:33.208327, api=False)>'''
-        count = dbsession.query(DBResource).filter_by(what_updated='adhoc-revision', error=None, api=None).count()
-        assert count == 44
         count = dbsession.query(DBResource).filter(DBResource.url.like('%data.humdata.org%')).count()
         assert count == 56
         count = dbsession.query(DBResource).filter_by(what_updated='internal-revision', error=None, api=None).count()
@@ -116,7 +113,7 @@ revision last updated=2017-12-16 15:11:15.202742, http last modified=None, MD5 h
         count = dbsession.query(DBResource).filter_by(what_updated='internal-revision,http header,hash', error=None, api=False).count()
         assert count == 0
         count = dbsession.query(DBResource).filter_by(what_updated='revision', error=None, api=None).count()
-        assert count == 508
+        assert count == 552
         count = dbsession.query(DBResource).filter_by(what_updated='revision', error=None, api=True).count()
         assert count == 4
         count = dbsession.query(DBResource).filter(DBResource.error.isnot(None)).filter_by(what_updated='revision').count()

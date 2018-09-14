@@ -52,8 +52,7 @@ class DataFreshness:
         self.touch_count = 0
         self.do_touch = do_touch
 
-        self.urls_internal = ['data.humdata.org', 'manage.hdx.rwlabs.org']
-        self.urls_adhoc_update = ['proxy.hxlstandard.org']
+        self.urls_internal = ['data.humdata.org']
 
         self.aging = dict()
         for key, value in Configuration.read()['aging'].items():
@@ -249,15 +248,10 @@ class DataFreshness:
             internal = False
             for url_substr in self.urls_internal:
                 if url_substr in url:
-                    self.internal_and_adhoc_what_updated(dbresource, 'internal')
+                    self.internal_what_updated(dbresource, 'internal')
                     internal = True
                     break
             ignore = False
-            for url_substr in self.urls_adhoc_update:
-                if url_substr in url:
-                    self.internal_and_adhoc_what_updated(dbresource, 'adhoc')
-                    ignore = True
-                    break
             if forced_hash_ids:
                 forced_hash = resource_id in forced_hash_ids
             else:
@@ -274,7 +268,7 @@ class DataFreshness:
         return dataset_resources, last_resource_updated, last_resource_modified
 
     @staticmethod
-    def internal_and_adhoc_what_updated(dbresource, url_substr):
+    def internal_what_updated(dbresource, url_substr):
         what_updated = '%s-%s' % (url_substr, dbresource.what_updated)
         dbresource.what_updated = what_updated
 
