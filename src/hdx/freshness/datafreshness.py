@@ -251,7 +251,6 @@ class DataFreshness:
                     self.internal_what_updated(dbresource, 'internal')
                     internal = True
                     break
-            ignore = False
             if forced_hash_ids:
                 forced_hash = resource_id in forced_hash_ids
             else:
@@ -261,7 +260,7 @@ class DataFreshness:
             if forced_hash:
                 dataset_resources.append((url, resource_id, True, dbresource.what_updated))
                 self.urls_to_check_count += 1
-            elif internal or ignore:
+            elif internal:
                 dict_of_lists_add(self.resource_what_updated, dbresource.what_updated, dbresource.id)
             else:
                 dataset_resources.append((url, resource_id, False, dbresource.what_updated))
