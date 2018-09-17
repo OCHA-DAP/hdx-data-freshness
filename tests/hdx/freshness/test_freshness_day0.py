@@ -76,10 +76,10 @@ class TestFreshnessDay0:
 *** Resources ***
 * total: 660 *,
 internal-revision: 56,
-revision: 552,
+revision: 551,
 revision,api: 4,
 revision,error: 27,
-revision,hash: 8,
+revision,hash: 9,
 revision,http header: 13
 
 *** Datasets ***
@@ -113,13 +113,13 @@ revision last updated=2017-12-16 15:11:15.202742, http last modified=None, MD5 h
         count = dbsession.query(DBResource).filter_by(what_updated='internal-revision,http header,hash', error=None, api=False).count()
         assert count == 0
         count = dbsession.query(DBResource).filter_by(what_updated='revision', error=None, api=None).count()
-        assert count == 552
+        assert count == 551
         count = dbsession.query(DBResource).filter_by(what_updated='revision', error=None, api=True).count()
         assert count == 4
         count = dbsession.query(DBResource).filter(DBResource.error.isnot(None)).filter_by(what_updated='revision').count()
         assert count == 27
         count = dbsession.query(DBResource).filter_by(what_updated='revision,hash', error=None, api=False).count()
-        assert count == 8
+        assert count == 9
         count = dbsession.query(DBResource).filter_by(what_updated='revision,http header', error=None, api=None).count()
         assert count == 13
         count = dbsession.query(DBResource).filter_by(what_updated='revision,http header,hash', error=None, api=False).count()

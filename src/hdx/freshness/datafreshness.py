@@ -344,7 +344,11 @@ class DataFreshness:
                                     what_updated = dbresource.what_updated
                                 else:
                                     what_updated, _ = self.set_last_modified(dbresource, self.now, 'hash')
-                                    touch = True
+                                    # don't touch already fresh datasets
+                                    dbdataset = self.session.query(DBDataset).filter_by(id=dataset_id,
+                                                                                        run_number=self.run_number).one()
+                                    if dbdataset.fresh != 0:
+                                        touch = True
                             dbresource.api = False
                         else:
                             hash_to_set = hash_hash
