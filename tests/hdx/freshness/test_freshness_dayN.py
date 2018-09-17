@@ -67,7 +67,7 @@ class TestFreshnessDayN:
 
     def test_generate_dataset(self, configuration, database, now, datasets, results, hash_results, forced_hash_ids,
                               resourcecls):
-        freshness = DataFreshness(db_url=database, datasets=datasets, now=now)
+        freshness = DataFreshness(db_url=database, datasets=datasets, now=now, do_touch=True)
         freshness.spread_datasets()
         freshness.add_new_run()
         dbsession = freshness.session
@@ -168,3 +168,5 @@ maintainer=7d7f5f8d-7e3b-483a-8de1-2b122010c1eb, maintainer email=takavarasha@un
         assert str(dborganization) == '''<Organization(id=hdx, name=hdx, title=HDX)>'''
         count = dbsession.query(DBOrganization).count()
         assert count == 40
+
+        assert freshness.touch_count == 1
