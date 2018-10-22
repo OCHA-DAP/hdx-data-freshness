@@ -271,12 +271,12 @@ class DataFreshness:
         what_updated = '%s-%s' % (url_substr, dbresource.what_updated)
         dbresource.what_updated = what_updated
 
-    def check_urls(self, resources_to_check, results=None, hash_results=None):
+    def check_urls(self, resources_to_check, user_agent, results=None, hash_results=None):
         def get_domain(x):
             return urlparse(x[0]).netloc
         if results is None:  # pragma: no cover
             resources_to_check = list_distribute_contents(resources_to_check, get_domain)
-            results = retrieve(resources_to_check)
+            results = retrieve(resources_to_check, user_agent)
             if self.testsession:
                 serialize_results(self.testsession, results)
 
@@ -291,7 +291,7 @@ class DataFreshness:
 
         if hash_results is None:  # pragma: no cover
             hash_check = list_distribute_contents(hash_check, get_domain)
-            hash_results = retrieve(hash_check)
+            hash_results = retrieve(hash_check, user_agent)
             if self.testsession:
                 serialize_hashresults(self.testsession, hash_results)
 

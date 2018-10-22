@@ -75,12 +75,13 @@ async def fetch(metadata, session):
         return resource_id, url, str(e), None, None, force_hash
 
 
-async def check_urls(urls, loop):
+async def check_urls(urls, loop, user_agent):
     tasks = list()
 
     conn = aiohttp.TCPConnector(limit=100, limit_per_host=1, loop=loop)
     timeout = aiohttp.ClientTimeout(total=60 * 60, sock_connect=30, sock_read=30)
-    async with aiohttp.ClientSession(connector=conn, timeout=timeout, loop=loop) as session:
+    async with aiohttp.ClientSession(connector=conn, timeout=timeout, loop=loop,
+                                     headers={'User-Agent': user_agent}) as session:
         session = RateLimiter(session)
         for metadata in urls:
             task = fetch(metadata, session)
@@ -92,11 +93,11 @@ async def check_urls(urls, loop):
         return responses
 
 
-def retrieve(urls):
+def retrieve(urls, user_agent):
     start_time = time.time()
     loop = uvloop.new_event_loop()
     asyncio.set_event_loop(loop)
-    future = asyncio.ensure_future(check_urls(urls, loop))
+    future = asyncio.ensure_future(check_urls(urls, loop, user_agent))
     results = loop.run_until_complete(future)
     logger.info('Execution time: %s seconds' % (time.time() - start_time))
     loop.run_until_complete(asyncio.sleep(0.250))

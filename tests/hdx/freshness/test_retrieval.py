@@ -16,7 +16,7 @@ class TestRetrieve:
         url3 = 'https://github.com/mcarans/hdx-data-freshness/raw/d1616d76c3b6b8ef5029eb6964b93cde688efd53/tests/fixtures/day0/notfound'
         url4 = 'file://lala'
         urls = [(url1, '1', False), (url2, '2', False), (url3, '3', False), (url4, '4', False), (url1, '5', True), (url2, '6', True)]
-        result = retrieve(urls)
+        result = retrieve(urls, 'test')
         assert result['1'] == (url1, None, None, '35757fc63e863d962dfc8d5f01d9d121', False)
         assert result['2'] == (url2, None, datetime(2004, 9, 1, 13, 24, 52), None, False)
         assert result['3'] == (url3,

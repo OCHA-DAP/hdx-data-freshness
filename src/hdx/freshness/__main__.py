@@ -69,7 +69,7 @@ def main(hdx_key, user_agent, preprefix, hdx_site, db_url, do_touch, save):
     freshness.spread_datasets()
     freshness.add_new_run()
     datasets_to_check, resources_to_check = freshness.process_datasets()
-    results, hash_results = freshness.check_urls(resources_to_check)
+    results, hash_results = freshness.check_urls(resources_to_check, Configuration.read()._remoteckan.user_agent)
     datasets_lastmodified = freshness.process_results(results, hash_results)
     freshness.update_dataset_last_modified(datasets_to_check, datasets_lastmodified)
     freshness.output_counts()
