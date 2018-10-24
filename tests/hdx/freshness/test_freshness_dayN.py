@@ -170,4 +170,4 @@ maintainer=7d7f5f8d-7e3b-483a-8de1-2b122010c1eb, maintainer email=takavarasha@un
         count = dbsession.query(DBOrganization).count()
         assert count == 40
 
-        assert freshness.touch_count == 1
+        assert freshness.touch_count == 2

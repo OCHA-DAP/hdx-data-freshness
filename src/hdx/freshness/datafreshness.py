@@ -344,10 +344,10 @@ class DataFreshness:
                                     what_updated = dbresource.what_updated
                                 else:
                                     what_updated, _ = self.set_last_modified(dbresource, self.now, 'hash')
-                                    # don't touch already fresh datasets
+                                    # don't touch already fresh datasets but always touch live, adhoc and never datasets
                                     dbdataset = self.session.query(DBDataset).filter_by(id=dataset_id,
                                                                                         run_number=self.run_number).one()
-                                    if dbdataset.fresh != 0:
+                                    if dbdataset.fresh != 0 or dbdataset.update_frequency <= 0:
                                         touch = True
                             dbresource.api = False
                         else:
