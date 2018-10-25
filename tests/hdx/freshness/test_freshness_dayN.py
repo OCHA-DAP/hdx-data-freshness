@@ -83,9 +83,9 @@ class TestFreshnessDayN:
         assert output == '''
 *** Resources ***
 * total: 660 *,
-api: 4,
+api: 3,
 error: 14,
-hash: 4,
+hash: 5,
 http header: 1,
 internal-nothing: 45,
 internal-nothing,error: 2,
@@ -96,12 +96,12 @@ same hash: 6
 
 *** Datasets ***
 * total: 103 *,
-0: Fresh, Updated hash: 2,
+0: Fresh, Updated hash: 3,
 0: Fresh, Updated http header: 1,
 0: Fresh, Updated metadata: 3,
 0: Fresh, Updated nothing: 69,
 2: Overdue, Updated nothing: 1,
-3: Delinquent, Updated nothing: 19,
+3: Delinquent, Updated nothing: 18,
 3: Delinquent, Updated nothing,error: 4,
 Freshness Unavailable, Updated nothing: 3,
 Freshness Unavailable, Updated nothing,error: 1
@@ -122,11 +122,11 @@ revision last updated=2017-12-16 15:11:15.202742, http last modified=None, MD5 h
         count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='revision', error=None).count()
         assert count == 0
         count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='hash', error=None).count()
-        assert count == 4
+        assert count == 5
         count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='http header', error=None).count()
         assert count == 1
         count = dbsession.query(DBResource).filter_by(run_number=1, api=True).count()
-        assert count == 4
+        assert count == 3
         count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='adhoc-nothing').filter(DBResource.error.isnot(None)).count()
         assert count == 0
         count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='internal-nothing').filter(
@@ -134,9 +134,9 @@ revision last updated=2017-12-16 15:11:15.202742, http last modified=None, MD5 h
         assert count == 2
         # select what_updated, api from dbresources where run_number=0 and md5_hash is not null and id in (select id from dbresources where run_number=1 and what_updated like '%hash%');
         hash_updated = dbsession.query(DBResource.id).filter_by(run_number=1).filter(DBResource.what_updated.like('%hash%'))
-        assert hash_updated.count() == 5
+        assert hash_updated.count() == 6
         count = dbsession.query(DBResource).filter_by(run_number=0).filter(DBResource.md5_hash.isnot(None)).filter(DBResource.id.in_(hash_updated.as_scalar())).count()
-        assert count == 3
+        assert count == 4
         dbdataset = dbsession.query(DBDataset).first()
         assert str(dbdataset) == '''<Dataset(run number=0, id=a2150ad9-2b87-49f5-a6b2-c85dff366b75, dataset date=09/21/2017, update frequency=1,
 last_modified=2017-12-16 15:11:15.204215what updated=metadata, metadata_modified=2017-12-16 15:11:15.204215,
@@ -151,7 +151,7 @@ Dataset fresh=2'''
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=2, what_updated='nothing', error=False).count()
         assert count == 1
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing', error=False).count()
-        assert count == 19
+        assert count == 18
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing', error=True).count()
         assert count == 4
         count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=None, what_updated='nothing', error=False).count()

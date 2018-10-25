@@ -86,9 +86,10 @@ revision,http header: 13
 *** Datasets ***
 * total: 103 *,
 0: Fresh, Updated metadata: 66,
+0: Fresh, Updated metadata,revision: 1,
 0: Fresh, Updated metadata,revision,http header: 8,
 2: Overdue, Updated metadata: 1,
-3: Delinquent, Updated metadata: 18,
+3: Delinquent, Updated metadata: 17,
 3: Delinquent, Updated metadata,error: 5,
 3: Delinquent, Updated metadata,revision,http header: 1,
 Freshness Unavailable, Updated metadata: 4
@@ -134,6 +135,8 @@ Dataset fresh=2'''
         assert count == 66
         count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata', error=True).count()
         assert count == 0
+        count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata,revision', error=False).count()
+        assert count == 1
         count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata,revision,http header', error=False).count()
         assert count == 8
         count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='metadata,revision,http header', error=True).count()
@@ -145,7 +148,7 @@ Dataset fresh=2'''
         count = dbsession.query(DBDataset).filter_by(fresh=2, what_updated='metadata', error=True).count()
         assert count == 0
         count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='metadata', error=False).count()
-        assert count == 18
+        assert count == 17
         count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='metadata', error=True).count()
         assert count == 5
         count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='metadata,revision,http header').count()
