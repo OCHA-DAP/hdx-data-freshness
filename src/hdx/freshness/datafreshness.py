@@ -349,8 +349,6 @@ class DataFreshness:
                                                                                         run_number=self.run_number).one()
                                     if dbdataset.fresh != 0 or dbdataset.update_frequency <= 0:
                                         touch = True
-                                    else:
-                                        pass
                             dbresource.api = False
                         else:
                             hash_to_set = hash_hash

@@ -2,6 +2,14 @@
 '''
 Unit tests for the freshness class.
 
+Takes base database from fixtures/day0/test_freshness.db
+
+Run data comes from fixtures/dayN/test_serialize.db
+
+When adding new test data, remember that self.now (run date) is 2017-12-19 10:53:28.606889
+
+Set force_hash in dbtestresults and dbtesthashresults if dataset is fresh or you'll get duplicates
+(number of resources won't sum to total)!
 '''
 import os
 import shutil
@@ -80,6 +88,7 @@ class TestFreshnessDayN:
         datasets_lastmodified = freshness.process_results(results, hash_results, resourcecls=resourcecls)
         freshness.update_dataset_last_modified(datasets_to_check, datasets_lastmodified)
         output = freshness.output_counts()
+        # Make sure the sum of the resources = the total resources and sum of the datasets = the total datasets!
         assert output == '''
 *** Resources ***
 * total: 660 *,
