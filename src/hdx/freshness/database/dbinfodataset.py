@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+from hdx.utilities.database import Base
 from sqlalchemy import Boolean
 from sqlalchemy import Column, String
 from sqlalchemy import ForeignKey
 
-from hdx.freshness.database.base import Base
 from hdx.freshness.database.dborganization import DBOrganization
 
 

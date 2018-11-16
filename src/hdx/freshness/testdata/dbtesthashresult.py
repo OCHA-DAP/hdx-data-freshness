@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
+from hdx.utilities.database import Base
 from sqlalchemy import Column, DateTime, Boolean, String
 
-from hdx.freshness.testdata.testbase import TestBase
 
-
-class DBTestHashResult(TestBase):
+class DBTestHashResult(Base):
     id = Column(String, primary_key=True)
     url = Column(String, nullable=False)
     err = Column(String)

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
+from hdx.utilities.database import Base
 from sqlalchemy import Column, Boolean, String
 
-from hdx.freshness.testdata.testbase import TestBase
 
-
-class DBTestDataset(TestBase):
+class DBTestDataset(Base):
     id = Column(String, primary_key=True)
     organization_id = Column(String, nullable=False)
     organization_name = Column(String, nullable=False)

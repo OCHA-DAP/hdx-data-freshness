@@ -47,10 +47,9 @@ def get_readme():
 
 requirements = ['aiodns',
                 'aiohttp',
-                'psycopg2-binary',
                 'tqdm',
                 'uvloop',
-                'hdx-python-api>=3.3.2'
+                'hdx-python-api>=3.4.2'
                 ]
 
 classifiers = [
@@ -70,7 +69,7 @@ setup(
     description='HDX Data Freshness',
     license='MIT',
     url='https://github.com/OCHA-DAP/hdx-data-freshness',
-    version='1.2.8',
+    version='1.2.9',
     author='Michael Rans',
     author_email='rans@email.com',
     keywords=['HDX', 'fresh', 'freshness', 'data freshness'],

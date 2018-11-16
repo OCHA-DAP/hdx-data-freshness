@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
+from hdx.utilities.database import Base
 from sqlalchemy import Column, DateTime
 
-from hdx.freshness.testdata.testbase import TestBase
 
-
-class DBTestDate(TestBase):
+class DBTestDate(Base):
     test_date = Column(DateTime, primary_key=True)
 
     def __repr__(self):

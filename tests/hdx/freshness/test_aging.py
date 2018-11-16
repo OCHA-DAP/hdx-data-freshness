@@ -8,6 +8,7 @@ from datetime import timedelta, datetime
 from os.path import join
 
 import pytest
+from hdx.utilities.database import Database
 
 from hdx.freshness.datafreshness import DataFreshness
 
@@ -20,7 +21,7 @@ class TestAging:
             os.remove(dbpath)
         except FileNotFoundError:
             pass
-        return 'sqlite:///%s' % dbpath
+        return {'driver': 'sqlite', 'database': dbpath}
 
     @pytest.fixture(scope='class')
     def now(self):
@@ -75,7 +76,8 @@ class TestAging:
     ])
     def test_aging(self, configuration, nodatabase, now, datasets,
                    days_last_modified, update_frequency, expected_status):
-        freshness = DataFreshness(db_url=nodatabase, datasets=datasets, now=now)
-        last_modified = now - timedelta(days=days_last_modified)
-        status = freshness.calculate_aging(last_modified, update_frequency)
-        assert status == expected_status
+        with Database(**nodatabase) as session:
+            freshness = DataFreshness(session=session, datasets=datasets, now=now)
+            last_modified = now - timedelta(days=days_last_modified)
+            status = freshness.calculate_aging(last_modified, update_frequency)
+            assert status == expected_status

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
+from hdx.utilities.database import Base
 from sqlalchemy import Column, DateTime
 from sqlalchemy import Integer
-
-from hdx.freshness.database.base import Base
 
 
 class DBRun(Base):

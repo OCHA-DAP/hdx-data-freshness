@@ -10,70 +10,48 @@ Caller script. Designed to call all other functions.
 import argparse
 import logging
 import os
-import time
-from urllib.parse import urlparse
 
-import psycopg2
 from hdx.hdx_configuration import Configuration
+from hdx.utilities.database import Database
+from hdx.utilities.dictandlist import args_to_dict
 from hdx.utilities.easy_logging import setup_logging
 from hdx.utilities.path import script_dir_plus_file
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import NullPool
 
 from hdx.freshness.datafreshness import DataFreshness
-from hdx.freshness.testdata.testbase import TestBase
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
 
-def main(hdx_key, user_agent, preprefix, hdx_site, db_url, do_touch, save):
+def main(hdx_key, user_agent, preprefix, hdx_site, db_url, do_touch, save, db_params):
     project_config_yaml = script_dir_plus_file('project_configuration.yml', main)
     site_url = Configuration.create(hdx_key=hdx_key, hdx_site=hdx_site,
                                     user_agent=user_agent, preprefix=preprefix,
                                     project_config_yaml=project_config_yaml)
     logger.info('--------------------------------------------------')
     logger.info('> HDX Site: %s' % site_url)
-    if db_url:
-        logger.info('> DB URL: %s' % db_url)
-        if 'postgres' in db_url:
-            result = urlparse(db_url)
-            username = result.username
-            password = result.password
-            database = result.path[1:]
-            hostname = result.hostname
-            connecting_string = 'Checking for PostgreSQL...'
-            while True:
-                try:
-                    logger.info(connecting_string)
-                    connection = psycopg2.connect(
-                        database=database,
-                        user=username,
-                        password=password,
-                        host=hostname,
-                        connect_timeout=3
-                    )
-                    connection.close()
-                    logger.info('PostgreSQL is running!')
-                    break
-                except psycopg2.OperationalError:
-                    time.sleep(1)
-    testsession = None
-    if save:
-        engine = create_engine('sqlite:///test_serialize.db', poolclass=NullPool, echo=False)
-        Session = sessionmaker(bind=engine)
-        TestBase.metadata.create_all(engine)
-        testsession = Session()
-    freshness = DataFreshness(db_url=db_url, testsession=testsession, do_touch=do_touch)
-    freshness.spread_datasets()
-    freshness.add_new_run()
-    datasets_to_check, resources_to_check = freshness.process_datasets()
-    results, hash_results = freshness.check_urls(resources_to_check, Configuration.read()._remoteckan.user_agent)
-    datasets_lastmodified = freshness.process_results(results, hash_results)
-    freshness.update_dataset_last_modified(datasets_to_check, datasets_lastmodified)
-    freshness.output_counts()
-    freshness.close()
+    if db_params:
+        params = args_to_dict(db_params)
+    elif db_url:
+        params = Database.get_params_from_sqlalchemy_url(db_url)
+    else:
+        params = {'driver': 'sqlite', 'database': 'freshness.db'}
+    logger.info('> Database parameters: %s' % params)
+    with Database(**params) as session:
+        testsession = None
+        if save:
+            testsession = Database.get_session('sqlite:///test_serialize.db')
+        freshness = DataFreshness(session=session, testsession=testsession, do_touch=do_touch)
+        freshness.spread_datasets()
+        freshness.add_new_run()
+        datasets_to_check, resources_to_check = freshness.process_datasets()
+        results, hash_results = freshness.check_urls(resources_to_check, Configuration.read()._remoteckan.user_agent)
+        datasets_lastmodified = freshness.process_results(results, hash_results)
+        freshness.update_dataset_last_modified(datasets_to_check, datasets_lastmodified)
+        freshness.output_counts()
+        freshness.close()
+        if testsession:
+            testsession.close()
     logger.info('Freshness completed!')
 
 
@@ -84,6 +62,7 @@ if __name__ == '__main__':
     parser.add_argument('-pp', '--preprefix', default=None, help='preprefix')
     parser.add_argument('-hs', '--hdx_site', default=None, help='HDX site to use')
     parser.add_argument('-db', '--db_url', default=None, help='Database connection string')
+    parser.add_argument('-dp', '--db_params', default=None, help='Database connection parameters. Overrides --db_url.')
     parser.add_argument('-dt', '--donttouch', default=False, action='store_true', help="Don't touch datasets")
     parser.add_argument('-s', '--save', default=False, action='store_true', help='Save state for testing')
     args = parser.parse_args()
@@ -106,4 +85,4 @@ if __name__ == '__main__':
         db_url = os.getenv('DB_URL')
     if db_url and '://' not in db_url:
         db_url = 'postgresql://%s' % db_url
-    main(hdx_key, user_agent, preprefix, hdx_site, db_url, not args.donttouch, args.save)
+    main(hdx_key, user_agent, preprefix, hdx_site, db_url, not args.donttouch, args.save, args.db_params)

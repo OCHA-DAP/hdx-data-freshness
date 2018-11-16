@@ -16,12 +16,9 @@ from hdx.data.hdxobject import HDXError
 from hdx.data.resource import Resource
 from hdx.hdx_configuration import Configuration
 from hdx.utilities.dictandlist import dict_of_lists_add, list_distribute_contents
-from sqlalchemy import create_engine, exists, and_
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import exists, and_
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.pool import NullPool
 
-from hdx.freshness.database.base import Base
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.database.dbinfodataset import DBInfoDataset
 from hdx.freshness.database.dborganization import DBOrganization
@@ -34,15 +31,9 @@ logger = logging.getLogger(__name__)
 
 
 class DataFreshness:
-    def __init__(self, db_url=None, testsession=None, datasets=None, now=None, do_touch=False):
+    def __init__(self, session=None, testsession=None, datasets=None, now=None, do_touch=False):
         ''''''
-        if db_url is None:
-            db_url = 'sqlite:///freshness.db'
-        engine = create_engine(db_url, poolclass=NullPool, echo=False)
-        Session = sessionmaker(bind=engine)
-        Base.metadata.create_all(engine)
-        self.session = Session()
-
+        self.session = session
         self.urls_to_check_count = 0
         self.never_update = 0
         self.live_update = 0

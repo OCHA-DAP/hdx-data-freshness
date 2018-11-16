@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
+from hdx.utilities.database import Base
 from sqlalchemy import Column, String
-
-from hdx.freshness.database.base import Base
 
 
 class DBOrganization(Base):

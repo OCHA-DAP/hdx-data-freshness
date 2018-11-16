@@ -9,13 +9,10 @@ import pickle
 from os.path import join
 
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import NullPool
+from hdx.utilities.database import Database
 
 from hdx.freshness.testdata.serialize import serialize_datasets, deserialize_datasets, serialize_now, deserialize_now, \
     serialize_results, deserialize_results, serialize_hashresults, deserialize_hashresults
-from hdx.freshness.testdata.testbase import TestBase
 
 
 class TestSerialize:
@@ -26,10 +23,7 @@ class TestSerialize:
             os.remove(dbpath)
         except FileNotFoundError:
             pass
-        engine = create_engine('sqlite:///%s' % dbpath, poolclass=NullPool, echo=False)
-        Session = sessionmaker(bind=engine)
-        TestBase.metadata.create_all(engine)
-        return Session()
+        return Database.get_session('sqlite:///%s' % dbpath)
 
     @pytest.fixture(scope='function')
     def datasets(self):

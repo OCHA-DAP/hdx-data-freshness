@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
+from hdx.utilities.database import Base
 from sqlalchemy import Column, String
 from sqlalchemy import ForeignKey
 
 from hdx.freshness.testdata.dbtestdataset import DBTestDataset
-from hdx.freshness.testdata.testbase import TestBase
 
 
-class DBTestResource(TestBase):
+class DBTestResource(Base):
     id = Column(String, primary_key=True)
     name = Column(String, nullable=False)
     format = Column(String, nullable=False)
