@@ -430,9 +430,6 @@ class DataFreshness:
         logger.info(output_str)
         return output_str
 
-    def close(self):
-        self.session.close()
-
     @staticmethod
     def set_last_modified(dbobject, modified_date, what_updated):
         if modified_date > dbobject.last_modified:

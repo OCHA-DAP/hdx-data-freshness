@@ -49,7 +49,6 @@ def main(hdx_key, user_agent, preprefix, hdx_site, db_url, db_params, do_touch, 
         datasets_lastmodified = freshness.process_results(results, hash_results)
         freshness.update_dataset_last_modified(datasets_to_check, datasets_lastmodified)
         freshness.output_counts()
-        freshness.close()
         if testsession:
             testsession.close()
     logger.info('Freshness completed!')
