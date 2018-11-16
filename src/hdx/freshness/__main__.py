@@ -23,7 +23,7 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
-def main(hdx_key, user_agent, preprefix, hdx_site, db_url, do_touch, save, db_params):
+def main(hdx_key, user_agent, preprefix, hdx_site, db_url, db_params, do_touch, save):
     project_config_yaml = script_dir_plus_file('project_configuration.yml', main)
     site_url = Configuration.create(hdx_key=hdx_key, hdx_site=hdx_site,
                                     user_agent=user_agent, preprefix=preprefix,
@@ -85,4 +85,4 @@ if __name__ == '__main__':
         db_url = os.getenv('DB_URL')
     if db_url and '://' not in db_url:
         db_url = 'postgresql://%s' % db_url
-    main(hdx_key, user_agent, preprefix, hdx_site, db_url, not args.donttouch, args.save, args.db_params)
+    main(hdx_key, user_agent, preprefix, hdx_site, db_url, args.db_params, not args.donttouch, args.save)
