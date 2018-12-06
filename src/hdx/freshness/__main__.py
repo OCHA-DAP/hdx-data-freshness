@@ -9,7 +9,7 @@ Caller script. Designed to call all other functions.
 '''
 import argparse
 import logging
-import os
+from os import getenv
 
 from hdx.hdx_configuration import Configuration
 from hdx.utilities.database import Database
@@ -67,21 +67,21 @@ if __name__ == '__main__':
     args = parser.parse_args()
     hdx_key = args.hdx_key
     if hdx_key is None:
-        hdx_key = os.getenv('HDX_KEY')
+        hdx_key = getenv('HDX_KEY')
     user_agent = args.user_agent
     if user_agent is None:
-        user_agent = os.getenv('USER_AGENT')
+        user_agent = getenv('USER_AGENT')
         if user_agent is None:
             user_agent = 'freshness'
     preprefix = args.preprefix
     if preprefix is None:
-        preprefix = os.getenv('PREPREFIX')
+        preprefix = getenv('PREPREFIX')
     hdx_site = args.hdx_site
     if hdx_site is None:
-        hdx_site = os.getenv('HDX_SITE', 'prod')
+        hdx_site = getenv('HDX_SITE', 'prod')
     db_url = args.db_url
     if db_url is None:
-        db_url = os.getenv('DB_URL')
+        db_url = getenv('DB_URL')
     if db_url and '://' not in db_url:
         db_url = 'postgresql://%s' % db_url
     main(hdx_key, user_agent, preprefix, hdx_site, db_url, args.db_params, not args.donttouch, args.save)
