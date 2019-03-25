@@ -30,6 +30,8 @@ def serialize_datasets(session, datasets):
                                       dataset_author_email=dataset['author_email'],
                                       dataset_date=dataset.get('dataset_date'),
                                       metadata_modified=dataset['metadata_modified'],
+                                      review_date=dataset['review_date'],
+                                      last_modified=dataset['last_modified'],
                                       update_frequency=dataset.get('data_update_frequency'),
                                       is_requestdata_type=dataset.get('is_requestdata_type'),
                                       dataset_location=','.join([x['name'] for x in dataset['groups']]))
@@ -37,7 +39,8 @@ def serialize_datasets(session, datasets):
         for resource in dataset.get_resources():
             dbtestresource = DBTestResource(id=resource['id'], name=resource['name'], dataset_id=dataset_id,
                                             format=resource['format'], url=resource['url'],
-                                            revision_last_updated=resource['revision_last_updated'])
+                                            revision_last_updated=resource['revision_last_updated'],
+                                            last_modified=resource['last_modified'])
             session.add(dbtestresource)
     session.commit()
 
@@ -87,6 +90,8 @@ def deserialize_datasets(session):
             'author_email': dbtestdataset.dataset_author_email,
             'dataset_date': dbtestdataset.dataset_date,
             'metadata_modified': dbtestdataset.metadata_modified,
+            'review_date': dbtestdataset.review_date,
+            'last_modified': dbtestdataset.last_modified,
             'data_update_frequency': dbtestdataset.update_frequency,
             'groups': [{'name': x} for x in dbtestdataset.dataset_location.split(',')]
         })
@@ -99,7 +104,8 @@ def deserialize_datasets(session):
             'name': dbtestresource.name,
             'format': dbtestresource.format,
             'url': dbtestresource.url,
-            'revision_last_updated': dbtestresource.revision_last_updated
+            'revision_last_updated': dbtestresource.revision_last_updated,
+            'last_modified': dbtestresource.last_modified
         }
         dataset.get_resources().append(resource)
     return datasets.values()

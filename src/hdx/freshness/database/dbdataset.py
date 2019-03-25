@@ -14,6 +14,7 @@ class DBDataset(Base):
     dataset_date = Column(String)
     update_frequency = Column(Integer)
     metadata_modified = Column(DateTime, nullable=False)
+    review_date = Column(DateTime)
     last_modified = Column(DateTime, nullable=False)
     what_updated = Column(String, nullable=False)
     last_resource_updated = Column(String, nullable=False)
@@ -23,8 +24,8 @@ class DBDataset(Base):
 
     def __repr__(self):
         output = '<Dataset(run number=%d, id=%s, ' % (self.run_number, self.id)
-        output += 'dataset date=%s, ' % str(self.dataset_date)
-        output += 'update frequency=%s,\nlast_modified=%s' % (self.update_frequency, str(self.last_modified))
+        output += 'dataset date=%s, update frequency=%s,\n' % (str(self.dataset_date), self.update_frequency)
+        output += 'review_date=%s, last_modified=%s, ' % (str(self.review_date), str(self.last_modified))
         output += 'what updated=%s, metadata_modified=%s,\n' % (str(self.what_updated), str(self.metadata_modified))
         output += 'Resource %s: last modified=%s,\n' % (str(self.last_resource_updated), str(self.last_resource_modified))
         output += 'Dataset fresh=%s' % str(self.fresh)

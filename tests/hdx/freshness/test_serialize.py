@@ -47,6 +47,8 @@ class TestSerialize:
             assert result['author_email'] == dataset['author_email']
             assert result['dataset_date'] == dataset.get('dataset_date')
             assert result['metadata_modified'] == dataset['metadata_modified']
+            assert result['review_date'] == dataset['review_date']
+            assert result['last_modified'] == dataset['last_modified']
             assert result['data_update_frequency'] == dataset.get('data_update_frequency')
             assert result['is_requestdata_type'] == dataset.get('is_requestdata_type')
             assert result['groups'] == [{'name': x['name']} for x in dataset.get('groups')]
@@ -58,6 +60,7 @@ class TestSerialize:
                 assert result_resource['format'] == resource['format']
                 assert result_resource['url'] == resource['url']
                 assert result_resource['revision_last_updated'] == resource['revision_last_updated']
+                assert result_resource['last_modified'] == resource['last_modified']
 
     def test_serialize_now(self, session):
         now = datetime.datetime.utcnow()

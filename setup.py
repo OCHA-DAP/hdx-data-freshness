@@ -49,7 +49,7 @@ requirements = ['aiodns',
                 'aiohttp',
                 'tqdm',
                 'uvloop',
-                'hdx-python-api>=3.5.1'
+                'hdx-python-api>=3.5.6'
                 ]
 
 classifiers = [

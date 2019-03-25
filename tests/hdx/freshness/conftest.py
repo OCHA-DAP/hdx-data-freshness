@@ -25,7 +25,7 @@ def resourcecls():
             return MyResource()
 
         @staticmethod
-        def touch():
+        def update_in_hdx(operation, batch_mode, skip_validation):
             pass
 
     return MyResource
