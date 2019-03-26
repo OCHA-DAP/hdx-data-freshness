@@ -260,6 +260,7 @@ class DataFreshness:
                     if dbresource.last_modified > previous_dbresource.last_modified:
                         dbresource.what_updated = 'filestore'
                     else:
+                        dbresource.last_modified = previous_dbresource.last_modified
                         dbresource.what_updated = 'nothing'
                     dbresource.md5_hash = previous_dbresource.md5_hash
                     dbresource.when_hashed = previous_dbresource.when_hashed

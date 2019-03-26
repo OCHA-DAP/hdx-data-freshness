@@ -91,18 +91,18 @@ api: 3,
 error: 14,
 hash: 5,
 http header: 1,
+internal-filestore: 9,
 internal-nothing: 45,
 internal-nothing,error: 2,
-internal-revision: 9,
 nothing: 574,
 repeat hash: 1,
 same hash: 6
 
 *** Datasets ***
 * total: 103 *,
+0: Fresh, Updated filestore: 3,
 0: Fresh, Updated hash: 3,
 0: Fresh, Updated http header: 1,
-0: Fresh, Updated metadata: 3,
 0: Fresh, Updated nothing: 69,
 2: Overdue, Updated nothing: 1,
 3: Delinquent, Updated nothing: 18,
@@ -119,11 +119,11 @@ Freshness Unavailable, Updated nothing,error: 1
             dbresource = dbsession.query(DBResource).first()
             assert str(dbresource) == '''<Resource(run number=0, id=b21d6004-06b5-41e5-8e3e-0f28140bff64, name=Topline Numbers.csv, dataset id=a2150ad9-2b87-49f5-a6b2-c85dff366b75,
 url=https://docs.google.com/spreadsheets/d/e/2PACX-1vRjFRZGLB8IMp0anSGR1tcGxwJgkyx0bTN9PsinqtaLWKHBEfz77LkinXeVqIE_TsGVt-xM6DQzXpkJ/pub?gid=0&single=true&output=csv,
-error=None, last modified=2017-12-16 15:11:15.202742, what updated=revision,hash,
+error=None, last modified=2017-12-16 15:11:15.202742, what updated=hash,
 revision last updated=2017-12-16 15:11:15.202742, http last modified=None, MD5 hash=None, when hashed=2017-12-18 16:03:33.208327, when checked=2017-12-18 16:03:33.208327, api=False)>'''
             count = dbsession.query(DBResource).filter(DBResource.url.like('%data.humdata.org%')).count()
             assert count == 112
-            count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='revision', error=None).count()
+            count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='filestore', error=None).count()
             assert count == 0
             count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='hash', error=None).count()
             assert count == 5
@@ -146,10 +146,10 @@ revision last updated=2017-12-16 15:11:15.202742, http last modified=None, MD5 h
             assert count == 4
             dbdataset = dbsession.query(DBDataset).first()
             assert str(dbdataset) == '''<Dataset(run number=0, id=a2150ad9-2b87-49f5-a6b2-c85dff366b75, dataset date=09/21/2017, update frequency=1,
-last_modified=2017-12-16 15:11:15.204215what updated=metadata, metadata_modified=2017-12-16 15:11:15.204215,
+review_date=None, last_modified=2017-12-16 15:11:15.204215, what updated=firstrun, metadata_modified=2017-12-16 15:11:15.204215,
 Resource b21d6004-06b5-41e5-8e3e-0f28140bff64: last modified=2017-12-16 15:11:15.202742,
 Dataset fresh=2'''
-            count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='metadata').count()
+            count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='filestore').count()
             assert count == 3
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='nothing',
                                                          error=False).count()
