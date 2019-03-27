@@ -91,8 +91,8 @@ api: 3,
 error: 14,
 hash: 5,
 http header: 1,
-internal-filestore: 9,
-internal-nothing: 45,
+internal-filestore: 10,
+internal-nothing: 44,
 internal-nothing,error: 2,
 nothing: 574,
 repeat hash: 1,
@@ -101,9 +101,10 @@ same hash: 6
 *** Datasets ***
 * total: 103 *,
 0: Fresh, Updated filestore: 4,
+0: Fresh, Updated filestore,review date: 1,
 0: Fresh, Updated hash: 3,
 0: Fresh, Updated http header: 1,
-0: Fresh, Updated nothing: 69,
+0: Fresh, Updated nothing: 68,
 0: Fresh, Updated review date: 1,
 2: Overdue, Updated nothing: 1,
 3: Delinquent, Updated nothing: 16,
@@ -154,7 +155,7 @@ Dataset fresh=2'''
             assert count == 4
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='nothing',
                                                          error=False).count()
-            assert count == 69
+            assert count == 68
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='review date').count()
             assert count == 1
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=1, what_updated='nothing').count()
