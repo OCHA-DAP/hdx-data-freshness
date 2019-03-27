@@ -91,7 +91,8 @@ api: 3,
 error: 14,
 hash: 5,
 http header: 1,
-internal-filestore: 10,
+internal-filestore: 9,
+internal-filestore,http header,hash: 1,
 internal-nothing: 44,
 internal-nothing,error: 2,
 nothing: 574,
@@ -101,7 +102,7 @@ same hash: 6
 *** Datasets ***
 * total: 103 *,
 0: Fresh, Updated filestore: 4,
-0: Fresh, Updated filestore,review date: 1,
+0: Fresh, Updated filestore,review date,internal-filestore,http header,hash: 1,
 0: Fresh, Updated hash: 3,
 0: Fresh, Updated http header: 1,
 0: Fresh, Updated nothing: 68,
@@ -142,7 +143,7 @@ revision last updated=2017-12-16 15:11:15.202742, http last modified=None, MD5 h
             # select what_updated, api from dbresources where run_number=0 and md5_hash is not null and id in (select id from dbresources where run_number=1 and what_updated like '%hash%');
             hash_updated = dbsession.query(DBResource.id).filter_by(run_number=1).filter(
                 DBResource.what_updated.like('%hash%'))
-            assert hash_updated.count() == 6
+            assert hash_updated.count() == 7
             count = dbsession.query(DBResource).filter_by(run_number=0).filter(DBResource.md5_hash.isnot(None)).filter(
                 DBResource.id.in_(hash_updated.as_scalar())).count()
             assert count == 4
