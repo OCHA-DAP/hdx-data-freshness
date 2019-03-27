@@ -180,25 +180,22 @@ class DataFreshness:
                                   what_updated='firstrun', last_resource_updated=last_resource_updated,
                                   last_resource_modified=last_resource_modified, fresh=fresh, error=False)
             if previous_dbdataset is not None:
-                if previous_dbdataset.review_date is not None:
+                dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'nothing')
+                previous_latest_date = previous_dbdataset.last_modified
+                if last_modified > previous_latest_date:  # filestore update would cause this
+                    dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'filestore')
+                else:
+                    dbdataset.last_modified = previous_latest_date
+                if previous_dbdataset.review_date is None:
+                    if review_date is not None:
+                        dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'review date')
+                else:
                     if previous_dbdataset.review_date > previous_dbdataset.last_modified:
                         previous_latest_date = previous_dbdataset.review_date
-                    else:
-                        previous_latest_date = previous_dbdataset.last_modified
                     if review_date > previous_dbdataset.review_date:  # some clicked the review button
                         dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'review date')
                     else:
                         dbdataset.review_date = previous_dbdataset.review_date
-                        dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'nothing')
-                else:
-                    previous_latest_date = previous_dbdataset.last_modified
-                    dbdataset.review_date = previous_dbdataset.review_date
-                    dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'nothing')
-                if last_modified > previous_dbdataset.last_modified:  # filestore update would cause this
-                    dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'filestore')
-                else:
-                    dbdataset.last_modified = previous_dbdataset.last_modified
-                    dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'nothing')
                 if last_resource_modified <= previous_dbdataset.last_resource_modified:
                     # we keep this so that although we don't normally use it,
                     # we retain the ability to run without touching CKAN

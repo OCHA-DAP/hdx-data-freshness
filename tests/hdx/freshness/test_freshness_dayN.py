@@ -100,12 +100,13 @@ same hash: 6
 
 *** Datasets ***
 * total: 103 *,
-0: Fresh, Updated filestore: 3,
+0: Fresh, Updated filestore: 4,
 0: Fresh, Updated hash: 3,
 0: Fresh, Updated http header: 1,
 0: Fresh, Updated nothing: 69,
+0: Fresh, Updated review date: 1,
 2: Overdue, Updated nothing: 1,
-3: Delinquent, Updated nothing: 18,
+3: Delinquent, Updated nothing: 16,
 3: Delinquent, Updated nothing,error: 4,
 Freshness Unavailable, Updated nothing: 3,
 Freshness Unavailable, Updated nothing,error: 1
@@ -150,10 +151,12 @@ review_date=None, last_modified=2017-12-16 15:11:15.204215, what updated=firstru
 Resource b21d6004-06b5-41e5-8e3e-0f28140bff64: last modified=2017-12-16 15:11:15.202742,
 Dataset fresh=2'''
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='filestore').count()
-            assert count == 3
+            assert count == 4
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='nothing',
                                                          error=False).count()
             assert count == 69
+            count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='review date').count()
+            assert count == 1
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=1, what_updated='nothing').count()
             assert count == 0
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=2, what_updated='nothing',
@@ -161,7 +164,7 @@ Dataset fresh=2'''
             assert count == 1
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing',
                                                          error=False).count()
-            assert count == 18
+            assert count == 16
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing',
                                                          error=True).count()
             assert count == 4
