@@ -94,7 +94,8 @@ class DataFreshness:
         resources_to_check = list()
         datasets_to_check = dict()
         for dataset in self.datasets:
-            if dataset.is_requestable():
+            resources = dataset.get_resources()
+            if len(resources) == 0:  # ignore requestable and other datasets that have no resources
                 continue
             dataset_id = dataset['id']
             dict_of_lists_add(self.dataset_what_updated, 'total', dataset_id)
@@ -139,7 +140,6 @@ class DataFreshness:
                                                                              id=dataset_id).one()
             except NoResultFound:
                 previous_dbdataset = None
-            resources = dataset.get_resources()
             fresh = None
             dataset_resources, last_resource_updated, last_resource_modified = \
                 self.process_resources(dataset_id, previous_dbdataset, resources, forced_hash_ids=forced_hash_ids)
@@ -147,14 +147,14 @@ class DataFreshness:
             metadata_modified = parser.parse(dataset['metadata_modified'], ignoretz=True)
             last_modified = parser.parse(dataset['last_modified'], ignoretz=True)
             review_date = dataset.get('review_date')
-            if review_date is not None:
+            if review_date is None:
+                latest_date = last_modified
+            else:
                 review_date = parser.parse(review_date, ignoretz=True)
                 if review_date > last_modified:
                     latest_date = review_date
                 else:
                     latest_date = last_modified
-            else:
-                latest_date = last_modified
             update_frequency = dataset.get('data_update_frequency')
             if update_frequency is not None:
                 update_frequency = int(update_frequency)
@@ -192,7 +192,7 @@ class DataFreshness:
                 else:
                     if previous_dbdataset.review_date > previous_dbdataset.last_modified:
                         previous_latest_date = previous_dbdataset.review_date
-                    if review_date > previous_dbdataset.review_date:  # some clicked the review button
+                    if review_date > previous_dbdataset.review_date:  # someone clicked the review button
                         dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'review date')
                     else:
                         dbdataset.review_date = previous_dbdataset.review_date

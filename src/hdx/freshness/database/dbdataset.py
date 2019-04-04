@@ -15,7 +15,8 @@ class DBDataset(Base):
     update_frequency = Column(Integer)
     metadata_modified = Column(DateTime, nullable=False)
     review_date = Column(DateTime)
-    last_modified = Column(DateTime, nullable=False)
+    last_modified = Column(DateTime, nullable=False)  # this field and above are CKAN fields
+    latest_of_modifieds = Column(DateTime)
     what_updated = Column(String, nullable=False)
     last_resource_updated = Column(String, nullable=False)
     last_resource_modified = Column(DateTime, nullable=False)
@@ -25,8 +26,10 @@ class DBDataset(Base):
     def __repr__(self):
         output = '<Dataset(run number=%d, id=%s, ' % (self.run_number, self.id)
         output += 'dataset date=%s, update frequency=%s,\n' % (str(self.dataset_date), self.update_frequency)
-        output += 'review_date=%s, last_modified=%s, ' % (str(self.review_date), str(self.last_modified))
-        output += 'what updated=%s, metadata_modified=%s,\n' % (str(self.what_updated), str(self.metadata_modified))
-        output += 'Resource %s: last modified=%s,\n' % (str(self.last_resource_updated), str(self.last_resource_modified))
-        output += 'Dataset fresh=%s' % str(self.fresh)
+        output += 'review date=%s, last modified=%s, ' % (str(self.review_date), str(self.last_modified))
+        output += 'metadata modified=%s,\n' % str(self.metadata_modified)
+        output += 'latest of modifieds=%s, what updated=%s,\n' % (str(self.latest_of_modifieds), str(self.what_updated))
+        output += 'Resource %s: last modified=%s,\n' % (str(self.last_resource_updated),
+                                                        str(self.last_resource_modified))
+        output += 'Dataset fresh=%s, error=%s' % (str(self.fresh), str(self.error))
         return output
