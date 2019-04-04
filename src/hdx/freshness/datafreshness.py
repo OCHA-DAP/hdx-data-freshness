@@ -360,16 +360,15 @@ class DataFreshness:
                 self.touch_count += 1
                 logger.info('Touch count: %d' % self.touch_count)
                 try:
-                    logger.info('Touching: %s' % resource_id)
+                    logger.info('Updating last modified for resource %s' % resource_id)
                     resource = resourcecls.read_from_hdx(resource_id)
                     if resource:
-                        resource['batch_mode'] = 'KEEP_OLD'
-                        resource['skip_validation'] = True
-                        resource.touch()
+                        resource['last_modified'] = dbresource.last_modified
+                        resource.update_in_hdx(operation='patch', batch_mode='KEEP_OLD', skip_validation=True)
                     else:
-                        logger.error('Touching failed for %s! Resource does not exist.' % resource_id)
+                        logger.error('Last modified update failed for id %s! Resource does not exist.' % resource_id)
                 except HDXError:
-                    logger.exception('Touching failed for %s!' % resource_id)
+                    logger.exception('Last modified update failed for id %s!' % resource_id)
         self.session.commit()
         return datasets_lastmodified
 
