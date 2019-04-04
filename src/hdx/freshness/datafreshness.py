@@ -363,7 +363,7 @@ class DataFreshness:
                     logger.info('Updating last modified for resource %s' % resource_id)
                     resource = resourcecls.read_from_hdx(resource_id)
                     if resource:
-                        resource['last_modified'] = dbresource.last_modified
+                        resource['last_modified'] = dbresource.last_modified.isoformat()
                         resource.update_in_hdx(operation='patch', batch_mode='KEEP_OLD', skip_validation=True)
                     else:
                         logger.error('Last modified update failed for id %s! Resource does not exist.' % resource_id)
