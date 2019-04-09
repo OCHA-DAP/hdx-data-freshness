@@ -148,13 +148,13 @@ class DataFreshness:
             last_modified = parser.parse(dataset['last_modified'], ignoretz=True)
             review_date = dataset.get('review_date')
             if review_date is None:
-                latest_date = last_modified
+                latest_of_modifieds = last_modified
             else:
                 review_date = parser.parse(review_date, ignoretz=True)
                 if review_date > last_modified:
-                    latest_date = review_date
+                    latest_of_modifieds = review_date
                 else:
-                    latest_date = last_modified
+                    latest_of_modifieds = last_modified
             update_frequency = dataset.get('data_update_frequency')
             if update_frequency is not None:
                 update_frequency = int(update_frequency)
@@ -168,7 +168,7 @@ class DataFreshness:
                     fresh = 0
                     self.adhoc_update += 1
                 else:
-                    fresh = self.calculate_aging(latest_date, update_frequency)
+                    fresh = self.calculate_aging(latest_of_modifieds, update_frequency)
             if len(resources) == 0:
                 if last_resource_updated is None:
                     last_resource_updated = 'NO RESOURCES'
@@ -177,21 +177,19 @@ class DataFreshness:
                                   dataset_date=dataset_date, update_frequency=update_frequency,
                                   metadata_modified=metadata_modified,
                                   review_date=review_date, last_modified=last_modified,
-                                  what_updated='firstrun', last_resource_updated=last_resource_updated,
+                                  latest_of_modifieds=latest_of_modifieds, what_updated='firstrun',
+                                  last_resource_updated=last_resource_updated,
                                   last_resource_modified=last_resource_modified, fresh=fresh, error=False)
             if previous_dbdataset is not None:
                 dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'nothing')
-                previous_latest_date = previous_dbdataset.last_modified
-                if last_modified > previous_latest_date:  # filestore update would cause this
+                if last_modified > previous_dbdataset.last_modified:  # filestore update would cause this
                     dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'filestore')
                 else:
-                    dbdataset.last_modified = previous_latest_date
+                    dbdataset.last_modified = previous_dbdataset.last_modified
                 if previous_dbdataset.review_date is None:
                     if review_date is not None:
                         dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'review date')
                 else:
-                    if previous_dbdataset.review_date > previous_dbdataset.last_modified:
-                        previous_latest_date = previous_dbdataset.review_date
                     if review_date > previous_dbdataset.review_date:  # someone clicked the review button
                         dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'review date')
                     else:
@@ -201,9 +199,10 @@ class DataFreshness:
                     # we retain the ability to run without touching CKAN
                     dbdataset.last_resource_updated = previous_dbdataset.last_resource_updated
                     dbdataset.last_resource_modified = previous_dbdataset.last_resource_modified
-                if latest_date < previous_latest_date:
+                if latest_of_modifieds < previous_dbdataset.latest_of_modifieds:
+                    dbdataset.latest_of_modifieds = previous_dbdataset.latest_of_modifieds
                     if update_frequency is not None and update_frequency > 0:
-                        fresh = self.calculate_aging(previous_latest_date, update_frequency)
+                        fresh = self.calculate_aging(previous_dbdataset.latest_of_modifieds, update_frequency)
                         dbdataset.fresh = fresh
 
             self.session.add(dbdataset)
@@ -248,17 +247,20 @@ class DataFreshness:
                 last_resource_modified = last_modified
             dbresource = DBResource(run_number=self.run_number, id=resource_id, name=name,
                                     dataset_id=dataset_id, url=url, last_modified=last_modified,
-                                    revision_last_updated=revision_last_updated, what_updated='firstrun')
+                                    revision_last_updated=revision_last_updated, latest_of_modifieds=last_modified,
+                                    what_updated='firstrun')
             if previous_dbdataset is not None:
                 try:
                     previous_dbresource = self.session.query(DBResource).filter_by(id=resource_id,
                                                                                    run_number=
                                                                                    previous_dbdataset.run_number).one()
-                    if dbresource.last_modified > previous_dbresource.last_modified:
+                    if last_modified > previous_dbresource.last_modified:
                         dbresource.what_updated = 'filestore'
                     else:
                         dbresource.last_modified = previous_dbresource.last_modified
                         dbresource.what_updated = 'nothing'
+                    if last_modified <= previous_dbresource.latest_of_modifieds:
+                        dbresource.latest_of_modifieds = previous_dbresource.latest_of_modifieds
                     dbresource.md5_hash = previous_dbresource.md5_hash
                     dbresource.when_hashed = previous_dbresource.when_hashed
                     dbresource.when_checked = previous_dbresource.when_checked
@@ -320,18 +322,18 @@ class DataFreshness:
         return results, hash_results
 
     def process_results(self, results, hash_results, resourcecls=Resource):
-        datasets_lastmodified = dict()
+        datasets_latest_of_modifieds = dict()
         for resource_id in sorted(results):
             url, err, http_last_modified, hash, force_hash = results[resource_id]
             dbresource = self.session.query(DBResource).filter_by(id=resource_id,
                                                                   run_number=self.run_number).one()
             dataset_id = dbresource.dataset_id
-            datasetinfo = datasets_lastmodified.get(dataset_id, dict())
+            datasetinfo = datasets_latest_of_modifieds.get(dataset_id, dict())
             what_updated = dbresource.what_updated
             update_last_modified = False
             if http_last_modified:
                 if dbresource.http_last_modified is None or http_last_modified > dbresource.http_last_modified:
-                    what_updated, newtouch = self.set_last_modified(dbresource, http_last_modified, 'http header')
+                    what_updated, newtouch = self.set_latest_of_modifieds(dbresource, http_last_modified, 'http header')
                     if newtouch and dbresource.http_last_modified is not None:
                         update_last_modified = True
                     dbresource.http_last_modified = http_last_modified
@@ -345,7 +347,7 @@ class DataFreshness:
                     hash_url, hash_err, hash_http_last_modified, hash_hash, force_hash = hash_results[resource_id]
                     if hash_http_last_modified:
                         if dbresource.http_last_modified is None or hash_http_last_modified > dbresource.http_last_modified:
-                            what_updated, newtouch = self.set_last_modified(dbresource, hash_http_last_modified,
+                            what_updated, newtouch = self.set_latest_of_modifieds(dbresource, hash_http_last_modified,
                                                                             'http header')
                             if newtouch and dbresource.http_last_modified is not None:
                                 update_last_modified = True
@@ -365,7 +367,7 @@ class DataFreshness:
                                     dbresource.what_updated = self.add_what_updated(what_updated, 'repeat hash')
                                     what_updated = dbresource.what_updated
                                 else:
-                                    what_updated, _ = self.set_last_modified(dbresource, self.now, 'hash')
+                                    what_updated, _ = self.set_latest_of_modifieds(dbresource, self.now, 'hash')
                                     # don't touch already fresh datasets but always touch live, adhoc and never datasets
                                     dbdataset = self.session.query(DBDataset).filter_by(id=dataset_id,
                                                                                         run_number=self.run_number).one()
@@ -384,8 +386,8 @@ class DataFreshness:
                 dbresource.when_checked = self.now
                 what_updated = self.add_what_updated(what_updated, 'error')
                 dbresource.error = err
-            datasetinfo[resource_id] = (dbresource.error, dbresource.last_modified, dbresource.what_updated)
-            datasets_lastmodified[dataset_id] = datasetinfo
+            datasetinfo[resource_id] = (dbresource.error, dbresource.latest_of_modifieds, dbresource.what_updated)
+            datasets_latest_of_modifieds[dataset_id] = datasetinfo
             dict_of_lists_add(self.resource_what_updated, what_updated, resource_id)
             if update_last_modified and self.do_touch:
                 self.resource_last_modified_count += 1
@@ -394,21 +396,21 @@ class DataFreshness:
                     logger.info('Updating last modified for resource %s' % resource_id)
                     resource = resourcecls.read_from_hdx(resource_id)
                     if resource:
-                        resource['last_modified'] = dbresource.last_modified.isoformat()
+                        resource['last_modified'] = dbresource.latest_of_modifieds.isoformat()
                         resource.update_in_hdx(operation='patch', batch_mode='KEEP_OLD', skip_validation=True)
                     else:
                         logger.error('Last modified update failed for id %s! Resource does not exist.' % resource_id)
                 except HDXError:
                     logger.exception('Last modified update failed for id %s!' % resource_id)
         self.session.commit()
-        return datasets_lastmodified
+        return datasets_latest_of_modifieds
 
-    def update_dataset_last_modified(self, datasets_to_check, datasets_lastmodified):
-        for dataset_id in datasets_lastmodified:
+    def update_dataset_latest_of_modifieds(self, datasets_to_check, datasets_latest_of_modifieds):
+        for dataset_id in datasets_latest_of_modifieds:
             dbdataset = self.session.query(DBDataset).filter_by(id=dataset_id,
                                                                 run_number=self.run_number).one()
-            dataset = datasets_lastmodified[dataset_id]
-            dataset_last_modified = dbdataset.last_modified
+            dataset = datasets_latest_of_modifieds[dataset_id]
+            dataset_latest_of_modifieds = dbdataset.latest_of_modifieds
             dataset_what_updated = dbdataset.what_updated
             last_resource_modified = dbdataset.last_resource_modified
             last_resource_updated = dbdataset.last_resource_updated
@@ -421,15 +423,15 @@ class DataFreshness:
                     if new_last_resource_modified > last_resource_modified:
                         last_resource_updated = resource_id
                         last_resource_modified = new_last_resource_modified
-                    if new_last_resource_modified > dataset_last_modified:
-                        dataset_last_modified = new_last_resource_modified
+                    if new_last_resource_modified > dataset_latest_of_modifieds:
+                        dataset_latest_of_modifieds = new_last_resource_modified
                         dataset_what_updated = new_last_resource_what_updated
             dbdataset.last_resource_updated = last_resource_updated
             dbdataset.last_resource_modified = last_resource_modified
-            self.set_last_modified(dbdataset, dataset_last_modified, dataset_what_updated)
+            self.set_latest_of_modifieds(dbdataset, dataset_latest_of_modifieds, dataset_what_updated)
             update_frequency = dbdataset.update_frequency
             if update_frequency is not None and update_frequency > 0:
-                dbdataset.fresh = self.calculate_aging(dbdataset.last_modified, update_frequency)
+                dbdataset.fresh = self.calculate_aging(dbdataset.latest_of_modifieds, update_frequency)
             dbdataset.error = all_errors
             status = '%s, Updated %s' % (self.aging_statuses[dbdataset.fresh], dbdataset.what_updated)
             if all_errors:
@@ -437,7 +439,7 @@ class DataFreshness:
             dict_of_lists_add(self.dataset_what_updated, status, dataset_id)
         self.session.commit()
         for dataset_id in datasets_to_check:
-            if dataset_id in datasets_lastmodified:
+            if dataset_id in datasets_latest_of_modifieds:
                 continue
             dict_of_lists_add(self.dataset_what_updated, datasets_to_check[dataset_id], dataset_id)
 
@@ -461,9 +463,9 @@ class DataFreshness:
         return output_str
 
     @staticmethod
-    def set_last_modified(dbobject, modified_date, what_updated):
-        if modified_date > dbobject.last_modified:
-            dbobject.last_modified = modified_date
+    def set_latest_of_modifieds(dbobject, modified_date, what_updated):
+        if modified_date > dbobject.latest_of_modifieds:
+            dbobject.latest_of_modifieds = modified_date
             dbobject.what_updated = DataFreshness.add_what_updated(dbobject.what_updated, what_updated)
             update = True
         else:

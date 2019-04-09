@@ -13,13 +13,13 @@ class DBDataset(Base):
     id = Column(String, ForeignKey(DBInfoDataset.id), primary_key=True)
     dataset_date = Column(String)
     update_frequency = Column(Integer)
-    metadata_modified = Column(DateTime, nullable=False)
     review_date = Column(DateTime)
     last_modified = Column(DateTime, nullable=False)  # this field and above are CKAN fields
-    latest_of_modifieds = Column(DateTime)
+    metadata_modified = Column(DateTime, nullable=False)
+    latest_of_modifieds = Column(DateTime, nullable=False)
     what_updated = Column(String, nullable=False)
-    last_resource_updated = Column(String, nullable=False)
-    last_resource_modified = Column(DateTime, nullable=False)
+    last_resource_updated = Column(String, nullable=False)  # an id
+    last_resource_modified = Column(DateTime, nullable=False)  # a date
     fresh = Column(Integer)
     error = Column(Boolean, nullable=False)
 

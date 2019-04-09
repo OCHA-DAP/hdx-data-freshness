@@ -17,7 +17,7 @@ class DBResource(Base):
     url = Column(String, nullable=False)
     last_modified = Column(DateTime, nullable=False)
     revision_last_updated = Column(DateTime, default=None)  # this field and above are CKAN fields
-    latest_of_modifieds = Column(DateTime)
+    latest_of_modifieds = Column(DateTime, nullable=False)
     what_updated = Column(String, nullable=False)
     http_last_modified = Column(DateTime, default=None)
     md5_hash = Column(String, default=None)

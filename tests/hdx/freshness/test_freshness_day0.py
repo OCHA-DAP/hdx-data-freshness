@@ -66,7 +66,7 @@ class TestFreshnessDay0:
             results, hash_results = freshness.check_urls(resources_to_check, 'test', results=results,
                                                          hash_results=hash_results)
             datasets_lastmodified = freshness.process_results(results, hash_results, resourcecls=resourcecls)
-            freshness.update_dataset_last_modified(datasets_to_check, datasets_lastmodified)
+            freshness.update_dataset_latest_of_modifieds(datasets_to_check, datasets_lastmodified)
             output = freshness.output_counts()
             assert output == '''
 *** Resources ***
@@ -98,8 +98,11 @@ Freshness Unavailable, Updated firstrun: 4
             dbresource = dbsession.query(DBResource).first()
             assert str(dbresource) == '''<Resource(run number=0, id=b21d6004-06b5-41e5-8e3e-0f28140bff64, name=Topline Numbers.csv, dataset id=a2150ad9-2b87-49f5-a6b2-c85dff366b75,
 url=https://docs.google.com/spreadsheets/d/e/2PACX-1vRjFRZGLB8IMp0anSGR1tcGxwJgkyx0bTN9PsinqtaLWKHBEfz77LkinXeVqIE_TsGVt-xM6DQzXpkJ/pub?gid=0&single=true&output=csv,
-error=None, last modified=2017-12-16 15:11:15.202742, what updated=hash,
-revision last updated=2017-12-16 15:11:15.202742, http last modified=None, MD5 hash=None, when hashed=2017-12-18 16:03:33.208327, when checked=2017-12-18 16:03:33.208327, api=False)>'''
+last modified=2017-12-16 15:11:15.202742, revision last updated=2017-12-16 15:11:15.202742,
+latest of modifieds=2017-12-16 15:11:15.202742, what updated=hash,
+http last modified=None,
+MD5 hash=None, when hashed=2017-12-18 16:03:33.208327, when checked=2017-12-18 16:03:33.208327,
+api=False, error=None)>'''
             count = dbsession.query(DBResource).filter(DBResource.url.like('%data.humdata.org%')).count()
             assert count == 56
             count = dbsession.query(DBResource).filter_by(what_updated='internal-firstrun', error=None,
@@ -128,9 +131,10 @@ revision last updated=2017-12-16 15:11:15.202742, http last modified=None, MD5 h
             assert count == 0
             dbdataset = dbsession.query(DBDataset).first()
             assert str(dbdataset) == '''<Dataset(run number=0, id=a2150ad9-2b87-49f5-a6b2-c85dff366b75, dataset date=09/21/2017, update frequency=1,
-review_date=None, last_modified=2017-12-16 15:11:15.204215, what updated=firstrun, metadata_modified=2017-12-16 15:11:15.204215,
+review date=None, last modified=2017-12-16 15:11:15.204215, metadata modified=2017-12-16 15:11:15.204215,
+latest of modifieds=2017-12-16 15:11:15.204215, what updated=firstrun,
 Resource b21d6004-06b5-41e5-8e3e-0f28140bff64: last modified=2017-12-16 15:11:15.202742,
-Dataset fresh=2'''
+Dataset fresh=2, error=False'''
             count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='firstrun', error=False).count()
             assert count == 67
             count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='firstrun', error=True).count()
