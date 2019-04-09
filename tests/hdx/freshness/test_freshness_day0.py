@@ -82,8 +82,9 @@ internal-firstrun: 56
 * total: 103 *,
 0: Fresh, Updated firstrun: 67,
 0: Fresh, Updated http header: 8,
+1: Due, Updated firstrun: 1,
 2: Overdue, Updated firstrun: 1,
-3: Delinquent, Updated firstrun: 17,
+3: Delinquent, Updated firstrun: 16,
 3: Delinquent, Updated firstrun,error: 5,
 3: Delinquent, Updated http header: 1,
 Freshness Unavailable, Updated firstrun: 4
@@ -146,13 +147,13 @@ Dataset fresh=2, error=False'''
                                                          error=True).count()
             assert count == 0
             count = dbsession.query(DBDataset).filter_by(fresh=1, what_updated='firstrun').count()
-            assert count == 0
+            assert count == 1
             count = dbsession.query(DBDataset).filter_by(fresh=2, what_updated='firstrun', error=False).count()
             assert count == 1
             count = dbsession.query(DBDataset).filter_by(fresh=2, what_updated='firstrun', error=True).count()
             assert count == 0
             count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='firstrun', error=False).count()
-            assert count == 17
+            assert count == 16
             count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='firstrun', error=True).count()
             assert count == 5
             count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='http header').count()
