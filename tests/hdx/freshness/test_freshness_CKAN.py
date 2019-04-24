@@ -24,7 +24,7 @@ class TestFreshnessCKAN:
     def configuration(self):
         project_config_yaml = join('src', 'hdx', 'freshness', 'project_configuration.yml')
         hdx_key = os.getenv('HDX_KEY')
-        Configuration._create(hdx_site='test', user_agent='test', hdx_key=hdx_key,
+        Configuration._create(hdx_site='feature', user_agent='test', hdx_key=hdx_key,
                               project_config_yaml=project_config_yaml)
 
     @pytest.fixture(scope='function')
@@ -84,7 +84,7 @@ class TestFreshnessCKAN:
         changing_url2 = '%s/export?format=csv' % changing_gsheet2.url
 
         datasets = list()
-        for i in range(10):
+        for i in range(5):
             dataset = Dataset({
                 'name': 'freshness_test_%d' % i,
                 'title': 'freshness test %d' % i
@@ -104,9 +104,9 @@ class TestFreshnessCKAN:
                 'format': 'csv',
                 'url': unchanging_url
             }
-            if i == 2:
+            if i == 1:
                 resource['url'] = changing_url1
-            elif i == 6:
+            elif i == 4:
                 resource['url'] = changing_url2
             dataset.add_update_resource(resource)
             # add resources
@@ -117,8 +117,8 @@ class TestFreshnessCKAN:
             freshness = DataFreshness(session=session, datasets=datasets, do_touch=True)
             freshness.spread_datasets()
             freshness.add_new_run()
-            forced_hash_ids = [datasets[2].get_resource()['id'], datasets[6].get_resource()['id'],
-                               datasets[7].get_resource()['id']]
+            forced_hash_ids = [datasets[1].get_resource()['id'], datasets[4].get_resource()['id'],
+                               datasets[3].get_resource()['id']]
             datasets_to_check, resources_to_check = freshness.process_datasets(forced_hash_ids=forced_hash_ids)
             results, hash_results = freshness.check_urls(resources_to_check, 'test')
             datasets_lastmodified = freshness.process_results(results, hash_results)
@@ -146,28 +146,28 @@ class TestFreshnessCKAN:
 
             assert output1 == '''
 *** Resources ***
-* total: 10 *,
-firstrun: 7,
+* total: 5 *,
+firstrun: 2,
 hash: 3
 
 *** Datasets ***
-* total: 10 *,
-0: Fresh, Updated firstrun: 10
+* total: 5 *,
+0: Fresh, Updated firstrun: 5
 
 0 datasets have update frequency of Live
 0 datasets have update frequency of Never
 0 datasets have update frequency of Adhoc'''
             assert output2 == '''
 *** Resources ***
-* total: 10 *,
+* total: 5 *,
 hash: 2,
-nothing: 7,
+nothing: 2,
 same hash: 1
 
 *** Datasets ***
-* total: 10 *,
+* total: 5 *,
 0: Fresh, Updated hash: 2,
-0: Fresh, Updated nothing: 8
+0: Fresh, Updated nothing: 3
 
 0 datasets have update frequency of Live
 0 datasets have update frequency of Never
