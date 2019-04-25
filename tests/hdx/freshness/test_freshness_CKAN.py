@@ -6,7 +6,7 @@ Unit tests for the freshness class.
 import json
 import os
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 from os.path import join
 
 import pygsheets
@@ -53,14 +53,20 @@ class TestFreshnessCKAN:
         except Exception:
             return None
 
-    def test_generate_dataset(self, configuration, datasetmetadata, nodatabase, gclient):
-        today = datetime.now()
+    @pytest.fixture(scope='function')
+    def setup_teardown_folder(self, gclient):
         body = {
             'name': 'freshness_test_tmp',
             'mimeType': 'application/vnd.google-apps.folder',
             'parents': ['1y9jK4EwBb9SszbSexjIF8c6rzIjoN8xh']
         }
         folderid = gclient.drive.service.files().create(body=body).execute()['id']
+        yield gclient, folderid
+        gclient.drive.delete(folderid)
+
+    def test_generate_dataset(self, configuration, datasetmetadata, nodatabase, setup_teardown_folder):
+        today = datetime.now()
+        gclient, folderid = setup_teardown_folder
 
         unchanging_gsheet = gclient.create('unchanging', folder=folderid)
         unchanging_gsheet.share('', role='reader', type='anyone')
@@ -84,7 +90,17 @@ class TestFreshnessCKAN:
         changing_url2 = '%s/export?format=csv' % changing_gsheet2.url
 
         datasets = list()
-        for i in range(5):
+        last_modifieds = list()
+        fresh = datetime.utcnow() - timedelta(days=1)
+        due = fresh - timedelta(days=8)
+        days7 = timedelta(days=7)
+        overdue = due - days7
+        delinquent = overdue - days7
+        fresh = fresh.isoformat()
+        due = due.isoformat()
+        overdue = overdue.isoformat()
+        delinquent = delinquent.isoformat()
+        for i in range(6):
             dataset = Dataset({
                 'name': 'freshness_test_%d' % i,
                 'title': 'freshness test %d' % i
@@ -93,7 +109,11 @@ class TestFreshnessCKAN:
             dataset.set_maintainer('196196be-6037-4488-8b71-d786adf4c081')
             dataset.set_organization('5a63012e-6c41-420c-8c33-e84b277fdc90')
             dataset.set_dataset_date_from_datetime(today)
-            dataset.set_expected_update_frequency('Every year')
+            if i == 5:
+                dataset.set_expected_update_frequency('Never')
+            else:
+                dataset.set_expected_update_frequency('Every week')
+
             dataset.set_subnational(True)
             dataset.add_country_location('AFG')
             tags = ['protests']
@@ -104,71 +124,92 @@ class TestFreshnessCKAN:
                 'format': 'csv',
                 'url': unchanging_url
             }
-            if i == 1:
-                resource['url'] = changing_url1
-            elif i == 4:
-                resource['url'] = changing_url2
+            switcher = {0: (unchanging_url, fresh),
+                        1: (changing_url1, overdue),
+                        2: (unchanging_url, delinquent),
+                        3: (unchanging_url, due),
+                        4: (changing_url2, fresh),
+                        5: (unchanging_url, delinquent)}
+            resource['url'], resource['last_modified'] = switcher.get(i)
             dataset.add_update_resource(resource)
             # add resources
             dataset.create_in_hdx()
             datasets.append(dataset)
-        with Database(**nodatabase) as session:
-            # first run
-            freshness = DataFreshness(session=session, datasets=datasets, do_touch=True)
-            freshness.spread_datasets()
-            freshness.add_new_run()
-            forced_hash_ids = [datasets[1].get_resource()['id'], datasets[4].get_resource()['id'],
-                               datasets[3].get_resource()['id']]
-            datasets_to_check, resources_to_check = freshness.process_datasets(forced_hash_ids=forced_hash_ids)
-            results, hash_results = freshness.check_urls(resources_to_check, 'test')
-            datasets_lastmodified = freshness.process_results(results, hash_results)
-            freshness.update_dataset_latest_of_modifieds(datasets_to_check, datasets_lastmodified)
-            output1 = freshness.output_counts()
-            # change something
-            changing_wks1.update_values('A1', [[random.random() for i in range(5)] for j in range(2)])
-            changing_wks2.update_values('A1', [[random.random() for i in range(3)] for j in range(6)])
-            # second run
-            for i, dataset in enumerate(datasets):
-                datasets[i] = Dataset.read_from_hdx(datasets[i]['id'])
-            freshness = DataFreshness(session=session, datasets=datasets, do_touch=True)
-            freshness.spread_datasets()
-            freshness.add_new_run()
-            datasets_to_check, resources_to_check = freshness.process_datasets(forced_hash_ids=forced_hash_ids)
-            results, hash_results = freshness.check_urls(resources_to_check, 'test')
-            datasets_lastmodified = freshness.process_results(results, hash_results)
-            freshness.update_dataset_latest_of_modifieds(datasets_to_check, datasets_lastmodified)
-            output2 = freshness.output_counts()
+            last_modifieds.append({'start': dataset['last_modified']})
+        try:
+            with Database(**nodatabase) as session:
+                # first run
+                freshness = DataFreshness(session=session, datasets=datasets, do_touch=True)
+                freshness.spread_datasets()
+                freshness.add_new_run()
+                forced_hash_ids = [datasets[3].get_resource()['id'], datasets[4].get_resource()['id']]
+                datasets_to_check, resources_to_check = freshness.process_datasets(forced_hash_ids=forced_hash_ids)
+                results, hash_results = freshness.check_urls(resources_to_check, 'test')
+                datasets_lastmodified = freshness.process_results(results, hash_results)
+                freshness.update_dataset_latest_of_modifieds(datasets_to_check, datasets_lastmodified)
+                run1_last_modified = freshness.now.isoformat()
+                output1 = freshness.output_counts()
+                # change something
+                changing_wks1.update_values('A1', [[random.random() for i in range(5)] for j in range(2)])
+                changing_wks2.update_values('A1', [[random.random() for i in range(3)] for j in range(6)])
+                # second run
+                for i, dataset in enumerate(datasets):
+                    dataset = Dataset.read_from_hdx(dataset['id'])
+                    last_modifieds[i]['run1'] = dataset['last_modified']
+                    datasets[i] = dataset
+                freshness = DataFreshness(session=session, datasets=datasets, do_touch=True)
+                freshness.spread_datasets()
+                freshness.add_new_run()
+                datasets_to_check, resources_to_check = freshness.process_datasets(forced_hash_ids=forced_hash_ids)
+                results, hash_results = freshness.check_urls(resources_to_check, 'test')
+                datasets_lastmodified = freshness.process_results(results, hash_results)
+                freshness.update_dataset_latest_of_modifieds(datasets_to_check, datasets_lastmodified)
+                run2_last_modified = freshness.now.isoformat()
+                output2 = freshness.output_counts()
+        finally:
             # tear down
             for i, dataset in enumerate(datasets):
-                dataset = Dataset.read_from_hdx(datasets[i]['id'])
+                dataset = Dataset.read_from_hdx(dataset['id'])
+                last_modifieds[i]['run2'] = dataset['last_modified']
                 dataset.delete_from_hdx()
-            gclient.drive.delete(folderid)
 
-            assert output1 == '''
+        assert output1 == '''
 *** Resources ***
-* total: 5 *,
+* total: 6 *,
 firstrun: 2,
-hash: 3
+hash: 4
 
 *** Datasets ***
-* total: 5 *,
-0: Fresh, Updated firstrun: 5
+* total: 6 *,
+0: Fresh, Updated firstrun: 3,
+1: Due, Updated firstrun: 1,
+2: Overdue, Updated firstrun: 1,
+3: Delinquent, Updated firstrun: 1
 
 0 datasets have update frequency of Live
-0 datasets have update frequency of Never
+1 datasets have update frequency of Never
 0 datasets have update frequency of Adhoc'''
-            assert output2 == '''
+        assert output2 == '''
 *** Resources ***
-* total: 5 *,
+* total: 6 *,
 hash: 2,
 nothing: 2,
-same hash: 1
+same hash: 2
 
 *** Datasets ***
-* total: 5 *,
+* total: 6 *,
 0: Fresh, Updated hash: 2,
-0: Fresh, Updated nothing: 3
+0: Fresh, Updated nothing: 2,
+1: Due, Updated nothing: 1,
+3: Delinquent, Updated nothing: 1
 
 0 datasets have update frequency of Live
-0 datasets have update frequency of Never
+1 datasets have update frequency of Never
 0 datasets have update frequency of Adhoc'''
+
+        assert last_modifieds == [{'start': fresh, 'run1': fresh, 'run2': fresh},
+                                  {'start': overdue, 'run1': overdue, 'run2': run2_last_modified},
+                                  {'start': delinquent, 'run1': delinquent, 'run2': delinquent},
+                                  {'start': due, 'run1': due, 'run2': due},
+                                  {'start': fresh, 'run1': fresh, 'run2': fresh},
+                                  {'start': delinquent, 'run1': delinquent, 'run2': delinquent}]
