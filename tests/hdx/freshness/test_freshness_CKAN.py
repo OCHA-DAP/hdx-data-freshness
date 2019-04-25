@@ -100,7 +100,7 @@ class TestFreshnessCKAN:
         due = due.isoformat()
         overdue = overdue.isoformat()
         delinquent = delinquent.isoformat()
-        for i in range(6):
+        for i in range(7):
             dataset = Dataset({
                 'name': 'freshness_test_%d' % i,
                 'title': 'freshness test %d' % i
@@ -109,7 +109,7 @@ class TestFreshnessCKAN:
             dataset.set_maintainer('196196be-6037-4488-8b71-d786adf4c081')
             dataset.set_organization('5a63012e-6c41-420c-8c33-e84b277fdc90')
             dataset.set_dataset_date_from_datetime(today)
-            if i == 5:
+            if i == 6:
                 dataset.set_expected_update_frequency('Never')
             else:
                 dataset.set_expected_update_frequency('Every week')
@@ -129,7 +129,8 @@ class TestFreshnessCKAN:
                         2: (unchanging_url, delinquent),
                         3: (unchanging_url, due),
                         4: (changing_url2, fresh),
-                        5: (unchanging_url, delinquent)}
+                        5: (unchanging_url, overdue),
+                        6: (unchanging_url, delinquent)}
             resource['url'], resource['last_modified'] = switcher.get(i)
             dataset.add_update_resource(resource)
             # add resources
@@ -156,6 +157,8 @@ class TestFreshnessCKAN:
                 for i, dataset in enumerate(datasets):
                     dataset = Dataset.read_from_hdx(dataset['id'])
                     last_modifieds[i]['run1'] = dataset['last_modified']
+                    if i == 5:
+                        dataset['review_date'] = due
                     datasets[i] = dataset
                 freshness = DataFreshness(session=session, datasets=datasets, do_touch=True)
                 freshness.spread_datasets()
@@ -175,15 +178,15 @@ class TestFreshnessCKAN:
 
         assert output1 == '''
 *** Resources ***
-* total: 6 *,
+* total: 7 *,
 firstrun: 2,
-hash: 4
+hash: 5
 
 *** Datasets ***
-* total: 6 *,
+* total: 7 *,
 0: Fresh, Updated firstrun: 3,
 1: Due, Updated firstrun: 1,
-2: Overdue, Updated firstrun: 1,
+2: Overdue, Updated firstrun: 2,
 3: Delinquent, Updated firstrun: 1
 
 0 datasets have update frequency of Live
@@ -191,16 +194,17 @@ hash: 4
 0 datasets have update frequency of Adhoc'''
         assert output2 == '''
 *** Resources ***
-* total: 6 *,
+* total: 7 *,
 hash: 2,
 nothing: 2,
-same hash: 2
+same hash: 3
 
 *** Datasets ***
-* total: 6 *,
+* total: 7 *,
 0: Fresh, Updated hash: 2,
 0: Fresh, Updated nothing: 2,
 1: Due, Updated nothing: 1,
+1: Due, Updated review date: 1,
 3: Delinquent, Updated nothing: 1
 
 0 datasets have update frequency of Live
@@ -212,4 +216,5 @@ same hash: 2
                                   {'start': delinquent, 'run1': delinquent, 'run2': delinquent},
                                   {'start': due, 'run1': due, 'run2': due},
                                   {'start': fresh, 'run1': fresh, 'run2': fresh},
+                                  {'start': overdue, 'run1': overdue, 'run2': overdue},
                                   {'start': delinquent, 'run1': delinquent, 'run2': delinquent}]
