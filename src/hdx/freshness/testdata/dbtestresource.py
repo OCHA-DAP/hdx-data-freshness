@@ -13,10 +13,12 @@ class DBTestResource(Base):
     dataset_id = Column(String, ForeignKey(DBTestDataset.id), nullable=False)
     url = Column(String, nullable=False)
     revision_last_updated = Column(String, nullable=False)
+    last_modified = Column(String, nullable=False)
 
     def __repr__(self):
         output = '<Resource(run number=%d, id=%s,\n' % (self.run_number, self.id)
         output += 'format=%s, dataset id=%s,\n' % (self.format, self.dataset_id)
         output += 'url=%s,\n' % self.url
-        output += 'revision last updated=%s)>' % str(self.revision_last_updated)
+        output += 'revision last updated=%s, ' % str(self.revision_last_updated)
+        output += 'last_modified=%s)>' % str(self.last_modified)
         return output

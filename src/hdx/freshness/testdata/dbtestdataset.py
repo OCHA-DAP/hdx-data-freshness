@@ -17,6 +17,8 @@ class DBTestDataset(Base):
     dataset_author_email = Column(String)
     dataset_date = Column(String)
     metadata_modified = Column(String, nullable=False)
+    review_date = Column(String)
+    last_modified = Column(String, nullable=False)
     update_frequency = Column(String)
     is_requestdata_type = Column(Boolean)
     dataset_location = Column(String)
@@ -24,5 +26,6 @@ class DBTestDataset(Base):
     def __repr__(self):
         output = '<Dataset(id=%s, name=%s' % (self.id, self.dataset_name)
         output += 'organisation name=%s, dataset date=%s, ' % (self.organization_name, self.dataset_date)
-        output += 'update frequency=%s, metadata_modified=%s)>' % (self.update_frequency, self.metadata_modified)
+        output += 'update frequency=%s, metadata_modified=%s, ' % (self.update_frequency, str(self.metadata_modified))
+        output += 'review_date=%s, last_modified=%s)>' % (str(self.review_date), str(self.last_modified))
         return output

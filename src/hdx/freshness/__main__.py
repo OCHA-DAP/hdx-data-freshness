@@ -11,11 +11,12 @@ import argparse
 import logging
 from os import getenv
 
-from hdx.hdx_configuration import Configuration
+from hdx.facades.keyword_arguments import facade
 from hdx.utilities.database import Database
 from hdx.utilities.dictandlist import args_to_dict
 from hdx.utilities.easy_logging import setup_logging
 from hdx.utilities.path import script_dir_plus_file
+from hdx.utilities.useragent import UserAgent
 
 from hdx.freshness.datafreshness import DataFreshness
 
@@ -23,13 +24,7 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
-def main(hdx_key, user_agent, preprefix, hdx_site, db_url, db_params, do_touch, save):
-    project_config_yaml = script_dir_plus_file('project_configuration.yml', main)
-    site_url = Configuration.create(hdx_key=hdx_key, hdx_site=hdx_site,
-                                    user_agent=user_agent, preprefix=preprefix,
-                                    project_config_yaml=project_config_yaml)
-    logger.info('--------------------------------------------------')
-    logger.info('> HDX Site: %s' % site_url)
+def main(db_url, db_params, do_touch, save, **ignore):
     if db_params:
         params = args_to_dict(db_params)
     elif db_url:
@@ -45,9 +40,9 @@ def main(hdx_key, user_agent, preprefix, hdx_site, db_url, db_params, do_touch, 
         freshness.spread_datasets()
         freshness.add_new_run()
         datasets_to_check, resources_to_check = freshness.process_datasets()
-        results, hash_results = freshness.check_urls(resources_to_check, Configuration.read()._remoteckan.user_agent)
+        results, hash_results = freshness.check_urls(resources_to_check, UserAgent.get())
         datasets_lastmodified = freshness.process_results(results, hash_results)
-        freshness.update_dataset_last_modified(datasets_to_check, datasets_lastmodified)
+        freshness.update_dataset_latest_of_modifieds(datasets_to_check, datasets_lastmodified)
         freshness.output_counts()
         if testsession:
             testsession.close()
@@ -84,4 +79,7 @@ if __name__ == '__main__':
         db_url = getenv('DB_URL')
     if db_url and '://' not in db_url:
         db_url = 'postgresql://%s' % db_url
-    main(hdx_key, user_agent, preprefix, hdx_site, db_url, args.db_params, not args.donttouch, args.save)
+    project_config_yaml = script_dir_plus_file('project_configuration.yml', main)
+    facade(main, hdx_key=hdx_key, user_agent=user_agent, preprefix=preprefix, hdx_site=hdx_site,
+           project_config_yaml=project_config_yaml, db_url=db_url, db_params=args.db_params,
+           do_touch=not args.donttouch, save=args.save)

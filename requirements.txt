@@ -1,5 +1,5 @@
 aiodns==2.0.0
 aiohttp==3.5.4
 tqdm==4.31.1
-uvloop==0.12.1
-hdx-python-api==3.5.8
+uvloop==0.12.2
+hdx-python-api==3.6.0
