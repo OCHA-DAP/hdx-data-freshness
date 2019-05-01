@@ -12,11 +12,11 @@ import logging
 from os import getenv
 
 from hdx.facades.keyword_arguments import facade
-from hdx.hdx_configuration import Configuration
 from hdx.utilities.database import Database
 from hdx.utilities.dictandlist import args_to_dict
 from hdx.utilities.easy_logging import setup_logging
 from hdx.utilities.path import script_dir_plus_file
+from hdx.utilities.useragent import UserAgent
 
 from hdx.freshness.datafreshness import DataFreshness
 
@@ -40,7 +40,7 @@ def main(db_url, db_params, do_touch, save, **ignore):
         freshness.spread_datasets()
         freshness.add_new_run()
         datasets_to_check, resources_to_check = freshness.process_datasets()
-        results, hash_results = freshness.check_urls(resources_to_check, Configuration.read()._remoteckan.user_agent)
+        results, hash_results = freshness.check_urls(resources_to_check, UserAgent.get())
         datasets_lastmodified = freshness.process_results(results, hash_results)
         freshness.update_dataset_latest_of_modifieds(datasets_to_check, datasets_lastmodified)
         freshness.output_counts()
