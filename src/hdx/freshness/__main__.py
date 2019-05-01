@@ -11,6 +11,7 @@ import argparse
 import logging
 from os import getenv
 
+from hdx.facades.keyword_arguments import facade
 from hdx.hdx_configuration import Configuration
 from hdx.utilities.database import Database
 from hdx.utilities.dictandlist import args_to_dict
@@ -23,13 +24,7 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
-def main(hdx_key, user_agent, preprefix, hdx_site, db_url, db_params, do_touch, save):
-    project_config_yaml = script_dir_plus_file('project_configuration.yml', main)
-    site_url = Configuration.create(hdx_key=hdx_key, hdx_site=hdx_site,
-                                    user_agent=user_agent, preprefix=preprefix,
-                                    project_config_yaml=project_config_yaml)
-    logger.info('--------------------------------------------------')
-    logger.info('> HDX Site: %s' % site_url)
+def main(db_url, db_params, do_touch, save, **ignore):
     if db_params:
         params = args_to_dict(db_params)
     elif db_url:
@@ -84,4 +79,7 @@ if __name__ == '__main__':
         db_url = getenv('DB_URL')
     if db_url and '://' not in db_url:
         db_url = 'postgresql://%s' % db_url
-    main(hdx_key, user_agent, preprefix, hdx_site, db_url, args.db_params, not args.donttouch, args.save)
+    project_config_yaml = script_dir_plus_file('project_configuration.yml', main)
+    facade(main, hdx_key=hdx_key, user_agent=user_agent, preprefix=preprefix, hdx_site=hdx_site,
+           project_config_yaml=project_config_yaml, db_url=db_url, db_params=args.db_params,
+           do_touch=not args.donttouch, save=args.save)
