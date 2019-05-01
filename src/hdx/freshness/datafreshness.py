@@ -69,6 +69,7 @@ class DataFreshness:
         self.testsession = testsession
         if datasets is None:  # pragma: no cover
             Configuration.read().set_read_only(True)  # so that we only get public datasets
+            logger.info('Retrieving all datasets from HDX')
             self.datasets = Dataset.get_all_datasets()
             Configuration.read().set_read_only(False)
             if self.testsession:
@@ -93,6 +94,7 @@ class DataFreshness:
     def process_datasets(self, forced_hash_ids=None):
         resources_to_check = list()
         datasets_to_check = dict()
+        logger.info('Processing datasets')
         for dataset in self.datasets:
             resources = dataset.get_resources()
             if len(resources) == 0:  # ignore requestable and other datasets that have no resources
