@@ -4,6 +4,7 @@ import sys
 from codecs import open
 from os.path import join, abspath, realpath, dirname
 
+from hdx.utilities import CleanCommand, PackageCommand, PublishCommand
 from setuptools import setup, find_packages
 
 
@@ -82,4 +83,5 @@ setup(
     zip_safe=True,
     classifiers=classifiers,
     install_requires=requirements,
+    cmdclass={'clean': CleanCommand, 'package': PackageCommand, 'publish': PublishCommand},
 )
