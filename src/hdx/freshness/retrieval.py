@@ -10,7 +10,7 @@ Retrieve urls and categorise them
 import asyncio
 import hashlib
 import logging
-import time
+from timeit import default_timer as timer
 
 import aiohttp
 import tqdm
@@ -94,12 +94,12 @@ async def check_urls(urls, loop, user_agent):
 
 
 def retrieve(urls, user_agent):
-    start_time = time.time()
+    start_time = timer()
     loop = uvloop.new_event_loop()
     asyncio.set_event_loop(loop)
     future = asyncio.ensure_future(check_urls(urls, loop, user_agent))
     results = loop.run_until_complete(future)
-    logger.info('Execution time: %s seconds' % (time.time() - start_time))
+    logger.info('Execution time: %s seconds' % (timer() - start_time))
     loop.run_until_complete(asyncio.sleep(0.250))
     loop.close()
     return results
