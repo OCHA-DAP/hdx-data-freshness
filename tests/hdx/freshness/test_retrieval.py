@@ -23,7 +23,7 @@ class TestRetrieve:
                                'code=404 message=Non-retryable response code raised=aiohttp.ClientResponseError url=https://github.com/mcarans/hdx-data-freshness/raw/d1616d76c3b6b8ef5029eb6964b93cde688efd53/tests/fixtures/day0/notfound',
                                None, None, False)
         assert result['4'][0] == url4
-        regexp = r'^code= message=Cannot connect to host lala:10 ssl:None \[.*\] raised=aiohttp\.client_exceptions\.ClientConnectorError url=file:\/\/lala:10$'
+        regexp = r'^code= message=Cannot connect to host lala:10 ssl:default \[.*\] raised=aiohttp\.client_exceptions\.ClientConnectorError url=file:\/\/lala:10$'
         assert re.search(regexp, result['4'][1]) is not None
         assert result['4'][2] is None
         assert result['4'][3] is None
