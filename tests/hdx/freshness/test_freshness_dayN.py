@@ -80,6 +80,7 @@ class TestFreshnessDayN:
             datasets_to_check, resources_to_check = freshness.process_datasets(forced_hash_ids=forced_hash_ids)
             results, hash_results = freshness.check_urls(resources_to_check, 'test', results=results,
                                                          hash_results=hash_results)
+            resourcecls.populate_resourcedict(datasets)
             datasets_lastmodified = freshness.process_results(results, hash_results, resourcecls=resourcecls)
             freshness.update_dataset_latest_of_modifieds(datasets_to_check, datasets_lastmodified)
             output = freshness.output_counts()

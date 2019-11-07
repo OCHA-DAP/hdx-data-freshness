@@ -370,11 +370,7 @@ class DataFreshness:
                                     what_updated = dbresource.what_updated
                                 else:
                                     what_updated, _ = self.set_latest_of_modifieds(dbresource, self.now, 'hash')
-                                    # don't touch already fresh datasets but always touch live, adhoc and never datasets
-                                    dbdataset = self.session.query(DBDataset).filter_by(id=dataset_id,
-                                                                                        run_number=self.run_number).one()
-                                    if dbdataset.fresh != 0 or dbdataset.update_frequency <= 0:
-                                        update_last_modified = True
+                                    update_last_modified = True
                             dbresource.api = False
                         else:
                             hash_to_set = hash_hash
@@ -392,14 +388,28 @@ class DataFreshness:
             datasets_latest_of_modifieds[dataset_id] = datasetinfo
             dict_of_lists_add(self.resource_what_updated, what_updated, resource_id)
             if update_last_modified and self.do_touch:
-                self.resource_last_modified_count += 1
-                logger.info('Resource last modified count: %d' % self.resource_last_modified_count)
                 try:
                     logger.info('Updating last modified for resource %s' % resource_id)
                     resource = resourcecls.read_from_hdx(resource_id)
                     if resource:
-                        resource['last_modified'] = dbresource.latest_of_modifieds.isoformat()
-                        resource.update_in_hdx(operation='patch', batch_mode='KEEP_OLD', skip_validation=True)
+                        last_modified = parser.parse(resource['last_modified'])
+                        dbdataset = self.session.query(DBDataset).filter_by(id=dataset_id,
+                                                                            run_number=self.run_number).one()
+                        update_frequency = dbdataset.update_frequency
+                        if update_frequency > 0:
+                            if self.calculate_aging(last_modified, update_frequency) == 0:
+                                dotouch = False
+                            else:
+                                dotouch = True
+                        else:
+                            dotouch = True
+                        if dotouch:
+                            self.resource_last_modified_count += 1
+                            logger.info('Resource last modified count: %d' % self.resource_last_modified_count)
+                            resource['last_modified'] = dbresource.latest_of_modifieds.isoformat()
+                            resource.update_in_hdx(operation='patch', batch_mode='KEEP_OLD', skip_validation=True)
+                        else:
+                            logger.info("Didn't update last modified for resource %s as it is fresh!" % resource_id)
                     else:
                         logger.error('Last modified update failed for id %s! Resource does not exist.' % resource_id)
                 except HDXError:

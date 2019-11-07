@@ -17,15 +17,25 @@ def configuration():
 @pytest.fixture(scope='session')
 def resourcecls():
     class MyResource(UserDict, object):
-        def __init__(self):
-            self.data = {'a': '1'}
+        touched = False
+        resourcedict = None
+
+        def __init__(self, id):
+            self.data = self.resourcedict[id]
+
+        @classmethod
+        def populate_resourcedict(cls, datasets):
+            cls.resourcedict = dict()
+            for dataset in datasets:
+                for resource in dataset.get_resources():
+                    cls.resourcedict[resource['id']] = resource
 
         @staticmethod
         def read_from_hdx(id):
-            return MyResource()
+            return MyResource(id)
 
-        @staticmethod
-        def update_in_hdx(operation, batch_mode, skip_validation):
-            pass
+        @classmethod
+        def update_in_hdx(cls, operation, batch_mode, skip_validation):
+            cls.touched = True
 
     return MyResource
