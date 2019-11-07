@@ -263,6 +263,7 @@ class DataFreshness:
                         dbresource.what_updated = 'nothing'
                     if last_modified <= previous_dbresource.latest_of_modifieds:
                         dbresource.latest_of_modifieds = previous_dbresource.latest_of_modifieds
+                    dbresource.http_last_modified = previous_dbresource.http_last_modified
                     dbresource.md5_hash = previous_dbresource.md5_hash
                     dbresource.when_hashed = previous_dbresource.when_hashed
                     dbresource.when_checked = previous_dbresource.when_checked
