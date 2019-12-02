@@ -5,6 +5,7 @@ from codecs import open
 from os.path import join, abspath, realpath, dirname
 
 from hdx.utilities import CleanCommand, PackageCommand, PublishCommand
+from hdx.utilities.loader import load_file_to_str
 from setuptools import setup, find_packages
 
 
@@ -65,12 +66,14 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
+PublishCommand.version = load_file_to_str(join('src', 'hdx', 'freshness', 'version.txt'), strip=True)
+
 setup(
     name='hdx-data-freshness',
     description='HDX Data Freshness',
     license='MIT',
     url='https://github.com/OCHA-DAP/hdx-data-freshness',
-    version='1.4.2',
+    version=PublishCommand.version,
     author='Michael Rans',
     author_email='rans@email.com',
     keywords=['HDX', 'fresh', 'freshness', 'data freshness'],

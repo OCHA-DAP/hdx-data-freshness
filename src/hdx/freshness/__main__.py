@@ -19,12 +19,14 @@ from hdx.utilities.path import script_dir_plus_file
 from hdx.utilities.useragent import UserAgent
 
 from hdx.freshness.datafreshness import DataFreshness
+from hdx.freshness.version import get_freshness_version
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
 
 def main(db_url, db_params, do_touch, save, **ignore):
+    logger.info('> Data freshness %s' % get_freshness_version())
     if db_params:
         params = args_to_dict(db_params)
     elif db_url:
