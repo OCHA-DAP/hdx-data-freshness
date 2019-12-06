@@ -97,7 +97,7 @@ class DataFreshness:
         logger.info('Processing datasets')
         for dataset in self.datasets:
             resources = dataset.get_resources()
-            if len(resources) == 0:  # ignore requestable and other datasets that have no resources
+            if dataset.is_requestable():  # ignore requestable
                 continue
             dataset_id = dataset['id']
             dict_of_lists_add(self.dataset_what_updated, 'total', dataset_id)
@@ -147,7 +147,18 @@ class DataFreshness:
                 self.process_resources(dataset_id, previous_dbdataset, resources, forced_hash_ids=forced_hash_ids)
             dataset_date = dataset.get('dataset_date')
             metadata_modified = parser.parse(dataset['metadata_modified'], ignoretz=True)
-            last_modified = parser.parse(dataset['last_modified'], ignoretz=True)
+            if 'last_modified' in dataset:
+                last_modified = parser.parse(dataset['last_modified'], ignoretz=True)
+            else:
+                last_modified = datetime.datetime(1970, 1, 1, 0, 0)
+            if len(resources) == 0 and last_resource_updated is None:
+                last_resource_updated = 'NO RESOURCES'
+                last_resource_modified = datetime.datetime(1970, 1, 1, 0, 0)
+                error = True
+                what_updated = 'no resources'
+            else:
+                error = False
+                what_updated = 'firstrun'
             review_date = dataset.get('review_date')
             if review_date is None:
                 latest_of_modifieds = last_modified
@@ -158,7 +169,7 @@ class DataFreshness:
                 else:
                     latest_of_modifieds = last_modified
             update_frequency = dataset.get('data_update_frequency')
-            if update_frequency is not None:
+            if update_frequency is not None and not error:
                 update_frequency = int(update_frequency)
                 if update_frequency == 0:
                     fresh = 0
@@ -171,18 +182,14 @@ class DataFreshness:
                     self.adhoc_update += 1
                 else:
                     fresh = self.calculate_aging(latest_of_modifieds, update_frequency)
-            if len(resources) == 0:
-                if last_resource_updated is None:
-                    last_resource_updated = 'NO RESOURCES'
-                    last_resource_modified = datetime.datetime(1970, 1, 1, 0, 0)
             dbdataset = DBDataset(run_number=self.run_number, id=dataset_id,
                                   dataset_date=dataset_date, update_frequency=update_frequency,
                                   metadata_modified=metadata_modified,
                                   review_date=review_date, last_modified=last_modified,
-                                  latest_of_modifieds=latest_of_modifieds, what_updated='firstrun',
+                                  latest_of_modifieds=latest_of_modifieds, what_updated=what_updated,
                                   last_resource_updated=last_resource_updated,
-                                  last_resource_modified=last_resource_modified, fresh=fresh, error=False)
-            if previous_dbdataset is not None:
+                                  last_resource_modified=last_resource_modified, fresh=fresh, error=error)
+            if previous_dbdataset is not None and not error:
                 dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'nothing')
                 if last_modified > previous_dbdataset.last_modified:  # filestore update would cause this
                     dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'filestore')
