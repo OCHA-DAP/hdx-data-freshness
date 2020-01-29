@@ -42,9 +42,6 @@ class TestSerialize:
             assert result['title'] == dataset['title']
             assert result['private'] == dataset['private']
             assert result['maintainer'] == dataset['maintainer']
-            assert result['maintainer_email'] == dataset['maintainer_email']
-            assert result['author'] == dataset['author']
-            assert result['author_email'] == dataset['author_email']
             assert result['dataset_date'] == dataset.get('dataset_date')
             assert result['metadata_modified'] == dataset['metadata_modified']
             assert result['review_date'] == dataset['review_date']

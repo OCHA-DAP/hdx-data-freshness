@@ -166,7 +166,7 @@ Dataset fresh=2, error=False'''
             dbinfodataset = dbsession.query(DBInfoDataset).first()
             assert str(dbinfodataset) == '''<InfoDataset(id=a2150ad9-2b87-49f5-a6b2-c85dff366b75, name=rohingya-displacement-topline-figures, title=Rohingya Displacement Topline Figures,
 private=False, organization id=hdx,
-maintainer=7d7f5f8d-7e3b-483a-8de1-2b122010c1eb, maintainer email=takavarasha@un.org, author=None, author email=None, location=bgd)>'''
+maintainer=7d7f5f8d-7e3b-483a-8de1-2b122010c1eb, location=bgd)>'''
             count = dbsession.query(DBInfoDataset).count()
             assert count == 103
             dborganization = dbsession.query(DBOrganization).first()
