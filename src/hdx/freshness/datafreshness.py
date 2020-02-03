@@ -191,7 +191,7 @@ class DataFreshness:
                     if review_date is not None:
                         dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'review date')
                 else:
-                    if review_date > previous_dbdataset.review_date:  # someone clicked the review button
+                    if review_date is not None and review_date > previous_dbdataset.review_date:  # someone clicked the review button
                         dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'review date')
                     else:
                         dbdataset.review_date = previous_dbdataset.review_date

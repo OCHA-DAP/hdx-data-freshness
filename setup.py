@@ -51,7 +51,7 @@ requirements = ['aiodns',
                 'aiohttp',
                 'tqdm',
                 'uvloop',
-                'hdx-python-api>=4.0.7'
+                'hdx-python-api>=4.0.8'
                 ]
 
 classifiers = [
