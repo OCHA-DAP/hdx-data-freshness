@@ -18,6 +18,7 @@ class DBTestDataset(Base):
     last_modified = Column(String, nullable=False)
     update_frequency = Column(String)
     is_requestdata_type = Column(Boolean)
+    updated_by_script = Column(String)
     dataset_location = Column(String)
 
     def __repr__(self):

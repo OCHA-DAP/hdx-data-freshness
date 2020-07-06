@@ -31,7 +31,8 @@ def serialize_datasets(session, datasets):
                                       last_modified=dataset['last_modified'],
                                       update_frequency=dataset.get('data_update_frequency'),
                                       is_requestdata_type=dataset.get('is_requestdata_type'),
-                                      dataset_location=','.join([x['name'] for x in dataset['groups']]))
+                                      dataset_location=','.join([x['name'] for x in dataset['groups']],
+                                                                updated_by_script=dataset.get('updated_by_script')))
         session.add(dbtestdataset)
         for resource in dataset.get_resources():
             dbtestresource = DBTestResource(id=resource['id'], name=resource['name'], dataset_id=dataset_id,
@@ -87,7 +88,8 @@ def deserialize_datasets(session):
             'review_date': dbtestdataset.review_date,
             'last_modified': dbtestdataset.last_modified,
             'data_update_frequency': dbtestdataset.update_frequency,
-            'groups': [{'name': x} for x in dbtestdataset.dataset_location.split(',')]
+            'groups': [{'name': x} for x in dbtestdataset.dataset_location.split(',')],
+            'updated_by_script':
         })
         dataset.set_requestable(dbtestdataset.is_requestdata_type)
         datasets[dataset_id] = dataset

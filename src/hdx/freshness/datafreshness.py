@@ -135,8 +135,13 @@ class DataFreshness:
             except NoResultFound:
                 previous_dbdataset = None
             fresh = None
+            if dataset['updated_by_script'][:11] == 'HDX Scraper':
+                hdx_scraper = True
+            else:
+                hdx_scraper = False
             dataset_resources, last_resource_updated, last_resource_modified = \
-                self.process_resources(dataset_id, previous_dbdataset, resources, forced_hash_ids=forced_hash_ids)
+                self.process_resources(dataset_id, previous_dbdataset, resources, hdx_scraper,
+                                       forced_hash_ids=forced_hash_ids)
             dataset_date = dataset.get('dataset_date')
             metadata_modified = parser.parse(dataset['metadata_modified'], ignoretz=True)
             if 'last_modified' in dataset:
@@ -228,7 +233,7 @@ class DataFreshness:
         self.session.commit()
         return datasets_to_check, resources_to_check
 
-    def process_resources(self, dataset_id, previous_dbdataset, resources, forced_hash_ids=None):
+    def process_resources(self, dataset_id, previous_dbdataset, resources, hdx_scraper, forced_hash_ids=None):
         last_resource_updated = None
         last_resource_modified = None
         dataset_resources = list()
@@ -280,9 +285,9 @@ class DataFreshness:
             if forced_hash_ids:
                 forced_hash = resource_id in forced_hash_ids
             else:
-                forced_hash = self.urls_to_check_count < self.no_urls_to_check and \
-                              (dbresource.when_checked is None or
-                               self.now - dbresource.when_checked > datetime.timedelta(days=30))
+                forced_hash = self.urls_to_check_count < self.no_urls_to_check and not (hdx_scraper and internal) \
+                              and (dbresource.when_checked is None or
+                                   self.now - dbresource.when_checked > datetime.timedelta(days=30))
             if forced_hash:
                 dataset_resources.append((url, resource_id, True, dbresource.what_updated))
                 self.urls_to_check_count += 1
