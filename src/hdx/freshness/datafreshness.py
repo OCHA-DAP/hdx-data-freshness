@@ -340,9 +340,6 @@ class DataFreshness:
             update_last_modified = False
             if http_last_modified:
                 if dbresource.http_last_modified is None or http_last_modified > dbresource.http_last_modified:
-                    what_updated, newtouch = self.set_latest_of_modifieds(dbresource, http_last_modified, 'http header')
-                    if newtouch and dbresource.http_last_modified is not None:
-                        update_last_modified = True
                     dbresource.http_last_modified = http_last_modified
             if hash:
                 dbresource.when_checked = self.now
@@ -354,12 +351,7 @@ class DataFreshness:
                     hash_url, hash_err, hash_http_last_modified, hash_hash, force_hash = hash_results[resource_id]
                     if hash_http_last_modified:
                         if dbresource.http_last_modified is None or hash_http_last_modified > dbresource.http_last_modified:
-                            what_updated, newtouch = self.set_latest_of_modifieds(dbresource, hash_http_last_modified,
-                                                                            'http header')
-                            if newtouch and dbresource.http_last_modified is not None:
-                                update_last_modified = True
                             dbresource.http_last_modified = hash_http_last_modified
-
                     if hash_hash:
                         if hash_hash == hash:
                             if dbresource.md5_hash is None:  # First occurrence of resource eg. first run - don't use hash
