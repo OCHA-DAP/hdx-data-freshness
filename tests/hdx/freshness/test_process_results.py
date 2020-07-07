@@ -112,5 +112,5 @@ class TestProcesssResults:
         datasets_lastmodified = freshness.process_results(results, results, resourcecls=resourcecls)
         assert datasets_lastmodified == {'c1c85ecb-5e84-48c6-8ba9-15689a6c2fc4': {
             '3adb573a-f056-41b7-8ee5-ec245676a7ce': (
-            '', datetime.datetime(2019, 11, 3, 23, 1, 31, 438713), ',http header,hash')}}
+                '', datetime.datetime(2019, 11, 3, 23, 1, 31, 438713), ',hash')}}
         assert resourcecls.touched is True

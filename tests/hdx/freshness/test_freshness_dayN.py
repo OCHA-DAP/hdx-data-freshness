@@ -89,28 +89,26 @@ class TestFreshnessDayN:
 *** Resources ***
 * total: 656 *,
 api: 3,
-error: 14,
+error: 26,
 hash: 5,
-http header: 1,
 internal-filestore: 9,
-internal-filestore,http header,hash: 1,
+internal-filestore,hash: 1,
 internal-nothing: 44,
 internal-nothing,error: 2,
-nothing: 570,
+nothing: 559,
 repeat hash: 1,
 same hash: 6
 
 *** Datasets ***
 * total: 103 *,
 0: Fresh, Updated filestore: 4,
-0: Fresh, Updated filestore,review date,internal-filestore,http header,hash: 1,
+0: Fresh, Updated filestore,review date: 1,
 0: Fresh, Updated hash: 3,
-0: Fresh, Updated http header: 1,
-0: Fresh, Updated nothing: 67,
+0: Fresh, Updated nothing: 59,
 0: Fresh, Updated review date: 1,
 1: Due, Updated nothing: 1,
 2: Overdue, Updated nothing: 1,
-3: Delinquent, Updated nothing: 15,
+3: Delinquent, Updated nothing: 24,
 3: Delinquent, Updated nothing,error: 4,
 Freshness Unavailable, Updated no resources: 1,
 Freshness Unavailable, Updated nothing: 3,
@@ -137,7 +135,7 @@ api=False, error=None)>'''
             count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='hash', error=None).count()
             assert count == 5
             count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='http header', error=None).count()
-            assert count == 1
+            assert count == 0
             count = dbsession.query(DBResource).filter_by(run_number=1, api=True).count()
             assert count == 3
             count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='adhoc-nothing').filter(
@@ -163,7 +161,7 @@ Dataset fresh=2, error=False'''
             assert count == 4
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='nothing',
                                                          error=False).count()
-            assert count == 67
+            assert count == 59
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='review date').count()
             assert count == 1
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=1, what_updated='nothing').count()
@@ -173,7 +171,7 @@ Dataset fresh=2, error=False'''
             assert count == 1
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing',
                                                          error=False).count()
-            assert count == 15
+            assert count == 24
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing',
                                                          error=True).count()
             assert count == 4

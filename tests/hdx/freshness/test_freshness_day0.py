@@ -74,20 +74,17 @@ class TestFreshnessDay0:
 * total: 660 *,
 api: 4,
 error: 27,
-firstrun: 551,
+firstrun: 564,
 hash: 9,
-http header: 13,
 internal-firstrun: 56
 
 *** Datasets ***
 * total: 103 *,
 0: Fresh, Updated firstrun: 67,
-0: Fresh, Updated http header: 8,
 1: Due, Updated firstrun: 1,
 2: Overdue, Updated firstrun: 1,
-3: Delinquent, Updated firstrun: 16,
+3: Delinquent, Updated firstrun: 25,
 3: Delinquent, Updated firstrun,error: 5,
-3: Delinquent, Updated http header: 1,
 Freshness Unavailable, Updated firstrun: 4
 
 15 datasets have update frequency of Live
@@ -117,7 +114,7 @@ api=False, error=None)>'''
                                                           api=False).count()
             assert count == 0
             count = dbsession.query(DBResource).filter_by(what_updated='firstrun', error=None, api=None).count()
-            assert count == 551
+            assert count == 564
             count = dbsession.query(DBResource).filter_by(what_updated='firstrun', error=None, api=True).count()
             assert count == 4
             count = dbsession.query(DBResource).filter(DBResource.error.isnot(None)).filter_by(
@@ -127,7 +124,7 @@ api=False, error=None)>'''
             assert count == 9
             count = dbsession.query(DBResource).filter_by(what_updated='http header', error=None,
                                                           api=None).count()
-            assert count == 13
+            assert count == 0
             count = dbsession.query(DBResource).filter_by(what_updated='http header,hash', error=None,
                                                           api=False).count()
             assert count == 0
@@ -143,7 +140,7 @@ Dataset fresh=2, error=False'''
             assert count == 0
             count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='http header',
                                                          error=False).count()
-            assert count == 8
+            assert count == 0
             count = dbsession.query(DBDataset).filter_by(fresh=0, what_updated='http header',
                                                          error=True).count()
             assert count == 0
@@ -154,11 +151,11 @@ Dataset fresh=2, error=False'''
             count = dbsession.query(DBDataset).filter_by(fresh=2, what_updated='firstrun', error=True).count()
             assert count == 0
             count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='firstrun', error=False).count()
-            assert count == 16
+            assert count == 25
             count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='firstrun', error=True).count()
             assert count == 5
             count = dbsession.query(DBDataset).filter_by(fresh=3, what_updated='http header').count()
-            assert count == 1
+            assert count == 0
             count = dbsession.query(DBDataset).filter_by(fresh=None, what_updated='firstrun', error=False).count()
             assert count == 4
             count = dbsession.query(DBDataset).filter_by(fresh=None, what_updated='firstrun', error=True).count()
