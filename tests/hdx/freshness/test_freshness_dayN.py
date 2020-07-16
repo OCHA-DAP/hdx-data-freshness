@@ -153,10 +153,10 @@ api=False, error=None)>'''
             assert count == 4
             dbdataset = dbsession.query(DBDataset).first()
             assert str(dbdataset) == '''<Dataset(run number=0, id=a2150ad9-2b87-49f5-a6b2-c85dff366b75, dataset date=09/21/2017, update frequency=1,
-review date=None, last modified=2017-12-16 15:11:15.204215, metadata modified=2017-12-16 15:11:15.204215,
+review date=None, last modified=2017-12-16 15:11:15.204215, metadata modified=2017-12-16 15:11:15.204215, updated by script=None,
 latest of modifieds=2017-12-16 15:11:15.204215, what updated=firstrun,
 Resource b21d6004-06b5-41e5-8e3e-0f28140bff64: last modified=2017-12-16 15:11:15.202742,
-Dataset fresh=2, error=False'''
+Dataset fresh=2, error=False)>'''
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='filestore').count()
             assert count == 4
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='nothing',
