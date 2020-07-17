@@ -106,9 +106,10 @@ same hash: 6
 0: Fresh, Updated hash: 3,
 0: Fresh, Updated nothing: 59,
 0: Fresh, Updated review date: 1,
+0: Fresh, Updated script update: 1,
 1: Due, Updated nothing: 1,
 2: Overdue, Updated nothing: 1,
-3: Delinquent, Updated nothing: 24,
+3: Delinquent, Updated nothing: 23,
 3: Delinquent, Updated nothing,error: 4,
 Freshness Unavailable, Updated no resources: 1,
 Freshness Unavailable, Updated nothing: 3,
@@ -164,6 +165,8 @@ Dataset fresh=2, error=False)>'''
             assert count == 59
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='review date').count()
             assert count == 1
+            count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='script update').count()
+            assert count == 1
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=1, what_updated='nothing').count()
             assert count == 1
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=2, what_updated='nothing',
@@ -171,7 +174,7 @@ Dataset fresh=2, error=False)>'''
             assert count == 1
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing',
                                                          error=False).count()
-            assert count == 24
+            assert count == 23
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing',
                                                          error=True).count()
             assert count == 4
