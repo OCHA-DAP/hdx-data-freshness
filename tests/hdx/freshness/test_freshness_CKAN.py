@@ -50,7 +50,9 @@ class TestFreshnessCKAN:
             info = json.loads(gsheet_auth)
             scopes = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets']
             credentials = service_account.Credentials.from_service_account_info(info, scopes=scopes)
-            return pygsheets.authorize(custom_credentials=credentials)
+            gclient = pygsheets.authorize(custom_credentials=credentials)
+            gclient.drive.enable_team_drive('0AKCBfHI3H-hcUk9PVA')
+            return gclient
         except Exception:
             return None
 
@@ -59,9 +61,9 @@ class TestFreshnessCKAN:
         body = {
             'name': 'freshness_test_tmp',
             'mimeType': 'application/vnd.google-apps.folder',
-            'parents': ['1y9jK4EwBb9SszbSexjIF8c6rzIjoN8xh']
+            'parents': ['1M8_Hv3myw9RpLq86kBL7QkMAYxcHjvb6']
         }
-        folderid = gclient.drive.service.files().create(body=body).execute()['id']
+        folderid = gclient.drive.service.files().create(body=body, supportsTeamDrives=True).execute()['id']
         yield gclient, folderid
         gclient.drive.delete(folderid)
 

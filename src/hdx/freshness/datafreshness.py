@@ -151,7 +151,9 @@ class DataFreshness:
                             dont_hash_script_update = True
                         else:
                             match = self.bracketed_date.search(updated_by_script)
-                            if match is not None:
+                            if match is None:
+                                updated_by_script = None
+                            else:
                                 try:
                                     updated_by_script = parser.parse(match.group(1), ignoretz=True)
                                     if self.calculate_aging(updated_by_script, update_frequency) == 0:
