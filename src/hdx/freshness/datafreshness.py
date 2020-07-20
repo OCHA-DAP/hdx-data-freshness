@@ -65,7 +65,11 @@ class DataFreshness:
         if self.previous_run_number is not None:
             self.previous_run_number = self.previous_run_number[0]
             self.run_number = self.previous_run_number + 1
-            self.no_urls_to_check = int((self.no_resources_force_hash() / 30) + 1)
+            no_resources = self.no_resources_force_hash()
+            if no_resources:
+                self.no_urls_to_check = int((no_resources / 30) + 1)
+            else:
+                self.no_urls_to_check = default_no_urls_to_check
         else:
             self.previous_run_number = None
             self.run_number = 0
@@ -102,7 +106,7 @@ class DataFreshness:
                 continue
             noresources += 1
         if noscriptupdate == 0:
-            noresources = default_no_urls_to_check
+            return None
         return noresources
 
     def spread_datasets(self):
