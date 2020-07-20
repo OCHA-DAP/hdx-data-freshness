@@ -31,6 +31,8 @@ from hdx.freshness.testdata.serialize import serialize_datasets, serialize_now, 
 
 logger = logging.getLogger(__name__)
 
+default_no_urls_to_check = 1000
+
 
 class DataFreshness:
     bracketed_date = re.compile(r'\((.*)\)')
@@ -67,7 +69,7 @@ class DataFreshness:
         else:
             self.previous_run_number = None
             self.run_number = 0
-            self.no_urls_to_check = 1600
+            self.no_urls_to_check = default_no_urls_to_check
 
         logger.info('Will force hash %d resources' % self.no_urls_to_check)
         self.testsession = testsession
@@ -92,11 +94,15 @@ class DataFreshness:
         filters = [DBResource.dataset_id == DBDataset.id, DBResource.run_number == self.previous_run_number,
                    DBDataset.run_number == self.previous_run_number]
         query = self.session.query(*columns).filter(and_(*filters))
+        noscriptupdate = 0
         noresources = 0
         for result in query:
             if result[1] == 0 and 'script update' in result[2]:
+                noscriptupdate += 1
                 continue
             noresources += 1
+        if noscriptupdate == 0:
+            noresources = default_no_urls_to_check
         return noresources
 
     def spread_datasets(self):
