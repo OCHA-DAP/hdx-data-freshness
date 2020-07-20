@@ -61,21 +61,6 @@ class DataFreshness:
             self.aging[period] = aging_period
         self.aging_statuses = {0: '0: Fresh', 1: '1: Due', 2: '2: Overdue', 3: '3: Delinquent',
                                None: 'Freshness Unavailable'}
-        self.previous_run_number = self.session.query(DBRun.run_number).distinct().order_by(DBRun.run_number.desc()).first()
-        if self.previous_run_number is not None:
-            self.previous_run_number = self.previous_run_number[0]
-            self.run_number = self.previous_run_number + 1
-            no_resources = self.no_resources_force_hash()
-            if no_resources:
-                self.no_urls_to_check = int((no_resources / 30) + 1)
-            else:
-                self.no_urls_to_check = default_no_urls_to_check
-        else:
-            self.previous_run_number = None
-            self.run_number = 0
-            self.no_urls_to_check = default_no_urls_to_check
-
-        logger.info('Will force hash %d resources' % self.no_urls_to_check)
         self.testsession = testsession
         if datasets is None:  # pragma: no cover
             Configuration.read().set_read_only(True)  # so that we only get public datasets
@@ -92,18 +77,37 @@ class DataFreshness:
                 serialize_now(self.testsession, self.now)
         else:
             self.now = now
+        self.previous_run_number = self.session.query(DBRun.run_number).distinct().order_by(
+            DBRun.run_number.desc()).first()
+        if self.previous_run_number is not None:
+            self.previous_run_number = self.previous_run_number[0]
+            self.run_number = self.previous_run_number + 1
+            no_resources = self.no_resources_force_hash()
+            if no_resources:
+                self.no_urls_to_check = int((no_resources / 30) + 1)
+            else:
+                self.no_urls_to_check = default_no_urls_to_check
+        else:
+            self.previous_run_number = None
+            self.run_number = 0
+            self.no_urls_to_check = default_no_urls_to_check
+
+        logger.info('Will force hash %d resources' % self.no_urls_to_check)
 
     def no_resources_force_hash(self):
-        columns = [DBResource.id, DBDataset.fresh, DBDataset.what_updated]
+        columns = [DBResource.id, DBDataset.updated_by_script, DBDataset.update_frequency]
         filters = [DBResource.dataset_id == DBDataset.id, DBResource.run_number == self.previous_run_number,
                    DBDataset.run_number == self.previous_run_number]
         query = self.session.query(*columns).filter(and_(*filters))
         noscriptupdate = 0
         noresources = 0
         for result in query:
-            if result[1] == 0 and 'script update' in result[2]:
-                noscriptupdate += 1
-                continue
+            updated_by_script = result[1]
+            update_frequency = result[2]
+            if updated_by_script is not None:
+                if update_frequency <= 0 or self.calculate_aging(updated_by_script, update_frequency) == 0:
+                    noscriptupdate += 1
+                    continue
             noresources += 1
         if noscriptupdate == 0:
             return None
