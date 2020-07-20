@@ -63,13 +63,13 @@ class DataFreshness:
         if self.previous_run_number is not None:
             self.previous_run_number = self.previous_run_number[0]
             self.run_number = self.previous_run_number + 1
-            no_resources = self.session.query(DBResource).filter_by(run_number=self.previous_run_number).count()
-            self.no_urls_to_check = int((no_resources / 30) + 1)
+            self.no_urls_to_check = int((self.no_resources_force_hash() / 30) + 1)
         else:
             self.previous_run_number = None
             self.run_number = 0
             self.no_urls_to_check = 1600
 
+        logger.info('Will force hash %d resources' % self.no_urls_to_check)
         self.testsession = testsession
         if datasets is None:  # pragma: no cover
             Configuration.read().set_read_only(True)  # so that we only get public datasets
@@ -86,6 +86,18 @@ class DataFreshness:
                 serialize_now(self.testsession, self.now)
         else:
             self.now = now
+
+    def no_resources_force_hash(self):
+        columns = [DBResource.id, DBDataset.fresh, DBDataset.what_updated]
+        filters = [DBResource.dataset_id == DBDataset.id, DBResource.run_number == self.previous_run_number,
+                   DBDataset.run_number == self.previous_run_number]
+        query = self.session.query(*columns).filter(and_(*filters))
+        noresources = 0
+        for result in query:
+            if result[1] == 0 and 'script update' in result[2]:
+                continue
+            noresources += 1
+        return noresources
 
     def spread_datasets(self):
         self.datasets = list_distribute_contents(self.datasets, lambda x: x['organization']['name'])
@@ -147,19 +159,17 @@ class DataFreshness:
                     if 'freshness_ignore' in updated_by_script:
                         updated_by_script = None
                     else:
-                        if update_frequency <= 0:
-                            dont_hash_script_update = True
+                        match = self.bracketed_date.search(updated_by_script)
+                        if match is None:
+                            updated_by_script = None
                         else:
-                            match = self.bracketed_date.search(updated_by_script)
-                            if match is None:
+                            try:
+                                updated_by_script = parser.parse(match.group(1), ignoretz=True)
+                                if update_frequency <= 0 or self.calculate_aging(updated_by_script,
+                                                                                 update_frequency) == 0:
+                                    dont_hash_script_update = True
+                            except ParserError:
                                 updated_by_script = None
-                            else:
-                                try:
-                                    updated_by_script = parser.parse(match.group(1), ignoretz=True)
-                                    if self.calculate_aging(updated_by_script, update_frequency) == 0:
-                                        dont_hash_script_update = True
-                                except ParserError:
-                                    pass
             dataset_resources, last_resource_updated, last_resource_modified = \
                 self.process_resources(dataset_id, previous_dbdataset, resources, dont_hash_script_update,
                                        forced_hash_ids=forced_hash_ids)
