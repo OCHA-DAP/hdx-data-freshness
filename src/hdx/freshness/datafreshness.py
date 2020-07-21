@@ -8,6 +8,8 @@ Calculate freshness for all datasets in HDX.
 '''
 import datetime
 import logging
+import re
+from parser import ParserError
 from urllib.parse import urlparse
 
 from dateutil import parser
@@ -29,8 +31,12 @@ from hdx.freshness.testdata.serialize import serialize_datasets, serialize_now, 
 
 logger = logging.getLogger(__name__)
 
+default_no_urls_to_check = 1000
+
 
 class DataFreshness:
+    bracketed_date = re.compile(r'\((.*)\)')
+
     def __init__(self, session=None, testsession=None, datasets=None, now=None, do_touch=False):
         ''''''
         self.session = session
@@ -55,17 +61,6 @@ class DataFreshness:
             self.aging[period] = aging_period
         self.aging_statuses = {0: '0: Fresh', 1: '1: Due', 2: '2: Overdue', 3: '3: Delinquent',
                                None: 'Freshness Unavailable'}
-        self.previous_run_number = self.session.query(DBRun.run_number).distinct().order_by(DBRun.run_number.desc()).first()
-        if self.previous_run_number is not None:
-            self.previous_run_number = self.previous_run_number[0]
-            self.run_number = self.previous_run_number + 1
-            no_resources = self.session.query(DBResource).filter_by(run_number=self.previous_run_number).count()
-            self.no_urls_to_check = int((no_resources / 30) + 1)
-        else:
-            self.previous_run_number = None
-            self.run_number = 0
-            self.no_urls_to_check = 1600
-
         self.testsession = testsession
         if datasets is None:  # pragma: no cover
             Configuration.read().set_read_only(True)  # so that we only get public datasets
@@ -82,6 +77,41 @@ class DataFreshness:
                 serialize_now(self.testsession, self.now)
         else:
             self.now = now
+        self.previous_run_number = self.session.query(DBRun.run_number).distinct().order_by(
+            DBRun.run_number.desc()).first()
+        if self.previous_run_number is not None:
+            self.previous_run_number = self.previous_run_number[0]
+            self.run_number = self.previous_run_number + 1
+            no_resources = self.no_resources_force_hash()
+            if no_resources:
+                self.no_urls_to_check = int((no_resources / 30) + 1)
+            else:
+                self.no_urls_to_check = default_no_urls_to_check
+        else:
+            self.previous_run_number = None
+            self.run_number = 0
+            self.no_urls_to_check = default_no_urls_to_check
+
+        logger.info('Will force hash %d resources' % self.no_urls_to_check)
+
+    def no_resources_force_hash(self):
+        columns = [DBResource.id, DBDataset.updated_by_script, DBDataset.update_frequency]
+        filters = [DBResource.dataset_id == DBDataset.id, DBResource.run_number == self.previous_run_number,
+                   DBDataset.run_number == self.previous_run_number]
+        query = self.session.query(*columns).filter(and_(*filters))
+        noscriptupdate = 0
+        noresources = 0
+        for result in query:
+            updated_by_script = result[1]
+            update_frequency = result[2]
+            if updated_by_script is not None:
+                if update_frequency <= 0 or self.calculate_aging(updated_by_script, update_frequency) == 0:
+                    noscriptupdate += 1
+                    continue
+            noresources += 1
+        if noscriptupdate == 0:
+            return None
+        return noresources
 
     def spread_datasets(self):
         self.datasets = list_distribute_contents(self.datasets, lambda x: x['organization']['name'])
@@ -134,9 +164,29 @@ class DataFreshness:
                                                                              id=dataset_id).one()
             except NoResultFound:
                 previous_dbdataset = None
-            fresh = None
+            dont_hash_script_update = False
+            update_frequency = dataset.get('data_update_frequency')
+            updated_by_script = dataset.get('updated_by_script')
+            if update_frequency is not None:
+                update_frequency = int(update_frequency)
+                if updated_by_script:
+                    if 'freshness_ignore' in updated_by_script:
+                        updated_by_script = None
+                    else:
+                        match = self.bracketed_date.search(updated_by_script)
+                        if match is None:
+                            updated_by_script = None
+                        else:
+                            try:
+                                updated_by_script = parser.parse(match.group(1), ignoretz=True)
+                                if update_frequency <= 0 or self.calculate_aging(updated_by_script,
+                                                                                 update_frequency) == 0:
+                                    dont_hash_script_update = True
+                            except ParserError:
+                                updated_by_script = None
             dataset_resources, last_resource_updated, last_resource_modified = \
-                self.process_resources(dataset_id, previous_dbdataset, resources, forced_hash_ids=forced_hash_ids)
+                self.process_resources(dataset_id, previous_dbdataset, resources, dont_hash_script_update,
+                                       forced_hash_ids=forced_hash_ids)
             dataset_date = dataset.get('dataset_date')
             metadata_modified = parser.parse(dataset['metadata_modified'], ignoretz=True)
             if 'last_modified' in dataset:
@@ -160,9 +210,10 @@ class DataFreshness:
                     latest_of_modifieds = review_date
                 else:
                     latest_of_modifieds = last_modified
-            update_frequency = dataset.get('data_update_frequency')
+            if updated_by_script and updated_by_script > latest_of_modifieds:
+                latest_of_modifieds = updated_by_script
+            fresh = None
             if update_frequency is not None and not error:
-                update_frequency = int(update_frequency)
                 if update_frequency == 0:
                     fresh = 0
                     self.live_update += 1
@@ -176,8 +227,8 @@ class DataFreshness:
                     fresh = self.calculate_aging(latest_of_modifieds, update_frequency)
             dbdataset = DBDataset(run_number=self.run_number, id=dataset_id,
                                   dataset_date=dataset_date, update_frequency=update_frequency,
-                                  metadata_modified=metadata_modified,
                                   review_date=review_date, last_modified=last_modified,
+                                  metadata_modified=metadata_modified, updated_by_script=updated_by_script,
                                   latest_of_modifieds=latest_of_modifieds, what_updated=what_updated,
                                   last_resource_updated=last_resource_updated,
                                   last_resource_modified=last_resource_modified, fresh=fresh, error=error)
@@ -195,6 +246,11 @@ class DataFreshness:
                         dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'review date')
                     else:
                         dbdataset.review_date = previous_dbdataset.review_date
+                if updated_by_script and (
+                        previous_dbdataset.updated_by_script is None or updated_by_script > previous_dbdataset.updated_by_script):  # new script update of datasets
+                    dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'script update')
+                else:
+                    dbdataset.updated_by_script = previous_dbdataset.updated_by_script
                 if last_resource_modified <= previous_dbdataset.last_resource_modified:
                     # we keep this so that although we don't normally use it,
                     # we retain the ability to run without touching CKAN
@@ -228,7 +284,8 @@ class DataFreshness:
         self.session.commit()
         return datasets_to_check, resources_to_check
 
-    def process_resources(self, dataset_id, previous_dbdataset, resources, forced_hash_ids=None):
+    def process_resources(self, dataset_id, previous_dbdataset, resources, dont_hash_script_update,
+                          forced_hash_ids=None):
         last_resource_updated = None
         last_resource_modified = None
         dataset_resources = list()
@@ -277,12 +334,15 @@ class DataFreshness:
                     self.internal_what_updated(dbresource, 'internal')
                     internal = True
                     break
-            if forced_hash_ids:
-                forced_hash = resource_id in forced_hash_ids
+            if dont_hash_script_update:
+                forced_hash = False
             else:
-                forced_hash = self.urls_to_check_count < self.no_urls_to_check and \
-                              (dbresource.when_checked is None or
-                               self.now - dbresource.when_checked > datetime.timedelta(days=30))
+                if forced_hash_ids:
+                    forced_hash = resource_id in forced_hash_ids
+                else:
+                    forced_hash = self.urls_to_check_count < self.no_urls_to_check \
+                                  and (dbresource.when_checked is None or
+                                       self.now - dbresource.when_checked > datetime.timedelta(days=30))
             if forced_hash:
                 dataset_resources.append((url, resource_id, True, dbresource.what_updated))
                 self.urls_to_check_count += 1

@@ -106,9 +106,10 @@ same hash: 6
 0: Fresh, Updated hash: 3,
 0: Fresh, Updated nothing: 59,
 0: Fresh, Updated review date: 1,
+0: Fresh, Updated script update: 1,
 1: Due, Updated nothing: 1,
 2: Overdue, Updated nothing: 1,
-3: Delinquent, Updated nothing: 24,
+3: Delinquent, Updated nothing: 23,
 3: Delinquent, Updated nothing,error: 4,
 Freshness Unavailable, Updated no resources: 1,
 Freshness Unavailable, Updated nothing: 3,
@@ -153,16 +154,18 @@ api=False, error=None)>'''
             assert count == 4
             dbdataset = dbsession.query(DBDataset).first()
             assert str(dbdataset) == '''<Dataset(run number=0, id=a2150ad9-2b87-49f5-a6b2-c85dff366b75, dataset date=09/21/2017, update frequency=1,
-review date=None, last modified=2017-12-16 15:11:15.204215, metadata modified=2017-12-16 15:11:15.204215,
+review date=None, last modified=2017-12-16 15:11:15.204215, metadata modified=2017-12-16 15:11:15.204215, updated by script=None,
 latest of modifieds=2017-12-16 15:11:15.204215, what updated=firstrun,
 Resource b21d6004-06b5-41e5-8e3e-0f28140bff64: last modified=2017-12-16 15:11:15.202742,
-Dataset fresh=2, error=False'''
+Dataset fresh=2, error=False)>'''
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='filestore').count()
             assert count == 4
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='nothing',
                                                          error=False).count()
             assert count == 59
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='review date').count()
+            assert count == 1
+            count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=0, what_updated='script update').count()
             assert count == 1
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=1, what_updated='nothing').count()
             assert count == 1
@@ -171,7 +174,7 @@ Dataset fresh=2, error=False'''
             assert count == 1
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing',
                                                          error=False).count()
-            assert count == 24
+            assert count == 23
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=3, what_updated='nothing',
                                                          error=True).count()
             assert count == 4
@@ -196,3 +199,6 @@ maintainer=7d7f5f8d-7e3b-483a-8de1-2b122010c1eb, location=bgd)>'''
             assert count == 40
 
             assert freshness.resource_last_modified_count == 2
+
+            freshness.previous_run_number = freshness.run_number
+            assert freshness.no_resources_force_hash() == 655

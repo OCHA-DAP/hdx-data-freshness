@@ -26,10 +26,11 @@ def serialize_datasets(session, datasets):
                                       dataset_title=dataset['title'], dataset_private=dataset['private'],
                                       dataset_maintainer=dataset['maintainer'],
                                       dataset_date=dataset.get('dataset_date'),
-                                      metadata_modified=dataset['metadata_modified'],
+                                      update_frequency=dataset.get('data_update_frequency'),
                                       review_date=dataset['review_date'],
                                       last_modified=dataset['last_modified'],
-                                      update_frequency=dataset.get('data_update_frequency'),
+                                      updated_by_script=dataset.get('updated_by_script'),
+                                      metadata_modified=dataset['metadata_modified'],
                                       is_requestdata_type=dataset.get('is_requestdata_type'),
                                       dataset_location=','.join([x['name'] for x in dataset['groups']]))
         session.add(dbtestdataset)
@@ -83,10 +84,11 @@ def deserialize_datasets(session):
             'private': dbtestdataset.dataset_private,
             'maintainer': dbtestdataset.dataset_maintainer,
             'dataset_date': dbtestdataset.dataset_date,
-            'metadata_modified': dbtestdataset.metadata_modified,
+            'data_update_frequency': dbtestdataset.update_frequency,
             'review_date': dbtestdataset.review_date,
             'last_modified': dbtestdataset.last_modified,
-            'data_update_frequency': dbtestdataset.update_frequency,
+            'updated_by_script': dbtestdataset.updated_by_script,
+            'metadata_modified': dbtestdataset.metadata_modified,
             'groups': [{'name': x} for x in dbtestdataset.dataset_location.split(',')]
         })
         dataset.set_requestable(dbtestdataset.is_requestdata_type)
