@@ -35,7 +35,7 @@ def resourcecls():
             return MyResource(id)
 
         @classmethod
-        def update_in_hdx(cls, operation, batch_mode, skip_validation):
+        def update_in_hdx(cls, operation, batch_mode, skip_validation, ignore_check):
             cls.touched = True
 
     return MyResource

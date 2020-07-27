@@ -459,7 +459,8 @@ class DataFreshness:
                             self.resource_last_modified_count += 1
                             logger.info('Resource last modified count: %d' % self.resource_last_modified_count)
                             resource['last_modified'] = dbresource.latest_of_modifieds.isoformat()
-                            resource.update_in_hdx(operation='patch', batch_mode='KEEP_OLD', skip_validation=True)
+                            resource.update_in_hdx(operation='patch', batch_mode='KEEP_OLD', skip_validation=True,
+                                                   ignore_check=True)
                         else:
                             logger.info("Didn't update last modified for resource %s as it is fresh!" % resource_id)
                     else:
