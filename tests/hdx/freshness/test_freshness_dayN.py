@@ -91,10 +91,8 @@ class TestFreshnessDayN:
 api: 3,
 error: 26,
 hash: 5,
-internal-filestore: 9,
-internal-filestore,hash: 1,
-internal-nothing: 44,
-internal-nothing,error: 2,
+internal-filestore: 10,
+internal-nothing: 46,
 nothing: 559,
 repeat hash: 1,
 same hash: 6
@@ -112,8 +110,7 @@ same hash: 6
 3: Delinquent, Updated nothing: 23,
 3: Delinquent, Updated nothing,error: 4,
 Freshness Unavailable, Updated no resources: 1,
-Freshness Unavailable, Updated nothing: 3,
-Freshness Unavailable, Updated nothing,error: 1
+Freshness Unavailable, Updated nothing: 4
 
 15 datasets have update frequency of Live
 19 datasets have update frequency of Never
@@ -144,11 +141,11 @@ api=False, error=None)>'''
             assert count == 0
             count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='internal-nothing').filter(
                 DBResource.error.isnot(None)).count()
-            assert count == 2
+            assert count == 0
             # select what_updated, api from dbresources where run_number=0 and md5_hash is not null and id in (select id from dbresources where run_number=1 and what_updated like '%hash%');
             hash_updated = dbsession.query(DBResource.id).filter_by(run_number=1).filter(
                 DBResource.what_updated.like('%hash%'))
-            assert hash_updated.count() == 7
+            assert hash_updated.count() == 6
             count = dbsession.query(DBResource).filter_by(run_number=0).filter(DBResource.md5_hash.isnot(None)).filter(
                 DBResource.id.in_(hash_updated.as_scalar())).count()
             assert count == 4
@@ -180,10 +177,10 @@ Dataset fresh=2, error=False)>'''
             assert count == 4
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=None, what_updated='nothing',
                                                          error=False).count()
-            assert count == 3
+            assert count == 4
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=None, what_updated='nothing',
                                                          error=True).count()
-            assert count == 1
+            assert count == 0
             count = dbsession.query(DBDataset).filter_by(run_number=1, fresh=None, what_updated='no resources',
                                                          error=True).count()
             assert count == 1

@@ -334,7 +334,7 @@ class DataFreshness:
                     self.internal_what_updated(dbresource, 'internal')
                     internal = True
                     break
-            if dont_hash_script_update:
+            if dont_hash_script_update or internal:
                 forced_hash = False
             else:
                 if forced_hash_ids:
