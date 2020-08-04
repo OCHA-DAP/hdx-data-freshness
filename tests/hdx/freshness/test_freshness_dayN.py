@@ -198,4 +198,4 @@ maintainer=7d7f5f8d-7e3b-483a-8de1-2b122010c1eb, location=bgd)>'''
             assert freshness.resource_last_modified_count == 2
 
             freshness.previous_run_number = freshness.run_number
-            assert freshness.no_resources_force_hash() == 655
+            assert freshness.no_resources_force_hash() == 599

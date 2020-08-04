@@ -49,7 +49,7 @@ class DataFreshness:
         self.resource_last_modified_count = 0
         self.do_touch = do_touch
 
-        self.urls_internal = ['data.humdata.org']
+        self.url_internal = 'data.humdata.org'
 
         self.aging = dict()
         for key, value in Configuration.read()['aging'].items():
@@ -97,7 +97,8 @@ class DataFreshness:
     def no_resources_force_hash(self):
         columns = [DBResource.id, DBDataset.updated_by_script, DBDataset.update_frequency]
         filters = [DBResource.dataset_id == DBDataset.id, DBResource.run_number == self.previous_run_number,
-                   DBDataset.run_number == self.previous_run_number]
+                   DBDataset.run_number == self.previous_run_number,
+                   DBResource.url.notlike('%{}%'.format(self.url_internal))]
         query = self.session.query(*columns).filter(and_(*filters))
         noscriptupdate = 0
         noresources = 0
@@ -328,13 +329,11 @@ class DataFreshness:
                     pass
             self.session.add(dbresource)
 
-            internal = False
-            for url_substr in self.urls_internal:
-                if url_substr in url:
-                    self.internal_what_updated(dbresource, 'internal')
-                    internal = True
-                    break
-            if dont_hash_script_update or internal:
+            if self.url_internal in url:
+                self.internal_what_updated(dbresource, 'internal')
+                dict_of_lists_add(self.resource_what_updated, dbresource.what_updated, dbresource.id)
+                continue
+            if dont_hash_script_update:
                 forced_hash = False
             else:
                 if forced_hash_ids:
@@ -346,8 +345,6 @@ class DataFreshness:
             if forced_hash:
                 dataset_resources.append((url, resource_id, True, dbresource.what_updated))
                 self.urls_to_check_count += 1
-            elif internal:
-                dict_of_lists_add(self.resource_what_updated, dbresource.what_updated, dbresource.id)
             else:
                 dataset_resources.append((url, resource_id, False, dbresource.what_updated))
         return dataset_resources, last_resource_updated, last_resource_modified
