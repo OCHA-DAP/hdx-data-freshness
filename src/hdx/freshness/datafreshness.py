@@ -95,7 +95,7 @@ class DataFreshness:
         logger.info('Will force hash %d resources' % self.no_urls_to_check)
 
     def no_resources_force_hash(self):
-        columns = [DBResource.id, DBDataset.updated_by_script, DBDataset.update_frequency]
+        columns = [DBResource.id, DBDataset.updated_by_script]
         filters = [DBResource.dataset_id == DBDataset.id, DBResource.run_number == self.previous_run_number,
                    DBDataset.run_number == self.previous_run_number,
                    DBResource.url.notlike('%{}%'.format(self.url_internal))]
@@ -104,11 +104,9 @@ class DataFreshness:
         noresources = 0
         for result in query:
             updated_by_script = result[1]
-            update_frequency = result[2]
             if updated_by_script is not None:
-                if update_frequency <= 0 or self.calculate_aging(updated_by_script, update_frequency) == 0:
-                    noscriptupdate += 1
-                    continue
+                noscriptupdate += 1
+                continue
             noresources += 1
         if noscriptupdate == 0:
             return None
@@ -180,9 +178,7 @@ class DataFreshness:
                         else:
                             try:
                                 updated_by_script = parser.parse(match.group(1), ignoretz=True)
-                                if update_frequency <= 0 or self.calculate_aging(updated_by_script,
-                                                                                 update_frequency) == 0:
-                                    dont_hash_script_update = True
+                                dont_hash_script_update = True
                             except ParserError:
                                 updated_by_script = None
             dataset_resources, last_resource_updated, last_resource_modified = \
