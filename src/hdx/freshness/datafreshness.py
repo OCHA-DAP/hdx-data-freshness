@@ -262,7 +262,7 @@ class DataFreshness:
             self.session.add(dbdataset)
 
             update_string = '%s, Updated %s' % (self.aging_statuses[fresh], dbdataset.what_updated)
-            if fresh == 0 or update_frequency is None:
+            if dont_hash_script_update or fresh == 0 or update_frequency is None:
                 hash_forced = False
                 for url, resource_id, force_hash, what_updated in dataset_resources:
                     if force_hash:
@@ -274,7 +274,6 @@ class DataFreshness:
                     datasets_to_check[dataset_id] = update_string
                 else:
                     dict_of_lists_add(self.dataset_what_updated, update_string, dataset_id)
-
             else:
                 datasets_to_check[dataset_id] = update_string
                 resources_to_check += dataset_resources
