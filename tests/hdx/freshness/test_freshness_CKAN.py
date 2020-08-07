@@ -184,8 +184,9 @@ class TestFreshnessCKAN:
             # tear down
             for i, dataset in enumerate(datasets):
                 dataset = Dataset.read_from_hdx(dataset['id'])
-                last_modifieds[i]['run2'] = dataset['last_modified']
-                dataset.delete_from_hdx()
+                if dataset:
+                    last_modifieds[i]['run2'] = dataset['last_modified']
+                    dataset.delete_from_hdx()
 
         assert output1 == '''
 *** Resources ***
