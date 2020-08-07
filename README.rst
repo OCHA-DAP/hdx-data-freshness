@@ -6,7 +6,7 @@ HDX Data Freshness
 The implementation of HDX freshness in Python reads all the datasets
 from the `Humanitarian Data Exchange <http://data.humdata.org/>`__
 website (using the HDX Python library) and then iterates through them
-one by one performing a sequence of steps.
+one by one performing a sequence of steps:
 
 #. It gets the dataset's update frequency if it has one. If that update
    frequency is Never, then the dataset is always fresh.
