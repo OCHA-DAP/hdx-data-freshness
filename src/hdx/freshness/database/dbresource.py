@@ -21,7 +21,7 @@ class DBResource(Base):
     what_updated = Column(String, nullable=False)
     http_last_modified = Column(DateTime, default=None)
     md5_hash = Column(String, default=None)
-    when_hashed = Column(DateTime, default=None)
+    hash_last_modified = Column(DateTime, default=None)
     when_checked = Column(DateTime, default=None)
     api = Column(Boolean)
     error = Column(String)
@@ -33,7 +33,7 @@ class DBResource(Base):
                                                                      str(self.revision_last_updated))
         output += 'latest of modifieds=%s, what updated=%s,\n' % (str(self.latest_of_modifieds), str(self.what_updated))
         output += 'http last modified=%s,\n' % str(self.http_last_modified)
-        output += 'MD5 hash=%s, when hashed=%s, ' % (str(self.http_last_modified), str(self.when_hashed))
+        output += 'MD5 hash=%s, hash last modified=%s, ' % (str(self.http_last_modified), str(self.hash_last_modified))
         output += 'when checked=%s,\n' % str(self.when_checked)
         output += 'api=%s, error=%s)>' % (str(self.api), str(self.error))
         return output

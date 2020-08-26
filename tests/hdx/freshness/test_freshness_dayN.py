@@ -76,7 +76,7 @@ class TestFreshnessDayN:
             dbsession = freshness.session
             # insert resource with run number -1 with hash 999 to test repeated hash
             dbsession.execute(
-                "INSERT INTO dbresources(run_number,id,name,dataset_id,url,last_modified,revision_last_updated,latest_of_modifieds,what_updated,http_last_modified,md5_hash,when_hashed,when_checked,api,error) VALUES (-1,'010ab2d2-8f98-409b-a1f0-4707ad6c040a','sidih_190.csv','54d6b4b8-8cc9-42d3-82ce-3fa4fd3d9be1','https://ds-ec2.scraperwiki.com/egzfk1p/siqsxsgjnxgk3r2/cgi-bin/csv/sidih_190.csv','2015-05-07 14:44:56.599079','2015-05-07 14:44:56.599079','2015-05-07 14:44:56.599079','',NULL,'999','2017-12-16 16:03:33.208327','2017-12-16 16:03:33.208327','0',NULL);")
+                "INSERT INTO dbresources(run_number,id,name,dataset_id,url,last_modified,revision_last_updated,latest_of_modifieds,what_updated,http_last_modified,md5_hash,hash_last_modified,when_checked,api,error) VALUES (-1,'010ab2d2-8f98-409b-a1f0-4707ad6c040a','sidih_190.csv','54d6b4b8-8cc9-42d3-82ce-3fa4fd3d9be1','https://ds-ec2.scraperwiki.com/egzfk1p/siqsxsgjnxgk3r2/cgi-bin/csv/sidih_190.csv','2015-05-07 14:44:56.599079','2015-05-07 14:44:56.599079','2015-05-07 14:44:56.599079','',NULL,'999','2017-12-16 16:03:33.208327','2017-12-16 16:03:33.208327','0',NULL);")
             datasets_to_check, resources_to_check = freshness.process_datasets(forced_hash_ids=forced_hash_ids)
             results, hash_results = freshness.check_urls(resources_to_check, 'test', results=results,
                                                          hash_results=hash_results)
@@ -90,7 +90,8 @@ class TestFreshnessDayN:
 * total: 656 *,
 api: 3,
 error: 26,
-hash: 5,
+first hash: 2,
+hash: 3,
 internal-filestore: 10,
 internal-nothing: 46,
 nothing: 559,
@@ -122,16 +123,18 @@ Freshness Unavailable, Updated nothing: 4
             assert str(dbresource) == '''<Resource(run number=0, id=b21d6004-06b5-41e5-8e3e-0f28140bff64, name=Topline Numbers.csv, dataset id=a2150ad9-2b87-49f5-a6b2-c85dff366b75,
 url=https://docs.google.com/spreadsheets/d/e/2PACX-1vRjFRZGLB8IMp0anSGR1tcGxwJgkyx0bTN9PsinqtaLWKHBEfz77LkinXeVqIE_TsGVt-xM6DQzXpkJ/pub?gid=0&single=true&output=csv,
 last modified=2017-12-16 15:11:15.202742, revision last updated=2017-12-16 15:11:15.202742,
-latest of modifieds=2017-12-16 15:11:15.202742, what updated=hash,
+latest of modifieds=2017-12-16 15:11:15.202742, what updated=first hash,
 http last modified=None,
-MD5 hash=None, when hashed=2017-12-18 16:03:33.208327, when checked=2017-12-18 16:03:33.208327,
+MD5 hash=None, hash last modified=None, when checked=2017-12-18 16:03:33.208327,
 api=False, error=None)>'''
             count = dbsession.query(DBResource).filter(DBResource.url.like('%data.humdata.org%')).count()
             assert count == 112
             count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='filestore', error=None).count()
             assert count == 0
+            count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='first hash', error=None).count()
+            assert count == 2
             count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='hash', error=None).count()
-            assert count == 5
+            assert count == 3
             count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='http header', error=None).count()
             assert count == 0
             count = dbsession.query(DBResource).filter_by(run_number=1, api=True).count()

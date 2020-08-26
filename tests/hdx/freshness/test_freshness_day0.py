@@ -74,8 +74,8 @@ class TestFreshnessDay0:
 * total: 660 *,
 api: 4,
 error: 27,
+first hash: 9,
 firstrun: 564,
-hash: 9,
 internal-firstrun: 56
 
 *** Datasets ***
@@ -98,9 +98,9 @@ Freshness Unavailable, Updated firstrun: 4
             assert str(dbresource) == '''<Resource(run number=0, id=b21d6004-06b5-41e5-8e3e-0f28140bff64, name=Topline Numbers.csv, dataset id=a2150ad9-2b87-49f5-a6b2-c85dff366b75,
 url=https://docs.google.com/spreadsheets/d/e/2PACX-1vRjFRZGLB8IMp0anSGR1tcGxwJgkyx0bTN9PsinqtaLWKHBEfz77LkinXeVqIE_TsGVt-xM6DQzXpkJ/pub?gid=0&single=true&output=csv,
 last modified=2017-12-16 15:11:15.202742, revision last updated=2017-12-16 15:11:15.202742,
-latest of modifieds=2017-12-16 15:11:15.202742, what updated=hash,
+latest of modifieds=2017-12-16 15:11:15.202742, what updated=first hash,
 http last modified=None,
-MD5 hash=None, when hashed=2017-12-18 16:03:33.208327, when checked=2017-12-18 16:03:33.208327,
+MD5 hash=None, hash last modified=None, when checked=2017-12-18 16:03:33.208327,
 api=False, error=None)>'''
             count = dbsession.query(DBResource).filter(DBResource.url.like('%data.humdata.org%')).count()
             assert count == 56
@@ -120,7 +120,7 @@ api=False, error=None)>'''
             count = dbsession.query(DBResource).filter(DBResource.error.isnot(None)).filter_by(
                 what_updated='firstrun').count()
             assert count == 27
-            count = dbsession.query(DBResource).filter_by(what_updated='hash', error=None, api=False).count()
+            count = dbsession.query(DBResource).filter_by(what_updated='first hash', error=None, api=False).count()
             assert count == 9
             count = dbsession.query(DBResource).filter_by(what_updated='http header', error=None,
                                                           api=None).count()

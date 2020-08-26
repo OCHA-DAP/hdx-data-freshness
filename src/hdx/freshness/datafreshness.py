@@ -317,7 +317,7 @@ class DataFreshness:
                         dbresource.latest_of_modifieds = previous_dbresource.latest_of_modifieds
                     dbresource.http_last_modified = previous_dbresource.http_last_modified
                     dbresource.md5_hash = previous_dbresource.md5_hash
-                    dbresource.when_hashed = previous_dbresource.when_hashed
+                    dbresource.hash_last_modified = previous_dbresource.hash_last_modified
                     dbresource.when_checked = previous_dbresource.when_checked
 
                 except NoResultFound:
@@ -390,7 +390,6 @@ class DataFreshness:
                     dbresource.http_last_modified = http_last_modified
             if hash:
                 dbresource.when_checked = self.now
-                dbresource.when_hashed = self.now
                 if dbresource.md5_hash == hash:  # File unchanged
                     what_updated = self.add_what_updated(what_updated, 'same hash')
                 else:  # File updated
@@ -402,8 +401,9 @@ class DataFreshness:
                     if hash_hash:
                         if hash_hash == hash:
                             if dbresource.md5_hash is None:  # First occurrence of resource eg. first run - don't use hash
-                                                    # for last modified field (and hence freshness calculation)
-                                dbresource.what_updated = self.add_what_updated(what_updated, 'hash')
+                                # for last modified field (and hence freshness calculation)
+                                dbresource.what_updated = self.add_what_updated(what_updated,
+                                                                                'first hash')
                                 what_updated = dbresource.what_updated
                             else:
                                 # Check if hash has occurred before
@@ -414,6 +414,7 @@ class DataFreshness:
                                     what_updated = dbresource.what_updated
                                 else:
                                     what_updated, _ = self.set_latest_of_modifieds(dbresource, self.now, 'hash')
+                                    dbresource.hash_last_modified = self.now
                                     update_last_modified = True
                             dbresource.api = False
                         else:

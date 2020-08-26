@@ -191,8 +191,8 @@ class TestFreshnessCKAN:
         assert output1 == '''
 *** Resources ***
 * total: 8 *,
-firstrun: 2,
-hash: 6
+first hash: 6,
+firstrun: 2
 
 *** Datasets ***
 * total: 8 *,
