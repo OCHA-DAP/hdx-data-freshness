@@ -33,7 +33,7 @@ class DBResource(Base):
                                                                      str(self.revision_last_updated))
         output += 'latest of modifieds=%s, what updated=%s,\n' % (str(self.latest_of_modifieds), str(self.what_updated))
         output += 'http last modified=%s,\n' % str(self.http_last_modified)
-        output += 'MD5 hash=%s, hash last modified=%s, ' % (str(self.http_last_modified), str(self.hash_last_modified))
+        output += 'MD5 hash=%s, hash last modified=%s, ' % (self.md5_hash, str(self.hash_last_modified))
         output += 'when checked=%s,\n' % str(self.when_checked)
         output += 'api=%s, error=%s)>' % (str(self.api), str(self.error))
         return output

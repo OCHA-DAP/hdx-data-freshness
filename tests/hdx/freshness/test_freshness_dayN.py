@@ -125,7 +125,16 @@ url=https://docs.google.com/spreadsheets/d/e/2PACX-1vRjFRZGLB8IMp0anSGR1tcGxwJgk
 last modified=2017-12-16 15:11:15.202742, revision last updated=2017-12-16 15:11:15.202742,
 latest of modifieds=2017-12-16 15:11:15.202742, what updated=first hash,
 http last modified=None,
-MD5 hash=None, hash last modified=None, when checked=2017-12-18 16:03:33.208327,
+MD5 hash=be5802368e5a6f7ad172f27732001f3a, hash last modified=None, when checked=2017-12-18 16:03:33.208327,
+api=False, error=None)>'''
+            dbresource = dbsession.query(DBResource).filter(DBResource.run_number == 1,
+                                                            DBResource.id == '7b82976a-ae81-4cef-a76f-12ba14152086').first()
+            assert str(dbresource) == '''<Resource(run number=1, id=7b82976a-ae81-4cef-a76f-12ba14152086, name=Guinea, Liberia, Mali and Sierra Leone Health Facilities, dataset id=ce876595-1263-4df6-a8ca-459f92c532e4,
+url=https://docs.google.com/a/megginson.com/spreadsheets/d/1paoIpHiYo7dy_dnf_luUSfowWDwNAWwS3z4GHL2J7Rc/export?format=xlsx&id=1paoIpHiYo7dy_dnf_luUSfowWDwNAWwS3z4GHL2J7Rc,
+last modified=2017-12-18 22:21:26.783801, revision last updated=2017-12-18 22:21:26.783801,
+latest of modifieds=2017-12-19 10:53:28.606889, what updated=hash,
+http last modified=None,
+MD5 hash=789, hash last modified=2017-12-19 10:53:28.606889, when checked=2017-12-19 10:53:28.606889,
 api=False, error=None)>'''
             count = dbsession.query(DBResource).filter(DBResource.url.like('%data.humdata.org%')).count()
             assert count == 112

@@ -100,7 +100,7 @@ url=https://docs.google.com/spreadsheets/d/e/2PACX-1vRjFRZGLB8IMp0anSGR1tcGxwJgk
 last modified=2017-12-16 15:11:15.202742, revision last updated=2017-12-16 15:11:15.202742,
 latest of modifieds=2017-12-16 15:11:15.202742, what updated=first hash,
 http last modified=None,
-MD5 hash=None, hash last modified=None, when checked=2017-12-18 16:03:33.208327,
+MD5 hash=be5802368e5a6f7ad172f27732001f3a, hash last modified=None, when checked=2017-12-18 16:03:33.208327,
 api=False, error=None)>'''
             count = dbsession.query(DBResource).filter(DBResource.url.like('%data.humdata.org%')).count()
             assert count == 56
