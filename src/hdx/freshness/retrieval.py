@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 async def fetch(metadata, session):
     url = metadata[0]
     resource_id = metadata[1]
-    force_hash = metadata[2]
 
     async def fn(response):
         last_modified_str = response.headers.get('Last-Modified')
@@ -34,23 +33,21 @@ async def fetch(metadata, session):
         if last_modified_str:
             try:
                 http_last_modified = parser.parse(last_modified_str, ignoretz=True)
-                if not force_hash:
-                    response.close()
-                    return resource_id, url, None, http_last_modified, None, False
+                # we set this but don't actually use it to calculate freshness any more
             except (ValueError, OverflowError):
                 pass
         length = response.headers.get('Content-Length')
         if length and int(length) > 419430400:
             response.close()
             err = 'File too large to hash!'
-            return resource_id, url, err, http_last_modified, None, force_hash
+            return resource_id, url, err, http_last_modified, None
         logger.info('Hashing %s' % url)
         try:
             md5hash = hashlib.md5()
             async for chunk in response.content.iter_chunked(10240):
                 if chunk:
                     md5hash.update(chunk)
-            return resource_id, url, None, http_last_modified, md5hash.hexdigest(), force_hash
+            return resource_id, url, None, http_last_modified, md5hash.hexdigest()
         except Exception as exc:
             try:
                 code = exc.code
@@ -61,7 +58,7 @@ async def fetch(metadata, session):
                                                                                          exc.__class__.__qualname__,
                                                                                          url)
             if http_last_modified:
-                return resource_id, url, err, http_last_modified, None, force_hash
+                return resource_id, url, err, http_last_modified, None
             raise aiohttp.ClientResponseError(code=code, message=err,
                                               request_info=response.request_info, history=response.history) from exc
 
@@ -72,7 +69,7 @@ async def fetch(metadata, session):
                                      backoff=4,
                                      fn=fn)
     except Exception as e:
-        return resource_id, url, str(e), None, None, force_hash
+        return resource_id, url, str(e), None, None
 
 
 async def check_urls(urls, loop, user_agent):
@@ -88,8 +85,8 @@ async def check_urls(urls, loop, user_agent):
             tasks.append(task)
         responses = dict()
         for f in tqdm.tqdm(asyncio.as_completed(tasks), total=len(tasks)):
-            resource_id, url, err, http_last_modified, hash, force_hash = await f
-            responses[resource_id] = (url, err, http_last_modified, hash, force_hash)
+            resource_id, url, err, http_last_modified, hash = await f
+            responses[resource_id] = (url, err, http_last_modified, hash)
         return responses
 
 

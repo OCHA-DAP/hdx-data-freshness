@@ -77,7 +77,7 @@ class TestFreshnessDayN:
             # insert resource with run number -1 with hash 999 to test repeated hash
             dbsession.execute(
                 "INSERT INTO dbresources(run_number,id,name,dataset_id,url,last_modified,revision_last_updated,latest_of_modifieds,what_updated,http_last_modified,md5_hash,hash_last_modified,when_checked,api,error) VALUES (-1,'010ab2d2-8f98-409b-a1f0-4707ad6c040a','sidih_190.csv','54d6b4b8-8cc9-42d3-82ce-3fa4fd3d9be1','https://ds-ec2.scraperwiki.com/egzfk1p/siqsxsgjnxgk3r2/cgi-bin/csv/sidih_190.csv','2015-05-07 14:44:56.599079','2015-05-07 14:44:56.599079','2015-05-07 14:44:56.599079','',NULL,'999','2017-12-16 16:03:33.208327','2017-12-16 16:03:33.208327','0',NULL);")
-            datasets_to_check, resources_to_check = freshness.process_datasets(forced_hash_ids=forced_hash_ids)
+            datasets_to_check, resources_to_check = freshness.process_datasets(hash_ids=forced_hash_ids)
             results, hash_results = freshness.check_urls(resources_to_check, 'test', results=results,
                                                          hash_results=hash_results)
             resourcecls.populate_resourcedict(datasets)
@@ -87,10 +87,10 @@ class TestFreshnessDayN:
             # Make sure the sum of the resources = the total resources and sum of the datasets = the total datasets!
             assert output == '''
 *** Resources ***
-* total: 656 *,
+* total: 657 *,
 api: 3,
 error: 26,
-first hash: 2,
+first hash: 3,
 hash: 3,
 internal-filestore: 10,
 internal-nothing: 46,
@@ -99,9 +99,10 @@ repeat hash: 1,
 same hash: 6
 
 *** Datasets ***
-* total: 103 *,
+* total: 104 *,
 0: Fresh, Updated filestore: 4,
 0: Fresh, Updated filestore,review date: 1,
+0: Fresh, Updated firstrun: 1,
 0: Fresh, Updated hash: 3,
 0: Fresh, Updated nothing: 59,
 0: Fresh, Updated review date: 1,
@@ -141,7 +142,7 @@ api=False, error=None)>'''
             count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='filestore', error=None).count()
             assert count == 0
             count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='first hash', error=None).count()
-            assert count == 2
+            assert count == 3
             count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='hash', error=None).count()
             assert count == 3
             count = dbsession.query(DBResource).filter_by(run_number=1, what_updated='http header', error=None).count()
@@ -157,7 +158,7 @@ api=False, error=None)>'''
             # select what_updated, api from dbresources where run_number=0 and md5_hash is not null and id in (select id from dbresources where run_number=1 and what_updated like '%hash%');
             hash_updated = dbsession.query(DBResource.id).filter_by(run_number=1).filter(
                 DBResource.what_updated.like('%hash%'))
-            assert hash_updated.count() == 6
+            assert hash_updated.count() == 7
             count = dbsession.query(DBResource).filter_by(run_number=0).filter(DBResource.md5_hash.isnot(None)).filter(
                 DBResource.id.in_(hash_updated.as_scalar())).count()
             assert count == 4
@@ -201,7 +202,7 @@ Dataset fresh=2, error=False)>'''
 private=False, organization id=hdx,
 maintainer=7d7f5f8d-7e3b-483a-8de1-2b122010c1eb, location=bgd)>'''
             count = dbsession.query(DBInfoDataset).count()
-            assert count == 103
+            assert count == 104
             dborganization = dbsession.query(DBOrganization).first()
             assert str(dborganization) == '''<Organization(id=hdx, name=hdx, title=HDX)>'''
             count = dbsession.query(DBOrganization).count()
@@ -210,4 +211,4 @@ maintainer=7d7f5f8d-7e3b-483a-8de1-2b122010c1eb, location=bgd)>'''
             assert freshness.resource_last_modified_count == 2
 
             freshness.previous_run_number = freshness.run_number
-            assert freshness.no_resources_force_hash() == 599
+            assert freshness.no_resources_force_hash() == 600

@@ -84,7 +84,7 @@ class DataFreshness:
             self.run_number = self.previous_run_number + 1
             no_resources = self.no_resources_force_hash()
             if no_resources:
-                self.no_urls_to_check = int((no_resources / 30) + 1)
+                self.no_urls_to_check = no_resources
             else:
                 self.no_urls_to_check = default_no_urls_to_check
         else:
@@ -98,7 +98,7 @@ class DataFreshness:
         columns = [DBResource.id, DBDataset.updated_by_script]
         filters = [DBResource.dataset_id == DBDataset.id, DBResource.run_number == self.previous_run_number,
                    DBDataset.run_number == self.previous_run_number,
-                   DBResource.url.notlike('%{}%'.format(self.url_internal))]
+                   DBResource.url.notlike(f'%{self.url_internal}%')]
         query = self.session.query(*columns).filter(and_(*filters))
         noscriptupdate = 0
         noresources = 0
@@ -120,168 +120,12 @@ class DataFreshness:
         self.session.add(dbrun)
         self.session.commit()
 
-    def process_datasets(self, forced_hash_ids=None):
-        resources_to_check = list()
-        datasets_to_check = dict()
-        logger.info('Processing datasets')
-        for dataset in self.datasets:
-            resources = dataset.get_resources()
-            if dataset.is_requestable():  # ignore requestable
-                continue
-            dataset_id = dataset['id']
-            dict_of_lists_add(self.dataset_what_updated, 'total', dataset_id)
-            organization_id = dataset['organization']['id']
-            organization_name = dataset['organization']['name']
-            organization_title = dataset['organization']['title']
-            try:
-                dborganization = self.session.query(DBOrganization).filter_by(id=organization_id).one()
-                dborganization.name = organization_name
-                dborganization.title = organization_title
-            except NoResultFound:
-                dborganization = DBOrganization(name=organization_name, id=organization_id, title=organization_title)
-                self.session.add(dborganization)
-            dataset_name = dataset['name']
-            dataset_title = dataset['title']
-            dataset_private = dataset['private']
-            dataset_maintainer = dataset['maintainer']
-            dataset_location = ','.join([x['name'] for x in dataset['groups']])
-            try:
-                dbinfodataset = self.session.query(DBInfoDataset).filter_by(id=dataset_id).one()
-                dbinfodataset.name = dataset_name
-                dbinfodataset.title = dataset_title
-                dbinfodataset.private = dataset_private
-                dbinfodataset.organization_id = organization_id
-                dbinfodataset.maintainer = dataset_maintainer
-                dbinfodataset.location = dataset_location
-            except NoResultFound:
-                dbinfodataset = DBInfoDataset(name=dataset_name, id=dataset_id, title=dataset_title,
-                                              private=dataset_private, organization_id=organization_id,
-                                              maintainer=dataset_maintainer, location=dataset_location)
-                self.session.add(dbinfodataset)
-            try:
-                previous_dbdataset = self.session.query(DBDataset).filter_by(run_number=self.previous_run_number,
-                                                                             id=dataset_id).one()
-            except NoResultFound:
-                previous_dbdataset = None
-            dont_hash_script_update = False
-            update_frequency = dataset.get('data_update_frequency')
-            updated_by_script = dataset.get('updated_by_script')
-            if update_frequency is not None:
-                update_frequency = int(update_frequency)
-                if updated_by_script:
-                    if 'freshness_ignore' in updated_by_script:
-                        updated_by_script = None
-                    else:
-                        match = self.bracketed_date.search(updated_by_script)
-                        if match is None:
-                            updated_by_script = None
-                        else:
-                            try:
-                                updated_by_script = parser.parse(match.group(1), ignoretz=True)
-                                dont_hash_script_update = True
-                            except ParserError:
-                                updated_by_script = None
-            dataset_resources, last_resource_updated, last_resource_modified = \
-                self.process_resources(dataset_id, previous_dbdataset, resources, dont_hash_script_update,
-                                       forced_hash_ids=forced_hash_ids)
-            dataset_date = dataset.get('dataset_date')
-            metadata_modified = parser.parse(dataset['metadata_modified'], ignoretz=True)
-            if 'last_modified' in dataset:
-                last_modified = parser.parse(dataset['last_modified'], ignoretz=True)
-            else:
-                last_modified = datetime.datetime(1970, 1, 1, 0, 0)
-            if len(resources) == 0 and last_resource_updated is None:
-                last_resource_updated = 'NO RESOURCES'
-                last_resource_modified = datetime.datetime(1970, 1, 1, 0, 0)
-                error = True
-                what_updated = 'no resources'
-            else:
-                error = False
-                what_updated = 'firstrun'
-            review_date = dataset.get('review_date')
-            if review_date is None:
-                latest_of_modifieds = last_modified
-            else:
-                review_date = parser.parse(review_date, ignoretz=True)
-                if review_date > last_modified:
-                    latest_of_modifieds = review_date
-                else:
-                    latest_of_modifieds = last_modified
-            if updated_by_script and updated_by_script > latest_of_modifieds:
-                latest_of_modifieds = updated_by_script
-            fresh = None
-            if update_frequency is not None and not error:
-                if update_frequency == 0:
-                    fresh = 0
-                    self.live_update += 1
-                elif update_frequency == -1:
-                    fresh = 0
-                    self.never_update += 1
-                elif update_frequency == -2:
-                    fresh = 0
-                    self.adhoc_update += 1
-                else:
-                    fresh = self.calculate_aging(latest_of_modifieds, update_frequency)
-            dbdataset = DBDataset(run_number=self.run_number, id=dataset_id,
-                                  dataset_date=dataset_date, update_frequency=update_frequency,
-                                  review_date=review_date, last_modified=last_modified,
-                                  metadata_modified=metadata_modified, updated_by_script=updated_by_script,
-                                  latest_of_modifieds=latest_of_modifieds, what_updated=what_updated,
-                                  last_resource_updated=last_resource_updated,
-                                  last_resource_modified=last_resource_modified, fresh=fresh, error=error)
-            if previous_dbdataset is not None and not error:
-                dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'nothing')
-                if last_modified > previous_dbdataset.last_modified:  # filestore update would cause this
-                    dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'filestore')
-                else:
-                    dbdataset.last_modified = previous_dbdataset.last_modified
-                if previous_dbdataset.review_date is None:
-                    if review_date is not None:
-                        dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'review date')
-                else:
-                    if review_date is not None and review_date > previous_dbdataset.review_date:  # someone clicked the review button
-                        dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'review date')
-                    else:
-                        dbdataset.review_date = previous_dbdataset.review_date
-                if updated_by_script and (
-                        previous_dbdataset.updated_by_script is None or updated_by_script > previous_dbdataset.updated_by_script):  # new script update of datasets
-                    dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'script update')
-                else:
-                    dbdataset.updated_by_script = previous_dbdataset.updated_by_script
-                if last_resource_modified <= previous_dbdataset.last_resource_modified:
-                    # we keep this so that although we don't normally use it,
-                    # we retain the ability to run without touching CKAN
-                    dbdataset.last_resource_updated = previous_dbdataset.last_resource_updated
-                    dbdataset.last_resource_modified = previous_dbdataset.last_resource_modified
-                if latest_of_modifieds < previous_dbdataset.latest_of_modifieds:
-                    dbdataset.latest_of_modifieds = previous_dbdataset.latest_of_modifieds
-                    if update_frequency is not None and update_frequency > 0:
-                        fresh = self.calculate_aging(previous_dbdataset.latest_of_modifieds, update_frequency)
-                        dbdataset.fresh = fresh
+    @staticmethod
+    def internal_what_updated(dbresource, url_substr):
+        what_updated = '%s-%s' % (url_substr, dbresource.what_updated)
+        dbresource.what_updated = what_updated
 
-            self.session.add(dbdataset)
-
-            update_string = '%s, Updated %s' % (self.aging_statuses[fresh], dbdataset.what_updated)
-            if dont_hash_script_update or fresh == 0 or update_frequency is None:
-                hash_forced = False
-                for url, resource_id, force_hash, what_updated in dataset_resources:
-                    if force_hash:
-                        hash_forced = True
-                        resources_to_check.append((url, resource_id, True, what_updated))
-                    else:
-                        dict_of_lists_add(self.resource_what_updated, what_updated, resource_id)
-                if hash_forced:
-                    datasets_to_check[dataset_id] = update_string
-                else:
-                    dict_of_lists_add(self.dataset_what_updated, update_string, dataset_id)
-            else:
-                datasets_to_check[dataset_id] = update_string
-                resources_to_check += dataset_resources
-        self.session.commit()
-        return datasets_to_check, resources_to_check
-
-    def process_resources(self, dataset_id, previous_dbdataset, resources, dont_hash_script_update,
-                          forced_hash_ids=None):
+    def process_resources(self, dataset_id, previous_dbdataset, resources, updated_by_script, hash_ids=None):
         last_resource_updated = None
         last_resource_modified = None
         dataset_resources = list()
@@ -324,30 +168,179 @@ class DataFreshness:
                     pass
             self.session.add(dbresource)
 
+            if updated_by_script:
+                dict_of_lists_add(self.resource_what_updated, dbresource.what_updated, resource_id)
+                continue
             if self.url_internal in url:
                 self.internal_what_updated(dbresource, 'internal')
-                dict_of_lists_add(self.resource_what_updated, dbresource.what_updated, dbresource.id)
+                dict_of_lists_add(self.resource_what_updated, dbresource.what_updated, resource_id)
                 continue
-            if dont_hash_script_update:
-                forced_hash = False
+            if hash_ids:
+                should_hash = resource_id in hash_ids
             else:
-                if forced_hash_ids:
-                    forced_hash = resource_id in forced_hash_ids
-                else:
-                    forced_hash = self.urls_to_check_count < self.no_urls_to_check \
-                                  and (dbresource.when_checked is None or
-                                       self.now - dbresource.when_checked > datetime.timedelta(days=30))
-            if forced_hash:
-                dataset_resources.append((url, resource_id, True, dbresource.what_updated))
-                self.urls_to_check_count += 1
-            else:
-                dataset_resources.append((url, resource_id, False, dbresource.what_updated))
+                should_hash = self.urls_to_check_count < self.no_urls_to_check \
+                              and (dbresource.when_checked is None or
+                                   self.now - dbresource.when_checked > datetime.timedelta(days=30))
+            dataset_resources.append((url, resource_id, dbresource.what_updated, should_hash))
         return dataset_resources, last_resource_updated, last_resource_modified
 
-    @staticmethod
-    def internal_what_updated(dbresource, url_substr):
-        what_updated = '%s-%s' % (url_substr, dbresource.what_updated)
-        dbresource.what_updated = what_updated
+    def process_datasets(self, hash_ids=None):
+        resources_to_check = list()
+        datasets_to_check = dict()
+        logger.info('Processing datasets')
+        for dataset in self.datasets:
+            resources = dataset.get_resources()
+            if dataset.is_requestable():  # ignore requestable
+                continue
+            dataset_id = dataset['id']
+            dict_of_lists_add(self.dataset_what_updated, 'total', dataset_id)
+            organization_id = dataset['organization']['id']
+            organization_name = dataset['organization']['name']
+            organization_title = dataset['organization']['title']
+            try:
+                dborganization = self.session.query(DBOrganization).filter_by(id=organization_id).one()
+                dborganization.name = organization_name
+                dborganization.title = organization_title
+            except NoResultFound:
+                dborganization = DBOrganization(name=organization_name, id=organization_id, title=organization_title)
+                self.session.add(dborganization)
+            dataset_name = dataset['name']
+            dataset_title = dataset['title']
+            dataset_private = dataset['private']
+            dataset_maintainer = dataset['maintainer']
+            dataset_location = ','.join([x['name'] for x in dataset['groups']])
+            try:
+                dbinfodataset = self.session.query(DBInfoDataset).filter_by(id=dataset_id).one()
+                dbinfodataset.name = dataset_name
+                dbinfodataset.title = dataset_title
+                dbinfodataset.private = dataset_private
+                dbinfodataset.organization_id = organization_id
+                dbinfodataset.maintainer = dataset_maintainer
+                dbinfodataset.location = dataset_location
+            except NoResultFound:
+                dbinfodataset = DBInfoDataset(name=dataset_name, id=dataset_id, title=dataset_title,
+                                              private=dataset_private, organization_id=organization_id,
+                                              maintainer=dataset_maintainer, location=dataset_location)
+                self.session.add(dbinfodataset)
+            try:
+                previous_dbdataset = self.session.query(DBDataset).filter_by(run_number=self.previous_run_number,
+                                                                             id=dataset_id).one()
+            except NoResultFound:
+                previous_dbdataset = None
+
+            update_frequency = dataset.get('data_update_frequency')
+            updated_by_script = None
+            if update_frequency is not None:
+                update_frequency = int(update_frequency)
+                updated_by_script = dataset.get('updated_by_script')
+                if updated_by_script:
+                    if 'freshness_ignore' in updated_by_script:
+                        updated_by_script = None
+                    else:
+                        match = self.bracketed_date.search(updated_by_script)
+                        if match is None:
+                            updated_by_script = None
+                        else:
+                            try:
+                                updated_by_script = parser.parse(match.group(1), ignoretz=True)
+                            except ParserError:
+                                updated_by_script = None
+            dataset_resources, last_resource_updated, last_resource_modified = \
+                self.process_resources(dataset_id, previous_dbdataset, resources, updated_by_script, hash_ids=hash_ids)
+            dataset_date = dataset.get('dataset_date')
+            metadata_modified = parser.parse(dataset['metadata_modified'], ignoretz=True)
+            if 'last_modified' in dataset:
+                last_modified = parser.parse(dataset['last_modified'], ignoretz=True)
+            else:
+                last_modified = datetime.datetime(1970, 1, 1, 0, 0)
+            if len(resources) == 0 and last_resource_updated is None:
+                last_resource_updated = 'NO RESOURCES'
+                last_resource_modified = datetime.datetime(1970, 1, 1, 0, 0)
+                error = True
+                what_updated = 'no resources'
+            else:
+                error = False
+                what_updated = 'firstrun'
+            review_date = dataset.get('review_date')
+            if review_date is None:
+                latest_of_modifieds = last_modified
+            else:
+                review_date = parser.parse(review_date, ignoretz=True)
+                if review_date > last_modified:
+                    latest_of_modifieds = review_date
+                else:
+                    latest_of_modifieds = last_modified
+            if updated_by_script and updated_by_script > latest_of_modifieds:
+                latest_of_modifieds = updated_by_script
+
+            fresh = None
+            if update_frequency is not None and not error:
+                if update_frequency == 0:
+                    fresh = 0
+                    self.live_update += 1
+                elif update_frequency == -1:
+                    fresh = 0
+                    self.never_update += 1
+                elif update_frequency == -2:
+                    fresh = 0
+                    self.adhoc_update += 1
+                else:
+                    fresh = self.calculate_aging(latest_of_modifieds, update_frequency)
+
+            dbdataset = DBDataset(run_number=self.run_number, id=dataset_id,
+                                  dataset_date=dataset_date, update_frequency=update_frequency,
+                                  review_date=review_date, last_modified=last_modified,
+                                  metadata_modified=metadata_modified, updated_by_script=updated_by_script,
+                                  latest_of_modifieds=latest_of_modifieds, what_updated=what_updated,
+                                  last_resource_updated=last_resource_updated,
+                                  last_resource_modified=last_resource_modified, fresh=fresh, error=error)
+            if previous_dbdataset is not None and not error:
+                dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'nothing')
+                if last_modified > previous_dbdataset.last_modified:  # filestore update would cause this
+                    dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'filestore')
+                else:
+                    dbdataset.last_modified = previous_dbdataset.last_modified
+                if previous_dbdataset.review_date is None:
+                    if review_date is not None:
+                        dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'review date')
+                else:
+                    if review_date is not None and review_date > previous_dbdataset.review_date:  # someone clicked the review button
+                        dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'review date')
+                    else:
+                        dbdataset.review_date = previous_dbdataset.review_date
+                if updated_by_script and (
+                        previous_dbdataset.updated_by_script is None or updated_by_script > previous_dbdataset.updated_by_script):  # new script update of datasets
+                    dbdataset.what_updated = self.add_what_updated(dbdataset.what_updated, 'script update')
+                else:
+                    dbdataset.updated_by_script = previous_dbdataset.updated_by_script
+                if last_resource_modified <= previous_dbdataset.last_resource_modified:
+                    # we keep this so that although we don't normally use it,
+                    # we retain the ability to run without touching CKAN
+                    dbdataset.last_resource_updated = previous_dbdataset.last_resource_updated
+                    dbdataset.last_resource_modified = previous_dbdataset.last_resource_modified
+                if latest_of_modifieds < previous_dbdataset.latest_of_modifieds:
+                    dbdataset.latest_of_modifieds = previous_dbdataset.latest_of_modifieds
+                    if update_frequency is not None and update_frequency > 0:
+                        fresh = self.calculate_aging(previous_dbdataset.latest_of_modifieds, update_frequency)
+                        dbdataset.fresh = fresh
+            self.session.add(dbdataset)
+
+            update_string = '%s, Updated %s' % (self.aging_statuses[fresh], dbdataset.what_updated)
+            anyresourcestohash = False
+            for url, resource_id, what_updated, should_hash in dataset_resources:
+                if not should_hash:
+                    if (fresh == 0 and update_frequency != 1) or update_frequency is None:
+                        dict_of_lists_add(self.resource_what_updated, what_updated, resource_id)
+                        continue
+                resources_to_check.append((url, resource_id, what_updated))
+                self.urls_to_check_count += 1
+                anyresourcestohash = True
+            if anyresourcestohash:
+                datasets_to_check[dataset_id] = update_string
+            else:
+                dict_of_lists_add(self.dataset_what_updated, update_string, dataset_id)
+        self.session.commit()
+        return datasets_to_check, resources_to_check
 
     def check_urls(self, resources_to_check, user_agent, results=None, hash_results=None):
         def get_domain(x):
@@ -360,12 +353,12 @@ class DataFreshness:
 
         hash_check = list()
         for resource_id in results:
-            url, err, http_last_modified, hash, force_hash = results[resource_id]
+            url, err, http_last_modified, hash = results[resource_id]
             if hash:
                 dbresource = self.session.query(DBResource).filter_by(id=resource_id,
                                                                       run_number=self.run_number).one()
                 if dbresource.md5_hash != hash:  # File changed
-                    hash_check.append((url, resource_id, force_hash))
+                    hash_check.append((url, resource_id))
 
         if hash_results is None:  # pragma: no cover
             hash_check = list_distribute_contents(hash_check, get_domain)
@@ -378,7 +371,7 @@ class DataFreshness:
     def process_results(self, results, hash_results, resourcecls=Resource):
         datasets_latest_of_modifieds = dict()
         for resource_id in sorted(results):
-            url, err, http_last_modified, hash, force_hash = results[resource_id]
+            url, err, http_last_modified, hash = results[resource_id]
             dbresource = self.session.query(DBResource).filter_by(id=resource_id,
                                                                   run_number=self.run_number).one()
             dataset_id = dbresource.dataset_id
@@ -394,7 +387,7 @@ class DataFreshness:
                     what_updated = self.add_what_updated(what_updated, 'same hash')
                 else:  # File updated
                     hash_to_set = hash
-                    hash_url, hash_err, hash_http_last_modified, hash_hash, force_hash = hash_results[resource_id]
+                    hash_url, hash_err, hash_http_last_modified, hash_hash = hash_results[resource_id]
                     if hash_http_last_modified:
                         if dbresource.http_last_modified is None or hash_http_last_modified > dbresource.http_last_modified:
                             dbresource.http_last_modified = hash_http_last_modified

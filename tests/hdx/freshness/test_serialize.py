@@ -31,6 +31,10 @@ class TestSerialize:
         with open(fixture, 'rb') as fp:
             return pickle.load(fp)
 
+    @staticmethod
+    def get_deserialized(d):
+        return {key: (value[0], value[1], value[2], value[3]) for key, value in d.items()}
+
     def test_serialize_datasets(self, configuration, session, datasets):
         serialize_datasets(session, datasets)
         for i, result in enumerate(deserialize_datasets(session)):
@@ -79,7 +83,7 @@ class TestSerialize:
         }
         serialize_results(session, results)
         result = deserialize_results(session)
-        assert result == results
+        assert result == self.get_deserialized(results)
 
     def test_serialize_hash_results(self, session):
         hash_results = {'dc8da7da-59bc-4fad-98b8-9a0303b2deed': (
@@ -96,4 +100,4 @@ class TestSerialize:
                 None, None, '6827a97f982da889840d03f568a04f32', False)}
         serialize_hashresults(session, hash_results)
         result = deserialize_hashresults(session)
-        assert result == hash_results
+        assert result == self.get_deserialized(hash_results)

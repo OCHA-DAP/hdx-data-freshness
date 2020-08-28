@@ -101,8 +101,8 @@ class TestProcesssResults:
     @pytest.fixture(scope='function')
     def results(self):
         results = {'3adb573a-f056-41b7-8ee5-ec245676a7ce': (
-        'http://export.hotosm.org/downloads/1364e367-304e-4df2-989c-839760c3728d/hotosm_afg_points_of_interest_polygons_kml.zip',
-        None, parser.parse('2019-11-03 14:23:40'), '33caf1b1106613d123989c2b459c383d', False)}
+            'http://export.hotosm.org/downloads/1364e367-304e-4df2-989c-839760c3728d/hotosm_afg_points_of_interest_polygons_kml.zip',
+            None, parser.parse('2019-11-03 14:23:40'), '33caf1b1106613d123989c2b459c383d')}
         return results
 
     def test_process_results(self, configuration, session, now, datasets, results, resourcecls):

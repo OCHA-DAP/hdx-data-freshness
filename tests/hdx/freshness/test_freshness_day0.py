@@ -62,7 +62,7 @@ class TestFreshnessDay0:
             freshness = DataFreshness(session=session, datasets=datasets, now=now)
             freshness.spread_datasets()
             freshness.add_new_run()
-            datasets_to_check, resources_to_check = freshness.process_datasets(forced_hash_ids=forced_hash_ids)
+            datasets_to_check, resources_to_check = freshness.process_datasets(hash_ids=forced_hash_ids)
             results, hash_results = freshness.check_urls(resources_to_check, 'test', results=results,
                                                          hash_results=hash_results)
             resourcecls.populate_resourcedict(datasets)

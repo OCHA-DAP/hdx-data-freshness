@@ -148,9 +148,9 @@ class TestFreshnessCKAN:
                 freshness = DataFreshness(session=session, datasets=datasets, do_touch=True)
                 freshness.spread_datasets()
                 freshness.add_new_run()
-                forced_hash_ids = [datasets[3].get_resource()['id'], datasets[4].get_resource()['id'],
-                                   datasets[7].get_resource()['id']]
-                datasets_to_check, resources_to_check = freshness.process_datasets(forced_hash_ids=forced_hash_ids)
+                hash_ids = [datasets[3].get_resource()['id'], datasets[4].get_resource()['id'],
+                            datasets[7].get_resource()['id']]
+                datasets_to_check, resources_to_check = freshness.process_datasets(hash_ids=hash_ids)
                 results, hash_results = freshness.check_urls(resources_to_check, 'test')
                 datasets_lastmodified = freshness.process_results(results, hash_results)
                 freshness.update_dataset_latest_of_modifieds(datasets_to_check, datasets_lastmodified)
@@ -173,7 +173,7 @@ class TestFreshnessCKAN:
                 freshness = DataFreshness(session=session, datasets=datasets, do_touch=True)
                 freshness.spread_datasets()
                 freshness.add_new_run()
-                datasets_to_check, resources_to_check = freshness.process_datasets(forced_hash_ids=forced_hash_ids)
+                datasets_to_check, resources_to_check = freshness.process_datasets(hash_ids=hash_ids)
                 results, hash_results = freshness.check_urls(resources_to_check, 'test')
                 datasets_lastmodified = freshness.process_results(results, hash_results)
                 freshness.update_dataset_latest_of_modifieds(datasets_to_check, datasets_lastmodified)

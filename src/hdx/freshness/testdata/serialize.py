@@ -115,7 +115,7 @@ def deserialize_results(session):
     results = dict()
     for dbtestresult in session.query(DBTestResult):
         results[dbtestresult.id] = (dbtestresult.url, dbtestresult.err, dbtestresult.http_last_modified,
-                                    dbtestresult.hash, dbtestresult.force_hash)
+                                    dbtestresult.hash)
     return results
 
 
@@ -123,6 +123,5 @@ def deserialize_hashresults(session):
     hash_results = dict()
     for dbtesthashresult in session.query(DBTestHashResult):
         hash_results[dbtesthashresult.id] = (dbtesthashresult.url, dbtesthashresult.err,
-                                             dbtesthashresult.http_last_modified, dbtesthashresult.hash,
-                                             dbtesthashresult.force_hash)
+                                             dbtesthashresult.http_last_modified, dbtesthashresult.hash)
     return hash_results
