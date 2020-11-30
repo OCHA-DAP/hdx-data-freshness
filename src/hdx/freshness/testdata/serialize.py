@@ -51,18 +51,18 @@ def serialize_now(session, now):
 
 def serialize_results(session, results):
     for id in results:
-        url, err, http_last_modified, hash, force_hash = results[id]
-        dbtestresult = DBTestResult(id=id, url=url, err=err, http_last_modified=http_last_modified,
-                                    hash=hash, force_hash=force_hash)
+        url, resource_format, err, http_last_modified, hash, force_hash = results[id]
+        dbtestresult = DBTestResult(id=id, url=url, format=resource_format, err=err,
+                                    http_last_modified=http_last_modified, hash=hash, force_hash=force_hash)
         session.add(dbtestresult)
     session.commit()
 
 
 def serialize_hashresults(session, hash_results):
     for id in hash_results:
-        url, err, http_last_modified, hash, force_hash = hash_results[id]
-        dbtesthashresult = DBTestHashResult(id=id, url=url, err=err, http_last_modified=http_last_modified,
-                                            hash=hash, force_hash=force_hash)
+        url, resource_format, err, http_last_modified, hash, force_hash = hash_results[id]
+        dbtesthashresult = DBTestHashResult(id=id, url=url, format=resource_format, err=err,
+                                            http_last_modified=http_last_modified, hash=hash, force_hash=force_hash)
         session.add(dbtesthashresult)
     session.commit()
 
@@ -114,14 +114,14 @@ def deserialize_now(session):
 def deserialize_results(session):
     results = dict()
     for dbtestresult in session.query(DBTestResult):
-        results[dbtestresult.id] = (dbtestresult.url, dbtestresult.err, dbtestresult.http_last_modified,
-                                    dbtestresult.hash)
+        results[dbtestresult.id] = (dbtestresult.url, dbtestresult.format, dbtestresult.err,
+                                    dbtestresult.http_last_modified, dbtestresult.hash)
     return results
 
 
 def deserialize_hashresults(session):
     hash_results = dict()
     for dbtesthashresult in session.query(DBTestHashResult):
-        hash_results[dbtesthashresult.id] = (dbtesthashresult.url, dbtesthashresult.err,
+        hash_results[dbtesthashresult.id] = (dbtesthashresult.url, dbtesthashresult.format, dbtesthashresult.err,
                                              dbtesthashresult.http_last_modified, dbtesthashresult.hash)
     return hash_results
