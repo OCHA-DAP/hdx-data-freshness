@@ -33,7 +33,7 @@ class TestSerialize:
 
     @staticmethod
     def get_deserialized(d):
-        return {key: (value[0], value[1], value[2], value[3]) for key, value in d.items()}
+        return {key: (value[0], value[1], value[2], value[3], value[4]) for key, value in d.items()}
 
     def test_serialize_datasets(self, configuration, session, datasets):
         serialize_datasets(session, datasets)
@@ -72,14 +72,15 @@ class TestSerialize:
     def test_serialize_results(self, session):
         results = {'c001c17e-92e1-4c15-ac7f-e9a2a22bc11e': (
             'http://siged.sep.gob.mx/SIGED/content/conn/WCPortalUCM/path/Contribution%20Folders/PortalSIGED/Descargas/Datos%20Abiertos/Censo/Personal/Cuestionarios/PERSONAL_CUES_CT_CENSADOS.zip',
+            'application/zip',
             'code=404 message=Non-retryable response code raised=aiohttp.errors.HttpProcessingError url=http://siged.sep.gob.mx/SIGED/content/conn/WCPortalUCM/path/Contribution%20Folders/PortalSIGED/Descargas/Datos%20Abiertos/Censo/Personal/Cuestionarios/PERSONAL_CUES_CT_CENSADOS.zip',
             None, None, False),
             '563e2bd1-b200-416b-99be-425777ad686a': (
                 'http://geonode.state.gov/geoserver/wms/kml?layers=geonode%3ASyria_BorderCrossings_2015Jun11_HIU_USDoS&mode=download',
-                None, None, 'bde2adc82876bd845cc4c5233c224a10', False),
+                'application/zip', None, None, 'bde2adc82876bd845cc4c5233c224a10', False),
             'a9cb1b9e-93b2-4ff4-82a7-3aab8b13d7b6': (
-                'http://www.majidata.go.ke/dataset_dl.php?meza=H_County_WaterSupply_ALinked', None, None,
-                '1a1e0af350ac825ba21adefd94926c9d', False)
+                'http://www.majidata.go.ke/dataset_dl.php?meza=H_County_WaterSupply_ALinked',
+                'application/zip', None, None, '1a1e0af350ac825ba21adefd94926c9d', False)
         }
         serialize_results(session, results)
         result = deserialize_results(session)
@@ -88,16 +89,18 @@ class TestSerialize:
     def test_serialize_hash_results(self, session):
         hash_results = {'dc8da7da-59bc-4fad-98b8-9a0303b2deed': (
             'http://data.humdata.org/dataset/e66dbc70-17fe-4230-b9d6-855d192fc05c/resource/dc8da7da-59bc-4fad-98b8-9a0303b2deed/download/myanmar-adm2.geojson',
-            None, datetime.datetime(2015, 7, 24, 7, 8, 48), '73ba2b7904c778ed218357d9c1515c0c', True),
+            'application/json', None, datetime.datetime(2015, 7, 24, 7, 8, 48), '73ba2b7904c778ed218357d9c1515c0c',
+            True),
             '3eb2c0ac-4b27-49b6-be25-f5ccb7128d65': (
                 'http://sddr.faoswalim.org/Shapefiles/Administrative/Somalia%20Major%20Primary%20Roads.ZIP',
-                None, datetime.datetime(2013, 2, 28, 13, 53, 42), '3e59e8be4973de25eaa4283e075ad5b2', True),
+                'application/zip', None, datetime.datetime(2013, 2, 28, 13, 53, 42), '3e59e8be4973de25eaa4283e075ad5b2',
+                True),
             'e3eea5de-80bf-4b2a-9729-31b89d6fb36c': (
-                'http://ourairports.com/countries/RS/airports.hxl', None, None,
-                '71d1ecb069dbd2fc32f79eb6e0859c55', True),
+                'http://ourairports.com/countries/RS/airports.hxl',
+                'text/csv', None, None, '71d1ecb069dbd2fc32f79eb6e0859c55', True),
             'e351d04f-fade-45f9-81fa-0ea673bd9b33': (
                 'https://docs.google.com/spreadsheets/d/1kPO1CmPvc42j9TouovP5tyiSdegRk1wISLpxMWDlfaQ/pub?gid=0&single=true&output=csv',
-                None, None, '6827a97f982da889840d03f568a04f32', False)}
+                'text/csv', None, None, '6827a97f982da889840d03f568a04f32', False)}
         serialize_hashresults(session, hash_results)
         result = deserialize_hashresults(session)
         assert result == self.get_deserialized(hash_results)

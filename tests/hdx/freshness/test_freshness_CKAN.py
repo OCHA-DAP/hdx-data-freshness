@@ -4,6 +4,7 @@ Unit tests for the freshness class.
 
 '''
 import json
+import logging
 import os
 import random
 from datetime import datetime, timedelta
@@ -19,13 +20,15 @@ from hdx.utilities.database import Database
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.datafreshness import DataFreshness
 
+logger = logging.getLogger(__name__)
+
 
 class TestFreshnessCKAN:
     @pytest.fixture(scope='class')
     def configuration(self):
         project_config_yaml = join('src', 'hdx', 'freshness', 'project_configuration.yml')
         hdx_key = os.getenv('HDX_KEY')
-        Configuration._create(hdx_site='feature', user_agent='test', hdx_key=hdx_key,
+        Configuration._create(hdx_site='stage', user_agent='test', hdx_key=hdx_key,
                               project_config_yaml=project_config_yaml)
 
     @pytest.fixture(scope='function')
@@ -45,16 +48,13 @@ class TestFreshnessCKAN:
     def gclient(self):
         gsheet_auth = os.getenv('GSHEET_AUTH')
         if not gsheet_auth:
-            return None
-        try:
-            info = json.loads(gsheet_auth)
-            scopes = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets']
-            credentials = service_account.Credentials.from_service_account_info(info, scopes=scopes)
-            gclient = pygsheets.authorize(custom_credentials=credentials)
-            gclient.drive.enable_team_drive('0AKCBfHI3H-hcUk9PVA')
-            return gclient
-        except Exception:
-            return None
+            raise ValueError('No gsheet authorisation supplied!')
+        info = json.loads(gsheet_auth)
+        scopes = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets']
+        credentials = service_account.Credentials.from_service_account_info(info, scopes=scopes)
+        gclient = pygsheets.authorize(custom_credentials=credentials)
+        gclient.drive.enable_team_drive('0AKCBfHI3H-hcUk9PVA')
+        return gclient
 
     @pytest.fixture(scope='function')
     def setup_teardown_folder(self, gclient):
@@ -65,32 +65,35 @@ class TestFreshnessCKAN:
         }
         folderid = gclient.drive.service.files().create(body=body, supportsTeamDrives=True).execute()['id']
         yield gclient, folderid
-        gclient.drive.delete(folderid)
+        body = {'trashed': True}
+        gclient.drive.service.files().update(fileId=folderid, body=body, supportsTeamDrives=True).execute()
 
     def test_generate_dataset(self, configuration, datasetmetadata, nodatabase, setup_teardown_folder):
         today = datetime.now()
         gclient, folderid = setup_teardown_folder
 
-        unchanging_gsheet = gclient.create('unchanging', folder=folderid)
-        unchanging_gsheet.share('', role='reader', type='anyone')
-        wks = unchanging_gsheet.sheet1
+        def create_gsheet(name):
+            body = {
+                'name': name,
+                'mimeType': 'application/vnd.google-apps.spreadsheet',
+                'parents': [folderid]
+            }
+            fileid = gclient.drive.service.files().create(body=body, supportsTeamDrives=True).execute()['id']
+            gsheet = gclient.open_by_key(fileid)
+            gsheet.share('', role='reader', type='anyone')
+            return gsheet.sheet1, '%s/export?format=csv' % gsheet.url
+
+        wks, unchanging_url = create_gsheet('unchanging')
         # update the sheet with array
         wks.update_values('A1', [[random.random() for i in range(4)] for j in range(3)])
-        unchanging_url = '%s/export?format=csv' % unchanging_gsheet.url
 
-        changing_gsheet1 = gclient.create('changing1', folder=folderid)
-        changing_gsheet1.share('', role='reader', type='anyone')
-        changing_wks1 = changing_gsheet1.sheet1
+        changing_wks1, changing_url1 = create_gsheet('changing1')
         # update the sheet with array
         changing_wks1.update_values('A1', [[random.random() for i in range(5)] for j in range(2)])
-        changing_url1 = '%s/export?format=csv' % changing_gsheet1.url
 
-        changing_gsheet2 = gclient.create('changing2', folder=folderid)
-        changing_gsheet2.share('', role='reader', type='anyone')
-        changing_wks2 = changing_gsheet2.sheet1
+        changing_wks2, changing_url2 = create_gsheet('changing2')
         # update the sheet with array
         changing_wks2.update_values('A1', [[random.random() for i in range(3)] for j in range(6)])
-        changing_url2 = '%s/export?format=csv' % changing_gsheet2.url
 
         datasets = list()
         last_modifieds = list()

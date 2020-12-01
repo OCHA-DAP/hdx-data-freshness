@@ -181,7 +181,8 @@ class DataFreshness:
                 should_hash = self.urls_to_check_count < self.no_urls_to_check \
                               and (dbresource.when_checked is None or
                                    self.now - dbresource.when_checked > datetime.timedelta(days=30))
-            dataset_resources.append((url, resource_id, dbresource.what_updated, should_hash))
+            resource_format = resource['format'].lower()
+            dataset_resources.append((url, resource_id, resource_format, dbresource.what_updated, should_hash))
         return dataset_resources, last_resource_updated, last_resource_modified
 
     def process_datasets(self, hash_ids=None):
@@ -327,12 +328,12 @@ class DataFreshness:
 
             update_string = '%s, Updated %s' % (self.aging_statuses[fresh], dbdataset.what_updated)
             anyresourcestohash = False
-            for url, resource_id, what_updated, should_hash in dataset_resources:
+            for url, resource_id, resource_format, what_updated, should_hash in dataset_resources:
                 if not should_hash:
                     if (fresh == 0 and update_frequency != 1) or update_frequency is None:
                         dict_of_lists_add(self.resource_what_updated, what_updated, resource_id)
                         continue
-                resources_to_check.append((url, resource_id, what_updated))
+                resources_to_check.append((url, resource_id, resource_format, what_updated))
                 self.urls_to_check_count += 1
                 anyresourcestohash = True
             if anyresourcestohash:
@@ -353,12 +354,12 @@ class DataFreshness:
 
         hash_check = list()
         for resource_id in results:
-            url, err, http_last_modified, hash = results[resource_id]
+            url, resource_format, err, http_last_modified, hash = results[resource_id]
             if hash:
                 dbresource = self.session.query(DBResource).filter_by(id=resource_id,
                                                                       run_number=self.run_number).one()
                 if dbresource.md5_hash != hash:  # File changed
-                    hash_check.append((url, resource_id))
+                    hash_check.append((url, resource_id, resource_format))
 
         if hash_results is None:  # pragma: no cover
             hash_check = list_distribute_contents(hash_check, get_domain)
@@ -371,7 +372,7 @@ class DataFreshness:
     def process_results(self, results, hash_results, resourcecls=Resource):
         datasets_latest_of_modifieds = dict()
         for resource_id in sorted(results):
-            url, err, http_last_modified, hash = results[resource_id]
+            url, _, err, http_last_modified, hash = results[resource_id]
             dbresource = self.session.query(DBResource).filter_by(id=resource_id,
                                                                   run_number=self.run_number).one()
             dataset_id = dbresource.dataset_id
@@ -387,7 +388,7 @@ class DataFreshness:
                     what_updated = self.add_what_updated(what_updated, 'same hash')
                 else:  # File updated
                     hash_to_set = hash
-                    hash_url, hash_err, hash_http_last_modified, hash_hash = hash_results[resource_id]
+                    hash_url, _, hash_err, hash_http_last_modified, hash_hash = hash_results[resource_id]
                     if hash_http_last_modified:
                         if dbresource.http_last_modified is None or hash_http_last_modified > dbresource.http_last_modified:
                             dbresource.http_last_modified = hash_http_last_modified
