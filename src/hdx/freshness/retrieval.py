@@ -22,8 +22,11 @@ from hdx.freshness.ratelimiter import RateLimiter
 
 logger = logging.getLogger(__name__)
 
-mimetypes = {'json': ['application/json'], 'geojson': ['application/geo+json'], 'shp': ['application/zip'],
-             'csv': ['text/csv', 'application/zip'], 'xls': ['application/vnd.ms-excel'],
+ignore_mimetypes = ['application/octet-stream', 'application/binary']
+mimetypes = {'json': ['application/json'], 'geojson': ['application/json', 'application/geo+json'],
+             'shp': ['application/zip', 'application/x-zip-compressed'],
+             'csv': ['text/csv', 'application/zip', 'application/x-zip-compressed'],
+             'xls': ['application/vnd.ms-excel'],
              'xlsx': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']}
 signatures = {'json': [b'[', b' [', b'{', b' {'], 'geojson': [b'[', b' [', b'{', b' {'], 'shp': [b'PK\x03\x04'],
               'xls': [b'\xd0\xcf\x11\xe0'], 'xlsx': [b'PK\x03\x04']}
@@ -60,10 +63,11 @@ async def fetch(metadata, session):
                     if not signature:
                         signature = chunk[:4]
             err = None
-            expected_mimetypes = mimetypes.get(resource_format)
-            if expected_mimetypes is not None:
-                if not any(x in mimetype for x in expected_mimetypes):
-                    err = 'File mimetype %s does not match HDX format %s!' % (mimetype, resource_format)
+            if mimetype not in ignore_mimetypes:
+                expected_mimetypes = mimetypes.get(resource_format)
+                if expected_mimetypes is not None:
+                    if not any(x in mimetype for x in expected_mimetypes):
+                        err = 'File mimetype %s does not match HDX format %s!' % (mimetype, resource_format)
             expected_signatures = signatures.get(resource_format)
             if expected_signatures is not None:
                 found = False
