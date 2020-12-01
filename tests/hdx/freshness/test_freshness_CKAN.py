@@ -4,6 +4,7 @@ Unit tests for the freshness class.
 
 '''
 import json
+import logging
 import os
 import random
 from datetime import datetime, timedelta
@@ -18,6 +19,8 @@ from hdx.utilities.database import Database
 
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.datafreshness import DataFreshness
+
+logger = logging.getLogger(__name__)
 
 
 class TestFreshnessCKAN:
@@ -45,16 +48,13 @@ class TestFreshnessCKAN:
     def gclient(self):
         gsheet_auth = os.getenv('GSHEET_AUTH')
         if not gsheet_auth:
-            return None
-        try:
-            info = json.loads(gsheet_auth)
-            scopes = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets']
-            credentials = service_account.Credentials.from_service_account_info(info, scopes=scopes)
-            gclient = pygsheets.authorize(custom_credentials=credentials)
-            gclient.drive.enable_team_drive('0AKCBfHI3H-hcUk9PVA')
-            return gclient
-        except Exception:
-            return None
+            raise ValueError('No gsheet authorisation supplied!')
+        info = json.loads(gsheet_auth)
+        scopes = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets']
+        credentials = service_account.Credentials.from_service_account_info(info, scopes=scopes)
+        gclient = pygsheets.authorize(custom_credentials=credentials)
+        gclient.drive.enable_team_drive('0AKCBfHI3H-hcUk9PVA')
+        return gclient
 
     @pytest.fixture(scope='function')
     def setup_teardown_folder(self, gclient):
