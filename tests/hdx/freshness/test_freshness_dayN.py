@@ -16,7 +16,7 @@ import shutil
 from os.path import join
 
 import pytest
-from hdx.utilities.database import Database
+from hdx.database import Database
 
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.database.dbinfodataset import DBInfoDataset

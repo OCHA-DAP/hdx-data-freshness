@@ -8,7 +8,7 @@ from datetime import timedelta, datetime
 from os.path import join
 
 import pytest
-from hdx.utilities.database import Database
+from hdx.database import Database
 
 from hdx.freshness.datafreshness import DataFreshness
 

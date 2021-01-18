@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from hdx.utilities.database import Base
+from hdx.database import Base
 from sqlalchemy import Column, DateTime, Boolean, String
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer

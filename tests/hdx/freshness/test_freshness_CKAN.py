@@ -14,8 +14,8 @@ import pygsheets
 import pytest
 from google.oauth2 import service_account
 from hdx.data.dataset import Dataset
+from hdx.database import Database
 from hdx.hdx_configuration import Configuration
-from hdx.utilities.database import Database
 
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.datafreshness import DataFreshness
@@ -114,7 +114,7 @@ class TestFreshnessCKAN:
             dataset.update_from_yaml(datasetmetadata)
             dataset.set_maintainer('196196be-6037-4488-8b71-d786adf4c081')
             dataset.set_organization('5a63012e-6c41-420c-8c33-e84b277fdc90')
-            dataset.set_dataset_date_from_datetime(today)
+            dataset.set_date_of_dataset(today)
             if i == 6:
                 dataset.set_expected_update_frequency('Never')
             else:

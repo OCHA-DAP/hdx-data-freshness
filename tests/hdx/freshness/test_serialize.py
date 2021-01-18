@@ -9,7 +9,7 @@ import pickle
 from os.path import join
 
 import pytest
-from hdx.utilities.database import Database
+from hdx.database import Database
 
 from hdx.freshness.testdata.serialize import serialize_datasets, deserialize_datasets, serialize_now, deserialize_now, \
     serialize_results, deserialize_results, serialize_hashresults, deserialize_hashresults
