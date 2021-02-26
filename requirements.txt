@@ -1,5 +1,5 @@
 aiodns==2.0.0
-aiohttp==3.7.3
+aiohttp==3.7.4
 hdx-python-api==4.8.7
 hdx-python-database[postgres]==1.0.4
 tqdm==4.56.0
