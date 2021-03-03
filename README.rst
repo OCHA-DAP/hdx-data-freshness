@@ -62,7 +62,7 @@ Usage
 
     python run.py
 
-.. |Build Status| image:: https://travis-ci.org/OCHA-DAP/hdx-data-freshness.svg?branch=master&ts=1
-   :target: https://travis-ci.org/OCHA-DAP/hdx-data-freshness
+.. |Build Status| image:: https://github.com/OCHA-DAP/hdx-data-freshness/workflows/build/badge.svg
+   :target: https://github.com/OCHA-DAP/hdx-data-freshness/actions?query=workflow%3Abuild
 .. |Coverage Status| image:: https://coveralls.io/repos/github/OCHA-DAP/hdx-data-freshness/badge.svg?branch=master&ts=1
    :target: https://coveralls.io/github/OCHA-DAP/hdx-data-freshness?branch=master
