@@ -76,7 +76,7 @@ class TestFreshnessDayN:
             dbsession = freshness.session
             # insert resource with run number -1 with hash 999 to test repeated hash
             dbsession.execute(
-                "INSERT INTO dbresources(run_number,id,name,dataset_id,url,last_modified,revision_last_updated,latest_of_modifieds,what_updated,http_last_modified,md5_hash,hash_last_modified,when_checked,api,error) VALUES (-1,'010ab2d2-8f98-409b-a1f0-4707ad6c040a','sidih_190.csv','54d6b4b8-8cc9-42d3-82ce-3fa4fd3d9be1','https://ds-ec2.scraperwiki.com/egzfk1p/siqsxsgjnxgk3r2/cgi-bin/csv/sidih_190.csv','2015-05-07 14:44:56.599079','2015-05-07 14:44:56.599079','2015-05-07 14:44:56.599079','',NULL,'999','2017-12-16 16:03:33.208327','2017-12-16 16:03:33.208327','0',NULL);")
+                "INSERT INTO dbresources(run_number,id,name,dataset_id,url,last_modified,metadata_modified,latest_of_modifieds,what_updated,http_last_modified,md5_hash,hash_last_modified,when_checked,api,error) VALUES (-1,'010ab2d2-8f98-409b-a1f0-4707ad6c040a','sidih_190.csv','54d6b4b8-8cc9-42d3-82ce-3fa4fd3d9be1','https://ds-ec2.scraperwiki.com/egzfk1p/siqsxsgjnxgk3r2/cgi-bin/csv/sidih_190.csv','2015-05-07 14:44:56.599079','2015-05-07 14:44:56.599079','2015-05-07 14:44:56.599079','',NULL,'999','2017-12-16 16:03:33.208327','2017-12-16 16:03:33.208327','0',NULL);")
             datasets_to_check, resources_to_check = freshness.process_datasets(hash_ids=forced_hash_ids)
             results, hash_results = freshness.check_urls(resources_to_check, 'test', results=results,
                                                          hash_results=hash_results)
@@ -123,7 +123,7 @@ Freshness Unavailable, Updated nothing: 4
             dbresource = dbsession.query(DBResource).first()
             assert str(dbresource) == '''<Resource(run number=0, id=b21d6004-06b5-41e5-8e3e-0f28140bff64, name=Topline Numbers.csv, dataset id=a2150ad9-2b87-49f5-a6b2-c85dff366b75,
 url=https://docs.google.com/spreadsheets/d/e/2PACX-1vRjFRZGLB8IMp0anSGR1tcGxwJgkyx0bTN9PsinqtaLWKHBEfz77LkinXeVqIE_TsGVt-xM6DQzXpkJ/pub?gid=0&single=true&output=csv,
-last modified=2017-12-16 15:11:15.202742, revision last updated=2017-12-16 15:11:15.202742,
+last modified=2017-12-16 15:11:15.202742, metadata modified=2017-12-16 15:11:15.202742,
 latest of modifieds=2017-12-16 15:11:15.202742, what updated=first hash,
 http last modified=None,
 MD5 hash=be5802368e5a6f7ad172f27732001f3a, hash last modified=None, when checked=2017-12-18 16:03:33.208327,
@@ -132,7 +132,7 @@ api=False, error=None)>'''
                                                             DBResource.id == '7b82976a-ae81-4cef-a76f-12ba14152086').first()
             assert str(dbresource) == '''<Resource(run number=1, id=7b82976a-ae81-4cef-a76f-12ba14152086, name=Guinea, Liberia, Mali and Sierra Leone Health Facilities, dataset id=ce876595-1263-4df6-a8ca-459f92c532e4,
 url=https://docs.google.com/a/megginson.com/spreadsheets/d/1paoIpHiYo7dy_dnf_luUSfowWDwNAWwS3z4GHL2J7Rc/export?format=xlsx&id=1paoIpHiYo7dy_dnf_luUSfowWDwNAWwS3z4GHL2J7Rc,
-last modified=2017-12-18 22:21:26.783801, revision last updated=2017-12-18 22:21:26.783801,
+last modified=2017-12-18 22:21:26.783801, metadata modified=2017-12-18 22:21:26.783801,
 latest of modifieds=2017-12-19 10:53:28.606889, what updated=hash,
 http last modified=None,
 MD5 hash=789, hash last modified=2017-12-19 10:53:28.606889, when checked=2017-12-19 10:53:28.606889,

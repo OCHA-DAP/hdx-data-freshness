@@ -37,7 +37,7 @@ def serialize_datasets(session, datasets):
         for resource in dataset.get_resources():
             dbtestresource = DBTestResource(id=resource['id'], name=resource['name'], dataset_id=dataset_id,
                                             format=resource['format'], url=resource['url'],
-                                            revision_last_updated=resource['revision_last_updated'],
+                                            metadata_modified=resource['metadata_modified'],
                                             last_modified=resource['last_modified'])
             session.add(dbtestresource)
     session.commit()
@@ -100,7 +100,7 @@ def deserialize_datasets(session):
             'name': dbtestresource.name,
             'format': dbtestresource.format,
             'url': dbtestresource.url,
-            'revision_last_updated': dbtestresource.revision_last_updated,
+            'metadata_modified': dbtestresource.metadata_modified,
             'last_modified': dbtestresource.last_modified
         }
         dataset.get_resources().append(resource)

@@ -134,7 +134,7 @@ class DataFreshness:
             dict_of_lists_add(self.resource_what_updated, 'total', resource_id)
             url = resource['url']
             name = resource['name']
-            revision_last_updated = parser.parse(resource['revision_last_updated'], ignoretz=True)
+            metadata_modified = parser.parse(resource['metadata_modified'], ignoretz=True)
             last_modified = parser.parse(resource['last_modified'], ignoretz=True)
             if last_resource_modified:
                 if last_modified > last_resource_modified:
@@ -145,7 +145,7 @@ class DataFreshness:
                 last_resource_modified = last_modified
             dbresource = DBResource(run_number=self.run_number, id=resource_id, name=name,
                                     dataset_id=dataset_id, url=url, last_modified=last_modified,
-                                    revision_last_updated=revision_last_updated, latest_of_modifieds=last_modified,
+                                    metadata_modified=metadata_modified, latest_of_modifieds=last_modified,
                                     what_updated='firstrun')
             if previous_dbdataset is not None:
                 try:

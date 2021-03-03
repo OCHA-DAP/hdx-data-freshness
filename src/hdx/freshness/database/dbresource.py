@@ -16,7 +16,7 @@ class DBResource(Base):
     dataset_id = Column(String, ForeignKey(DBInfoDataset.id), nullable=False)
     url = Column(String, nullable=False)
     last_modified = Column(DateTime, nullable=False)
-    revision_last_updated = Column(DateTime, default=None)  # this field and above are CKAN fields
+    metadata_modified = Column(DateTime, default=None)  # this field and above are CKAN fields
     latest_of_modifieds = Column(DateTime, nullable=False)
     what_updated = Column(String, nullable=False)
     http_last_modified = Column(DateTime, default=None)
@@ -29,8 +29,7 @@ class DBResource(Base):
     def __repr__(self):
         output = '<Resource(run number=%d, id=%s, name=%s, ' % (self.run_number, self.id, self.name)
         output += 'dataset id=%s,\nurl=%s,\n' % (self.dataset_id, self.url)
-        output += 'last modified=%s, revision last updated=%s,\n' % (str(self.last_modified),
-                                                                     str(self.revision_last_updated))
+        output += 'last modified=%s, metadata modified=%s,\n' % (str(self.last_modified), str(self.metadata_modified))
         output += 'latest of modifieds=%s, what updated=%s,\n' % (str(self.latest_of_modifieds), str(self.what_updated))
         output += 'http last modified=%s,\n' % str(self.http_last_modified)
         output += 'MD5 hash=%s, hash last modified=%s, ' % (self.md5_hash, str(self.hash_last_modified))

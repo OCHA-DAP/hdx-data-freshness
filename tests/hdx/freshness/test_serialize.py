@@ -60,7 +60,7 @@ class TestSerialize:
                 assert result_resource['name'] == resource['name']
                 assert result_resource['format'] == resource['format']
                 assert result_resource['url'] == resource['url']
-                assert result_resource['revision_last_updated'] == resource['revision_last_updated']
+                assert result_resource['metadata_modified'] == resource['metadata_modified']
                 assert result_resource['last_modified'] == resource['last_modified']
 
     def test_serialize_now(self, session):
