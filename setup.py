@@ -49,8 +49,8 @@ def get_readme():
 
 requirements = ['aiodns',
                 'aiohttp',
-                'hdx-python-api>=5.2.3',
-                'hdx-python-database[postgres]>=1.0.6',
+                'hdx-python-api>=5.2.4',
+                'hdx-python-database[postgres]>=1.0.7',
                 'tqdm',
                 'uvloop'
                 ]

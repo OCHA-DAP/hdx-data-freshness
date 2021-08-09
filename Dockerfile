@@ -2,15 +2,13 @@ FROM mcarans/hdx-python-api
 
 MAINTAINER Michael Rans <rans@email.com>
 
-RUN apk add --no-cache --upgrade --virtual .build-deps1 \
+RUN apk add --no-cache --upgrade --virtual .build-deps \
         build-base \
         python3-dev \
-        postgresql-dev && \
-    apk add --no-cache --upgrade -X http://dl-cdn.alpinelinux.org/alpine/edge/community --virtual .build-deps2 \
+        postgresql-dev \
         py3-wheel && \
     pip --no-cache-dir install hdx-data-freshness && \
-    apk del .build-deps1 && \
-    apk del .build-deps2 && \
+    apk del .build-deps && \
     apk add --no-cache libpq && \
     rm -rf /var/lib/apk/*
 
