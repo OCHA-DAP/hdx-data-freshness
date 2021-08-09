@@ -50,7 +50,6 @@ async def send_http(session, method, url, *,
     """
     backoff_interval = interval
     raised_exc = None
-    attempt = 0
 
     if method not in ['get', 'patch', 'post']:
         raise ValueError

@@ -95,9 +95,7 @@ async def fetch(metadata, session):
                                               request_info=response.request_info, history=response.history) from exc
 
     try:
-        # GitHub doesn't return correct mimetypes!
-        get_url = url.replace('https://raw.githubusercontent.com', 'https://gitcdn.xyz/repo')
-        return await retry.send_http(session, 'get', get_url,
+        return await retry.send_http(session, 'get', url,
                                      retries=2,
                                      interval=5,
                                      backoff=4,
