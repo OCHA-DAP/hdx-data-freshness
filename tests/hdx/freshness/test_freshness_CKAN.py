@@ -50,7 +50,7 @@ class TestFreshnessCKAN:
             'corpora': 'teamDrive',
             'teamDriveId': '0AKCBfHI3H-hcUk9PVA',
             'supportsAllDrives': True,
-            'includeItemsFromAllDrives': True,
+            'includeItemsFromAllDrives': True
         }
 
     @pytest.fixture(scope='function')
