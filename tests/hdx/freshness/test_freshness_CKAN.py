@@ -10,9 +10,9 @@ import random
 from datetime import datetime, timedelta
 from os.path import join
 
-import pygsheets
+import gspread
 import pytest
-from google.oauth2 import service_account
+from gspread.urls import DRIVE_FILES_API_V3_URL
 from hdx.data.dataset import Dataset
 from hdx.database import Database
 from hdx.hdx_configuration import Configuration
@@ -44,6 +44,15 @@ class TestFreshnessCKAN:
             pass
         return {'driver': 'sqlite', 'database': dbpath}
 
+    @pytest.fixture(scope='class')
+    def params(self):
+        return {
+            'corpora': 'teamDrive',
+            'teamDriveId': '0AKCBfHI3H-hcUk9PVA',
+            'supportsAllDrives': True,
+            'includeItemsFromAllDrives': True,
+        }
+
     @pytest.fixture(scope='function')
     def gclient(self):
         gsheet_auth = os.getenv('GSHEET_AUTH')
@@ -51,49 +60,51 @@ class TestFreshnessCKAN:
             raise ValueError('No gsheet authorisation supplied!')
         info = json.loads(gsheet_auth)
         scopes = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets']
-        credentials = service_account.Credentials.from_service_account_info(info, scopes=scopes)
-        gclient = pygsheets.authorize(custom_credentials=credentials)
-        gclient.drive.enable_team_drive('0AKCBfHI3H-hcUk9PVA')
+        gclient = gspread.service_account_from_dict(info, scopes=scopes)
         return gclient
 
     @pytest.fixture(scope='function')
-    def setup_teardown_folder(self, gclient):
-        body = {
+    def setup_teardown_folder(self, gclient, params):
+        payload = {
             'name': 'freshness_test_tmp',
             'mimeType': 'application/vnd.google-apps.folder',
             'parents': ['1M8_Hv3myw9RpLq86kBL7QkMAYxcHjvb6']
         }
-        folderid = gclient.drive.service.files().create(body=body, supportsTeamDrives=True).execute()['id']
+        r = gclient.request('post', DRIVE_FILES_API_V3_URL, json=payload, params=params)
+        folderid = r.json()['id']
         yield gclient, folderid
-        body = {'trashed': True}
-        gclient.drive.service.files().update(fileId=folderid, body=body, supportsTeamDrives=True).execute()
 
-    def test_generate_dataset(self, configuration, datasetmetadata, nodatabase, setup_teardown_folder):
+        payload = {'trashed': True}
+        url = '{0}/{1}'.format(DRIVE_FILES_API_V3_URL, folderid)
+        gclient.request('patch', url, json=payload, params=params)
+
+    def test_generate_dataset(self, configuration, datasetmetadata, nodatabase, setup_teardown_folder, params):
         today = datetime.now()
         gclient, folderid = setup_teardown_folder
 
         def create_gsheet(name):
-            body = {
+            payload = {
                 'name': name,
                 'mimeType': 'application/vnd.google-apps.spreadsheet',
                 'parents': [folderid]
             }
-            fileid = gclient.drive.service.files().create(body=body, supportsTeamDrives=True).execute()['id']
-            gsheet = gclient.open_by_key(fileid)
-            gsheet.share('', role='reader', type='anyone')
+            r = gclient.request('post', DRIVE_FILES_API_V3_URL, json=payload, params=params)
+            spreadsheetid = r.json()['id']
+            gsheet = gclient.open_by_key(spreadsheetid)
+            gsheet.share('', role='reader', perm_type='anyone')
             return gsheet.sheet1, '%s/export?format=csv' % gsheet.url
 
         wks, unchanging_url = create_gsheet('unchanging')
         # update the sheet with array
-        wks.update_values('A1', [[random.random() for i in range(4)] for j in range(3)])
+        wks.update('A1', [[random.random() for i in range(4)] for j in range(3)])
 
         changing_wks1, changing_url1 = create_gsheet('changing1')
         # update the sheet with array
-        changing_wks1.update_values('A1', [[random.random() for i in range(5)] for j in range(2)])
+        changing_wks1.update('A1', [[random.random() for i in range(5)] for j in range(2)])
 
         changing_wks2, changing_url2 = create_gsheet('changing2')
         # update the sheet with array
-        changing_wks2.update_values('A1', [[random.random() for i in range(3)] for j in range(6)])
+        changing_wks2.update('A1', [[random.random() for i in range(3)] for j in range(6)])
 
         datasets = list()
         last_modifieds = list()
@@ -160,8 +171,8 @@ class TestFreshnessCKAN:
                 run1_last_modified = freshness.now.isoformat()
                 output1 = freshness.output_counts()
                 # change something
-                changing_wks1.update_values('A1', [[random.random() for i in range(5)] for j in range(2)])
-                changing_wks2.update_values('A1', [[random.random() for i in range(3)] for j in range(6)])
+                changing_wks1.update('A1', [[random.random() for i in range(5)] for j in range(2)])
+                changing_wks2.update('A1', [[random.random() for i in range(3)] for j in range(6)])
                 # second run
                 for i, dataset in enumerate(datasets):
                     dataset = Dataset.read_from_hdx(dataset['id'])
