@@ -64,5 +64,5 @@ Usage
 
 .. |Build Status| image:: https://github.com/OCHA-DAP/hdx-data-freshness/workflows/build/badge.svg
    :target: https://github.com/OCHA-DAP/hdx-data-freshness/actions?query=workflow%3Abuild
-.. |Coverage Status| image:: https://coveralls.io/repos/github/OCHA-DAP/hdx-data-freshness/badge.svg?branch=master&ts=1
-   :target: https://coveralls.io/github/OCHA-DAP/hdx-data-freshness?branch=master
+.. |Coverage Status| image:: https://coveralls.io/repos/github/OCHA-DAP/hdx-data-freshness/badge.svg?branch=main&ts=1
+   :target: https://coveralls.io/github/OCHA-DAP/hdx-data-freshness?branch=main
