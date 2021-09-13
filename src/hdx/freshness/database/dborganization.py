@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from hdx.database import Base
 from sqlalchemy import Column, String
 
@@ -9,4 +8,4 @@ class DBOrganization(Base):
     title = Column(String, nullable=False)
 
     def __repr__(self):
-        return f'<Organization(id={self.id}, name={self.name}, title={self.title})>'
+        return f"<Organization(id={self.id}, name={self.name}, title={self.title})>"

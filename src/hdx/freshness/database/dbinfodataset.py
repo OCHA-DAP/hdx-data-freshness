@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
 from hdx.database import Base
-from sqlalchemy import Boolean
-from sqlalchemy import Column, String
-from sqlalchemy import ForeignKey
+from sqlalchemy import Boolean, Column, ForeignKey, String
 
 from hdx.freshness.database.dborganization import DBOrganization
 
@@ -17,7 +14,9 @@ class DBInfoDataset(Base):
     maintainer = Column(String)
 
     def __repr__(self):
-        output = f'<InfoDataset(id={self.id}, name={self.name}, title={self.title},\n'
-        output += f'private={str(self.private)}, organization id={self.organization_id},\n'
-        output += f'maintainer={self.maintainer}, location={self.location})>'
+        output = f"<InfoDataset(id={self.id}, name={self.name}, title={self.title},\n"
+        output += (
+            f"private={str(self.private)}, organization id={self.organization_id},\n"
+        )
+        output += f"maintainer={self.maintainer}, location={self.location})>"
         return output

@@ -1,12 +1,11 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
-'''
+"""
 Rate limit
 ----------
 
 Limit connections per timeframe to host
 
-'''
+"""
 import asyncio
 import time
 from urllib.parse import urlsplit
@@ -39,5 +38,7 @@ class RateLimiter:
         time_since_update = now - self.tokens[host][1]
         new_tokens = time_since_update * self.RATE
         if new_tokens > 1:
-            self.tokens[host][0] = min(self.tokens[host][0] + new_tokens, self.MAX_TOKENS)
+            self.tokens[host][0] = min(
+                self.tokens[host][0] + new_tokens, self.MAX_TOKENS
+            )
             self.tokens[host][1] = now

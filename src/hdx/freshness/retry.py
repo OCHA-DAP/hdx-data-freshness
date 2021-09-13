@@ -13,28 +13,37 @@ class FailedRequest(Exception):
     """
     A wrapper of all possible exception during a HTTP request
     """
-    code = 0
-    message = ''
-    url = ''
-    raised = ''
 
-    def __init__(self, *, raised='', message='', code='', url=''):
+    code = 0
+    message = ""
+    url = ""
+    raised = ""
+
+    def __init__(self, *, raised="", message="", code="", url=""):
         self.raised = raised
         self.message = message
         self.code = code
         self.url = url
 
-        super().__init__('code={c} message={m} raised={r} url={u}'.format(
-            c=self.code, m=self.message, r=self.raised, u=self.url))
+        super().__init__(
+            "code={c} message={m} raised={r} url={u}".format(
+                c=self.code, m=self.message, r=self.raised, u=self.url
+            )
+        )
 
 
-async def send_http(session, method, url, *,
-                    retries=1,
-                    interval=1,
-                    backoff=2,
-                    http_status_codes_to_retry=HTTP_STATUS_CODES_TO_RETRY,
-                    fn=lambda x:x,
-                    **kwargs):
+async def send_http(
+    session,
+    method,
+    url,
+    *,
+    retries=1,
+    interval=1,
+    backoff=2,
+    http_status_codes_to_retry=HTTP_STATUS_CODES_TO_RETRY,
+    fn=lambda x: x,
+    **kwargs,
+):
     """
     Sends a HTTP request and implements a retry logic.
 
@@ -51,7 +60,7 @@ async def send_http(session, method, url, *,
     backoff_interval = interval
     raised_exc = None
 
-    if method not in ['get', 'patch', 'post']:
+    if method not in ["get", "patch", "post"]:
         raise ValueError
 
     if retries == -1:  # -1 means retry indefinitely
@@ -63,8 +72,10 @@ async def send_http(session, method, url, *,
 
     while attempt != 0:
         if raised_exc:
-            logger.error(f'Caught "{raised_exc}" url:{url} method:{method.upper()}, remaining tries {attempt}, '
-                         'sleeping {backoff_interval:.2f}secs')
+            logger.error(
+                f'Caught "{raised_exc}" url:{url} method:{method.upper()}, remaining tries {attempt}, '
+                "sleeping {backoff_interval:.2f}secs"
+            )
             await asyncio.sleep(backoff_interval)
             # bump interval for the next possible attempt
             backoff_interval *= backoff
@@ -76,24 +87,39 @@ async def send_http(session, method, url, *,
                 elif response.status in http_status_codes_to_retry:
                     logger.error(
                         f'Received invalid response code:{response.status} error:{""}'
-                        f' response:{response.reason} url:{url}')
+                        f" response:{response.reason} url:{url}"
+                    )
                     raise aiohttp.ClientResponseError(
-                        code=response.status, message=response.reason, request_info=response.request_info,
-                        history=response.history)
+                        code=response.status,
+                        message=response.reason,
+                        request_info=response.request_info,
+                        history=response.history,
+                    )
                 else:
                     raise FailedRequest(
-                        code=response.status, message='Non-retryable response code',
-                        raised='aiohttp.ClientResponseError', url=url)
+                        code=response.status,
+                        message="Non-retryable response code",
+                        raised="aiohttp.ClientResponseError",
+                        url=url,
+                    )
         except aiohttp.ClientError as exc:
             try:
                 code = exc.code
             except AttributeError:
-                code = ''
-            raised_exc = FailedRequest(code=code, message=exc,
-                                       raised=f'{exc.__class__.__module__}.{exc.__class__.__qualname__}', url=url)
+                code = ""
+            raised_exc = FailedRequest(
+                code=code,
+                message=exc,
+                raised=f"{exc.__class__.__module__}.{exc.__class__.__qualname__}",
+                url=url,
+            )
         except asyncio.TimeoutError as exc:
-            raised_exc = FailedRequest(code='', message='asyncio.TimeoutError',
-                                       raised=f'{exc.__class__.__module__}.{exc.__class__.__qualname__}', url=url)
+            raised_exc = FailedRequest(
+                code="",
+                message="asyncio.TimeoutError",
+                raised=f"{exc.__class__.__module__}.{exc.__class__.__qualname__}",
+                url=url,
+            )
         else:
             raised_exc = None
             break

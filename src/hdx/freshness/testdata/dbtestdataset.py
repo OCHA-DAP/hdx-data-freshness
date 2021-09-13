@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 from hdx.database import Base
-from sqlalchemy import Column, Boolean, String
+from sqlalchemy import Boolean, Column, String
 
 
 class DBTestDataset(Base):
@@ -22,9 +21,9 @@ class DBTestDataset(Base):
     dataset_location = Column(String)
 
     def __repr__(self):
-        output = f'<Dataset(id={self.id}, name={self.dataset_name}'
-        output += f'organisation name={self.organization_name},\n'
-        output += f'dataset date={self.dataset_date}, update frequency={self.update_frequency}, '
-        output += f'review_date={str(self.review_date)}, last_modified={str(self.last_modified)},'
-        output += f'updated_by_script={str(self.updated_by_script)}, metadata_modified={str(self.metadata_modified)})>'
+        output = f"<Dataset(id={self.id}, name={self.dataset_name}"
+        output += f"organisation name={self.organization_name},\n"
+        output += f"dataset date={self.dataset_date}, update frequency={self.update_frequency}, "
+        output += f"review_date={str(self.review_date)}, last_modified={str(self.last_modified)},"
+        output += f"updated_by_script={str(self.updated_by_script)}, metadata_modified={str(self.metadata_modified)})>"
         return output

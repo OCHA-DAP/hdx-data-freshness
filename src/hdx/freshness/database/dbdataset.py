@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
 from hdx.database import Base
-from sqlalchemy import Column, DateTime, Boolean, String
-from sqlalchemy import ForeignKey
-from sqlalchemy import Integer
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 
 from hdx.freshness.database.dbinfodataset import DBInfoDataset
 from hdx.freshness.database.dbrun import DBRun
@@ -16,7 +13,9 @@ class DBDataset(Base):
     review_date = Column(DateTime)
     last_modified = Column(DateTime, nullable=False)
     updated_by_script = Column(DateTime)
-    metadata_modified = Column(DateTime, nullable=False)  # this field and above are CKAN fields
+    metadata_modified = Column(
+        DateTime, nullable=False
+    )  # this field and above are CKAN fields
     latest_of_modifieds = Column(DateTime, nullable=False)
     what_updated = Column(String, nullable=False)
     last_resource_updated = Column(String, nullable=False)  # an id
@@ -25,11 +24,11 @@ class DBDataset(Base):
     error = Column(Boolean, nullable=False)
 
     def __repr__(self):
-        output = f'<Dataset(run number={self.run_number}, id={self.id}, '
-        output += f'dataset date={str(self.dataset_date)}, update frequency={self.update_frequency},\n'
-        output += f'review date={str(self.review_date)}, last modified={str(self.last_modified)}, '
-        output += f'metadata modified={str(self.metadata_modified)}, updated by script={str(self.updated_by_script)},\n'
-        output += f'latest of modifieds={str(self.latest_of_modifieds)}, what updated={str(self.what_updated)},\n'
-        output += f'Resource {str(self.last_resource_updated)}: last modified={str(self.last_resource_modified)},\n'
-        output += f'Dataset fresh={str(self.fresh)}, error={str(self.error)})>'
+        output = f"<Dataset(run number={self.run_number}, id={self.id}, "
+        output += f"dataset date={str(self.dataset_date)}, update frequency={self.update_frequency},\n"
+        output += f"review date={str(self.review_date)}, last modified={str(self.last_modified)}, "
+        output += f"metadata modified={str(self.metadata_modified)}, updated by script={str(self.updated_by_script)},\n"
+        output += f"latest of modifieds={str(self.latest_of_modifieds)}, what updated={str(self.what_updated)},\n"
+        output += f"Resource {str(self.last_resource_updated)}: last modified={str(self.last_resource_modified)},\n"
+        output += f"Dataset fresh={str(self.fresh)}, error={str(self.error)})>"
         return output

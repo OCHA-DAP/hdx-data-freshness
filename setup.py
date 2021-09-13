@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 import inspect
 import sys
 from codecs import open
-from os.path import join, abspath, realpath, dirname
+from os.path import abspath, dirname, join, realpath
 
 from hdx.utilities import CleanCommand, PackageCommand, PublishCommand
 from hdx.utilities.loader import load_file_to_str
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 
 def script_dir(pyobject, follow_symlinks=True):
@@ -19,7 +18,7 @@ def script_dir(pyobject, follow_symlinks=True):
     Returns:
         str: Current script's directory
     """
-    if getattr(sys, 'frozen', False):  # py2exe, PyInstaller, cx_Freeze
+    if getattr(sys, "frozen", False):  # py2exe, PyInstaller, cx_Freeze
         path = abspath(sys.executable)
     else:
         path = inspect.getabsfile(pyobject)
@@ -43,17 +42,18 @@ def script_dir_plus_file(filename, pyobject, follow_symlinks=True):
 
 
 def get_readme():
-    readme_file = open(script_dir_plus_file('README.rst', get_readme), encoding='utf-8')
+    readme_file = open(script_dir_plus_file("README.rst", get_readme), encoding="utf-8")
     return readme_file.read()
 
 
-requirements = ['aiodns',
-                'aiohttp',
-                'hdx-python-api>=5.2.4',
-                'hdx-python-database[postgres]>=1.0.7',
-                'tqdm',
-                'uvloop'
-                ]
+requirements = [
+    "aiodns",
+    "aiohttp",
+    "hdx-python-api>=5.2.4",
+    "hdx-python-database[postgres]>=1.0.7",
+    "tqdm",
+    "uvloop",
+]
 
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -66,25 +66,31 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-PublishCommand.version = load_file_to_str(join('src', 'hdx', 'freshness', 'version.txt'), strip=True)
+PublishCommand.version = load_file_to_str(
+    join("src", "hdx", "freshness", "version.txt"), strip=True
+)
 
 setup(
-    name='hdx-data-freshness',
-    description='HDX Data Freshness',
-    license='MIT',
-    url='https://github.com/OCHA-DAP/hdx-data-freshness',
+    name="hdx-data-freshness",
+    description="HDX Data Freshness",
+    license="MIT",
+    url="https://github.com/OCHA-DAP/hdx-data-freshness",
     version=PublishCommand.version,
-    author='Michael Rans',
-    author_email='rans@email.com',
-    keywords=['HDX', 'fresh', 'freshness', 'data freshness'],
+    author="Michael Rans",
+    author_email="rans@email.com",
+    keywords=["HDX", "fresh", "freshness", "data freshness"],
     long_description=get_readme(),
-    packages=find_packages(where='src'),
-    package_dir={'': 'src'},
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
     include_package_data=True,
-    setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
+    setup_requires=["pytest-runner"],
+    tests_require=["pytest"],
     zip_safe=True,
     classifiers=classifiers,
     install_requires=requirements,
-    cmdclass={'clean': CleanCommand, 'package': PackageCommand, 'publish': PublishCommand},
+    cmdclass={
+        "clean": CleanCommand,
+        "package": PackageCommand,
+        "publish": PublishCommand,
+    },
 )

@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 from hdx.database import Base
-from sqlalchemy import Column, String
-from sqlalchemy import ForeignKey
+from sqlalchemy import Column, ForeignKey, String
 
 from hdx.freshness.testdata.dbtestdataset import DBTestDataset
 
@@ -16,9 +14,9 @@ class DBTestResource(Base):
     last_modified = Column(String, nullable=False)
 
     def __repr__(self):
-        output = f'<Resource(id={self.id}, name={self.name},\n'
-        output += f'format={self.format}, dataset id={self.dataset_id},\n'
-        output += f'url={self.url},\n'
-        output += f'metadata modified={str(self.metadata_modified)}, '
-        output += f'last_modified={str(self.last_modified)})>'
+        output = f"<Resource(id={self.id}, name={self.name},\n"
+        output += f"format={self.format}, dataset id={self.dataset_id},\n"
+        output += f"url={self.url},\n"
+        output += f"metadata modified={str(self.metadata_modified)}, "
+        output += f"last_modified={str(self.last_modified)})>"
         return output

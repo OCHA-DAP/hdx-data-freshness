@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 from hdx.database import Base
-from sqlalchemy import Column, DateTime, Boolean, String
+from sqlalchemy import Boolean, Column, DateTime, String
 
 
 class DBTestHashResult(Base):
@@ -13,8 +12,10 @@ class DBTestHashResult(Base):
     force_hash = Column(Boolean, nullable=False)
 
     def __repr__(self):
-        output = f'<TestHashResult(id={self.id}, url={self.url}, '
-        output += f'format={self.format}, err={self.err}\n'
-        output += f'http_last_modified={str(self.http_last_modified)}, hash={self.hash},'
-        output += f'force_hash={str(self.force_hash)})>'
+        output = f"<TestHashResult(id={self.id}, url={self.url}, "
+        output += f"format={self.format}, err={self.err}\n"
+        output += (
+            f"http_last_modified={str(self.http_last_modified)}, hash={self.hash},"
+        )
+        output += f"force_hash={str(self.force_hash)})>"
         return output
