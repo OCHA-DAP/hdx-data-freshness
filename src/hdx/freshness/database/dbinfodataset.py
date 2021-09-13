@@ -17,7 +17,7 @@ class DBInfoDataset(Base):
     maintainer = Column(String)
 
     def __repr__(self):
-        output = '<InfoDataset(id=%s, name=%s, title=%s,\n' % (self.id, self.name, self.title)
-        output += 'private=%s, organization id=%s,\n' % (str(self.private), self.organization_id)
-        output += 'maintainer=%s, location=%s)>' % (self.maintainer, self.location)
+        output = f'<InfoDataset(id={self.id}, name={self.name}, title={self.title},\n'
+        output += f'private={str(self.private)}, organization id={self.organization_id},\n'
+        output += f'maintainer={self.maintainer}, location={self.location})>'
         return output

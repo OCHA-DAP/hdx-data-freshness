@@ -92,7 +92,7 @@ class DataFreshness:
             self.run_number = 0
             self.no_urls_to_check = default_no_urls_to_check
 
-        logger.info('Will force hash %d resources' % self.no_urls_to_check)
+        logger.info(f'Will force hash {self.no_urls_to_check} resources')
 
     def no_resources_force_hash(self):
         columns = [DBResource.id, DBDataset.updated_by_script]
@@ -122,7 +122,7 @@ class DataFreshness:
 
     @staticmethod
     def internal_what_updated(dbresource, url_substr):
-        what_updated = '%s-%s' % (url_substr, dbresource.what_updated)
+        what_updated = f'{url_substr}-{dbresource.what_updated}'
         dbresource.what_updated = what_updated
 
     def process_resources(self, dataset_id, previous_dbdataset, resources, updated_by_script, hash_ids=None):
@@ -326,7 +326,7 @@ class DataFreshness:
                         dbdataset.fresh = fresh
             self.session.add(dbdataset)
 
-            update_string = '%s, Updated %s' % (self.aging_statuses[fresh], dbdataset.what_updated)
+            update_string = f'{self.aging_statuses[fresh]}, Updated {dbdataset.what_updated}'
             anyresourcestohash = False
             for url, resource_id, resource_format, what_updated, should_hash in dataset_resources:
                 if not should_hash:
@@ -428,7 +428,7 @@ class DataFreshness:
             dict_of_lists_add(self.resource_what_updated, what_updated, resource_id)
             if update_last_modified and self.do_touch:
                 try:
-                    logger.info('Updating last modified for resource %s' % resource_id)
+                    logger.info(f'Updating last modified for resource {resource_id}')
                     resource = resourcecls.read_from_hdx(resource_id)
                     if resource:
                         last_modified = parser.parse(resource['last_modified'])
@@ -444,16 +444,16 @@ class DataFreshness:
                             dotouch = True
                         if dotouch:
                             self.resource_last_modified_count += 1
-                            logger.info('Resource last modified count: %d' % self.resource_last_modified_count)
+                            logger.info(f'Resource last modified count: {self.resource_last_modified_count}')
                             resource['last_modified'] = dbresource.latest_of_modifieds.isoformat()
                             resource.update_in_hdx(operation='patch', batch_mode='KEEP_OLD', skip_validation=True,
                                                    ignore_check=True)
                         else:
-                            logger.info("Didn't update last modified for resource %s as it is fresh!" % resource_id)
+                            logger.info(f"Didn't update last modified for resource {resource_id} as it is fresh!")
                     else:
-                        logger.error('Last modified update failed for id %s! Resource does not exist.' % resource_id)
+                        logger.error(f'Last modified update failed for id {resource_id}! Resource does not exist.')
                 except HDXError:
-                    logger.exception('Last modified update failed for id %s!' % resource_id)
+                    logger.exception(f'Last modified update failed for id {resource_id}!')
         self.session.commit()
         return datasets_latest_of_modifieds
 
@@ -485,9 +485,9 @@ class DataFreshness:
             if update_frequency is not None and update_frequency > 0:
                 dbdataset.fresh = self.calculate_aging(dbdataset.latest_of_modifieds, update_frequency)
             dbdataset.error = all_errors
-            status = '%s, Updated %s' % (self.aging_statuses[dbdataset.fresh], dbdataset.what_updated)
+            status = f'{self.aging_statuses[dbdataset.fresh]}, Updated {dbdataset.what_updated}'
             if all_errors:
-                status = '%s,error' % status
+                status = f'{status},error'
             dict_of_lists_add(self.dataset_what_updated, status, dataset_id)
         self.session.commit()
         for dataset_id in datasets_to_check:
@@ -498,18 +498,18 @@ class DataFreshness:
     def output_counts(self):
         def add_what_updated_str(hdxobject_what_updated):
             nonlocal output_str
-            output_str += '\n* total: %d *' % len(hdxobject_what_updated['total'])
+            output_str += f'\n* total: {len(hdxobject_what_updated["total"])} *'
             for countstr in sorted(hdxobject_what_updated):
                 if countstr != 'total':
-                    output_str += ',\n%s: %d' % (countstr, len(hdxobject_what_updated[countstr]))
+                    output_str += f',\n{countstr}: {len(hdxobject_what_updated[countstr])}'
 
         output_str = '\n*** Resources ***'
         add_what_updated_str(self.resource_what_updated)
         output_str += '\n\n*** Datasets ***'
         add_what_updated_str(self.dataset_what_updated)
-        output_str += '\n\n%d datasets have update frequency of Live' % self.live_update
-        output_str += '\n%d datasets have update frequency of Never' % self.never_update
-        output_str += '\n%d datasets have update frequency of Adhoc' % self.adhoc_update
+        output_str += f'\n\n{self.live_update} datasets have update frequency of Live'
+        output_str += f'\n{self.never_update} datasets have update frequency of Never'
+        output_str += f'\n{self.adhoc_update} datasets have update frequency of Adhoc'
 
         logger.info(output_str)
         return output_str
@@ -530,7 +530,7 @@ class DataFreshness:
             return prev_what_updated
         if prev_what_updated != 'nothing' and prev_what_updated != 'firstrun':
             if what_updated != 'nothing':
-                return '%s,%s' % (prev_what_updated, what_updated)
+                return f'{prev_what_updated},{what_updated}'
             return prev_what_updated
         else:
             return what_updated

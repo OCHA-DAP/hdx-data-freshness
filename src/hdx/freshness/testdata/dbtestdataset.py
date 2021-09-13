@@ -22,10 +22,9 @@ class DBTestDataset(Base):
     dataset_location = Column(String)
 
     def __repr__(self):
-        output = '<Dataset(id=%s, name=%s' % (self.id, self.dataset_name)
-        output += 'organisation name=%s,\n' % self.organization_name
-        output += 'dataset date=%s, update frequency=%s, ' % (self.dataset_date, self.update_frequency)
-        output += 'review_date=%s, last_modified=%s,' % (str(self.review_date), str(self.last_modified))
-        output += 'updated_by_script=%s, metadata_modified=%s)>' % (
-        str(self.updated_by_script), str(self.metadata_modified))
+        output = f'<Dataset(id={self.id}, name={self.dataset_name}'
+        output += f'organisation name={self.organization_name},\n'
+        output += f'dataset date={self.dataset_date}, update frequency={self.update_frequency}, '
+        output += f'review_date={str(self.review_date)}, last_modified={str(self.last_modified)},'
+        output += f'updated_by_script={str(self.updated_by_script)}, metadata_modified={str(self.metadata_modified)})>'
         return output

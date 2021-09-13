@@ -23,7 +23,7 @@ class TestSerialize:
             os.remove(dbpath)
         except FileNotFoundError:
             pass
-        return Database.get_session('sqlite:///%s' % dbpath)
+        return Database.get_session(f'sqlite:///{dbpath}')
 
     @pytest.fixture(scope='function')
     def datasets(self):

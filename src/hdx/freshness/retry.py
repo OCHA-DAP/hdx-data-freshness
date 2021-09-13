@@ -63,21 +63,20 @@ async def send_http(session, method, url, *,
 
     while attempt != 0:
         if raised_exc:
-            logger.error('Caught "%s" url:%s method:%s, remaining tries %s, '
-                    'sleeping %.2fsecs', raised_exc, method.upper(), url,
-                    attempt, backoff_interval)
+            logger.error(f'Caught "{raised_exc}" url:{url} method:{method.upper()}, remaining tries {attempt}, '
+                         'sleeping {backoff_interval:.2f}secs')
             await asyncio.sleep(backoff_interval)
             # bump interval for the next possible attempt
             backoff_interval *= backoff
-        # logger.info('sending %s %s with %s', method.upper(), url, kwargs)
+        # logger.info(f'sending {method.upper()} {url} with {kwargs}')
         try:
             async with await getattr(session, method)(url, **kwargs) as response:
                 if response.status == 200:
                     return await fn(response)
                 elif response.status in http_status_codes_to_retry:
                     logger.error(
-                        'Received invalid response code:%s error:%s'
-                        ' response:%s url:%s', response.status, '', response.reason, url)
+                        f'Received invalid response code:{response.status} error:{""}'
+                        f' response:{response.reason} url:{url}')
                     raise aiohttp.ClientResponseError(
                         code=response.status, message=response.reason, request_info=response.request_info,
                         history=response.history)
@@ -91,10 +90,10 @@ async def send_http(session, method, url, *,
             except AttributeError:
                 code = ''
             raised_exc = FailedRequest(code=code, message=exc,
-                                       raised='%s.%s' % (exc.__class__.__module__, exc.__class__.__qualname__), url=url)
+                                       raised=f'{exc.__class__.__module__}.{exc.__class__.__qualname__}', url=url)
         except asyncio.TimeoutError as exc:
             raised_exc = FailedRequest(code='', message='asyncio.TimeoutError',
-                                       raised='%s.%s' % (exc.__class__.__module__, exc.__class__.__qualname__), url=url)
+                                       raised=f'{exc.__class__.__module__}.{exc.__class__.__qualname__}', url=url)
         else:
             raised_exc = None
             break

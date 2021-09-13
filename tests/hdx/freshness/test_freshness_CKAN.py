@@ -75,7 +75,7 @@ class TestFreshnessCKAN:
         yield gclient, folderid
 
         payload = {'trashed': True}
-        url = '{0}/{1}'.format(DRIVE_FILES_API_V3_URL, folderid)
+        url = f'{DRIVE_FILES_API_V3_URL}/{folderid}'
         gclient.request('patch', url, json=payload, params=params)
 
     def test_generate_dataset(self, configuration, datasetmetadata, nodatabase, setup_teardown_folder, params):
@@ -92,7 +92,7 @@ class TestFreshnessCKAN:
             spreadsheetid = r.json()['id']
             gsheet = gclient.open_by_key(spreadsheetid)
             gsheet.share('', role='reader', perm_type='anyone')
-            return gsheet.sheet1, '%s/export?format=csv' % gsheet.url
+            return gsheet.sheet1, f'{gsheet.url}/export?format=csv'
 
         wks, unchanging_url = create_gsheet('unchanging')
         # update the sheet with array
@@ -119,8 +119,8 @@ class TestFreshnessCKAN:
         delinquent = delinquent_dt.isoformat()
         for i in range(8):
             dataset = Dataset({
-                'name': 'freshness_test_%d' % i,
-                'title': 'freshness test %d' % i
+                'name': f'freshness_test_{i}',
+                'title': f'freshness test {i}'
             })
             dataset.update_from_yaml(datasetmetadata)
             dataset.set_maintainer('196196be-6037-4488-8b71-d786adf4c081')
@@ -136,8 +136,8 @@ class TestFreshnessCKAN:
             tags = ['protests']
             dataset.add_tags(tags)
             resource = {
-                'name': 'test_resource_%d' % i,
-                'description': 'Test Resource %d' % i,
+                'name': f'test_resource_{i}',
+                'description': f'Test Resource {i}',
                 'format': 'csv',
                 'url': unchanging_url
             }
@@ -182,7 +182,7 @@ class TestFreshnessCKAN:
                     if i == 7:
                         updated_by_script_dt = datetime.utcnow()
                         updated_by_script = updated_by_script_dt.isoformat()
-                        dataset['updated_by_script'] = 'freshness (%s)' % updated_by_script
+                        dataset['updated_by_script'] = f'freshness ({updated_by_script})'
                     datasets[i] = dataset
                 freshness = DataFreshness(session=session, datasets=datasets, do_touch=True)
                 freshness.spread_datasets()
@@ -269,6 +269,5 @@ same hash: 3
             for key, expect in expected[i].items():
                 actual = dbdataset[key]
                 if actual != expect:
-                    nonmatching.append(
-                        'Key %s of dataset number %d does not match! %s != %s' % (key, i, actual, expect))
+                    nonmatching.append(f'Key {key} of dataset number {i} does not match! {actual} != {expect}')
         assert nonmatching == list()

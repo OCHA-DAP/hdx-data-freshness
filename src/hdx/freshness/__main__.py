@@ -26,14 +26,14 @@ logger = logging.getLogger(__name__)
 
 
 def main(db_url, db_params, do_touch, save, **ignore):
-    logger.info('> Data freshness %s' % get_freshness_version())
+    logger.info(f'> Data freshness {get_freshness_version()}')
     if db_params:
         params = args_to_dict(db_params)
     elif db_url:
         params = Database.get_params_from_sqlalchemy_url(db_url)
     else:
         params = {'driver': 'sqlite', 'database': 'freshness.db'}
-    logger.info('> Database parameters: %s' % params)
+    logger.info(f'> Database parameters: {params}')
     with Database(**params) as session:
         testsession = None
         if save:
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     if db_url is None:
         db_url = getenv('DB_URL')
     if db_url and '://' not in db_url:
-        db_url = 'postgresql://%s' % db_url
+        db_url = f'postgresql://{db_url}'
     project_config_yaml = script_dir_plus_file('project_configuration.yml', main)
     facade(main, hdx_key=hdx_key, user_agent=user_agent, preprefix=preprefix, hdx_site=hdx_site,
            project_config_yaml=project_config_yaml, db_url=db_url, db_params=args.db_params,

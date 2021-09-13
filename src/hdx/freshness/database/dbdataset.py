@@ -25,13 +25,11 @@ class DBDataset(Base):
     error = Column(Boolean, nullable=False)
 
     def __repr__(self):
-        output = '<Dataset(run number=%d, id=%s, ' % (self.run_number, self.id)
-        output += 'dataset date=%s, update frequency=%s,\n' % (str(self.dataset_date), self.update_frequency)
-        output += 'review date=%s, last modified=%s, ' % (str(self.review_date), str(self.last_modified))
-        output += 'metadata modified=%s, updated by script=%s,\n' % (
-        str(self.metadata_modified), str(self.updated_by_script))
-        output += 'latest of modifieds=%s, what updated=%s,\n' % (str(self.latest_of_modifieds), str(self.what_updated))
-        output += 'Resource %s: last modified=%s,\n' % (str(self.last_resource_updated),
-                                                        str(self.last_resource_modified))
-        output += 'Dataset fresh=%s, error=%s)>' % (str(self.fresh), str(self.error))
+        output = f'<Dataset(run number={self.run_number}, id={self.id}, '
+        output += f'dataset date={str(self.dataset_date)}, update frequency={self.update_frequency},\n'
+        output += f'review date={str(self.review_date)}, last modified={str(self.last_modified)}, '
+        output += f'metadata modified={str(self.metadata_modified)}, updated by script={str(self.updated_by_script)},\n'
+        output += f'latest of modifieds={str(self.latest_of_modifieds)}, what updated={str(self.what_updated)},\n'
+        output += f'Resource {str(self.last_resource_updated)}: last modified={str(self.last_resource_modified)},\n'
+        output += f'Dataset fresh={str(self.fresh)}, error={str(self.error)})>'
         return output

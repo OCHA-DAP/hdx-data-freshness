@@ -16,9 +16,9 @@ class DBTestResource(Base):
     last_modified = Column(String, nullable=False)
 
     def __repr__(self):
-        output = '<Resource(id=%s, name=%s,\n' % (self.id, self.name)
-        output += 'format=%s, dataset id=%s,\n' % (self.format, self.dataset_id)
-        output += 'url=%s,\n' % self.url
-        output += 'metadata modified=%s, ' % str(self.metadata_modified)
-        output += 'last_modified=%s)>' % str(self.last_modified)
+        output = f'<Resource(id={self.id}, name={self.name},\n'
+        output += f'format={self.format}, dataset id={self.dataset_id},\n'
+        output += f'url={self.url},\n'
+        output += f'metadata modified={str(self.metadata_modified)}, '
+        output += f'last_modified={str(self.last_modified)})>'
         return output

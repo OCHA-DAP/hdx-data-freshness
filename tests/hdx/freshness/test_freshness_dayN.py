@@ -44,7 +44,7 @@ class TestFreshnessDayN:
     @pytest.fixture(scope='class')
     def serializedbsession(self):
         dbpath = join('tests', 'fixtures', 'dayN', 'test_serialize.db')
-        return Database.get_session('sqlite:///%s' % dbpath)
+        return Database.get_session(f'sqlite:///{dbpath}')
 
     @pytest.fixture(scope='function')
     def now(self, serializedbsession):

@@ -13,8 +13,8 @@ class DBTestResult(Base):
     force_hash = Column(Boolean, nullable=False)
 
     def __repr__(self):
-        output = '<TestResult(id=%s, url=%s, ' % (self.id, self.url)
-        output += 'format=%s, err=%s\n' % (self.format, self.err)
-        output += 'http_last_modified=%s, hash=%s,' % (str(self.http_last_modified), self.hash)
-        output += 'force_hash=%s)>' % str(self.force_hash)
+        output = f'<TestResult(id={self.id}, url={self.url}, '
+        output += f'format={self.format}, err={self.err}\n'
+        output += f'http_last_modified={str(self.http_last_modified)}, hash={self.hash},'
+        output += f'force_hash={str(self.force_hash)})>'
         return output

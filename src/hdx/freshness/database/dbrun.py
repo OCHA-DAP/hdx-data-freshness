@@ -9,4 +9,4 @@ class DBRun(Base):
     run_date = Column(DateTime)
 
     def __repr__(self):
-        return '<Run number=%d, Run date=%s>' % (self.run_number, str(self.run_date))
+        return f'<Run number={self.run_number}, Run date={str(self.run_date)}>'

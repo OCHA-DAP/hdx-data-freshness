@@ -51,7 +51,7 @@ async def fetch(metadata, session):
             response.close()
             err = 'File too large to hash!'
             return resource_id, url, resource_format, err, http_last_modified, None
-        logger.info('Hashing %s' % url)
+        logger.info(f'Hashing {url}')
         mimetype = response.headers.get('Content-Type')
         signature = None
 
@@ -67,7 +67,7 @@ async def fetch(metadata, session):
                 expected_mimetypes = mimetypes.get(resource_format)
                 if expected_mimetypes is not None:
                     if not any(x in mimetype for x in expected_mimetypes):
-                        err = 'File mimetype %s does not match HDX format %s!' % (mimetype, resource_format)
+                        err = f'File mimetype {mimetype} does not match HDX format {resource_format}!'
             expected_signatures = signatures.get(resource_format)
             if expected_signatures is not None:
                 found = False
@@ -76,7 +76,7 @@ async def fetch(metadata, session):
                         found = True
                         break
                 if not found:
-                    sigerr = 'File signature %s does not match HDX format %s!' % (signature, resource_format)
+                    sigerr = f'File signature {signature} does not match HDX format {resource_format}!'
                     if err is None:
                         err = sigerr
                     else:
@@ -87,10 +87,7 @@ async def fetch(metadata, session):
                 code = exc.code
             except AttributeError:
                 code = ''
-            err = 'Exception during hashing: code=%s message=%s raised=%s.%s url=%s' % (code, exc,
-                                                                                         exc.__class__.__module__,
-                                                                                         exc.__class__.__qualname__,
-                                                                                         url)
+            err = f'Exception during hashing: code={code} message={exc} raised={exc.__class__.__module__}.{exc.__class__.__qualname__} url={url}'
             raise aiohttp.ClientResponseError(code=code, message=err,
                                               request_info=response.request_info, history=response.history) from exc
 
@@ -128,7 +125,7 @@ def retrieve(urls, user_agent):
     asyncio.set_event_loop(loop)
     future = asyncio.ensure_future(check_urls(urls, loop, user_agent))
     results = loop.run_until_complete(future)
-    logger.info('Execution time: %s seconds' % (timer() - start_time))
+    logger.info(f'Execution time: {timer() - start_time} seconds')
     loop.run_until_complete(asyncio.sleep(0.250))
     loop.close()
     return results

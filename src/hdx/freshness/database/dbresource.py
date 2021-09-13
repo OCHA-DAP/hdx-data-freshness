@@ -27,12 +27,12 @@ class DBResource(Base):
     error = Column(String)
 
     def __repr__(self):
-        output = '<Resource(run number=%d, id=%s, name=%s, ' % (self.run_number, self.id, self.name)
-        output += 'dataset id=%s,\nurl=%s,\n' % (self.dataset_id, self.url)
-        output += 'last modified=%s, metadata modified=%s,\n' % (str(self.last_modified), str(self.metadata_modified))
-        output += 'latest of modifieds=%s, what updated=%s,\n' % (str(self.latest_of_modifieds), str(self.what_updated))
-        output += 'http last modified=%s,\n' % str(self.http_last_modified)
-        output += 'MD5 hash=%s, hash last modified=%s, ' % (self.md5_hash, str(self.hash_last_modified))
-        output += 'when checked=%s,\n' % str(self.when_checked)
-        output += 'api=%s, error=%s)>' % (str(self.api), str(self.error))
+        output = f'<Resource(run number={self.run_number}, id={self.id}, name={self.name}, '
+        output += f'dataset id={self.dataset_id},\nurl={self.url},\n'
+        output += f'last modified={str(self.last_modified)}, metadata modified={str(self.metadata_modified)},\n'
+        output += f'latest of modifieds={str(self.latest_of_modifieds)}, what updated={str(self.what_updated)},\n'
+        output += f'http last modified={str(self.http_last_modified)},\n'
+        output += f'MD5 hash={self.md5_hash}, hash last modified={str(self.hash_last_modified)}, '
+        output += f'when checked={str(self.when_checked)},\n'
+        output += f'api={str(self.api)}, error={str(self.error)})>'
         return output
