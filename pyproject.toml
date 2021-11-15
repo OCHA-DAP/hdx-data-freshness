@@ -55,7 +55,7 @@ exclude_lines = [
 [[tool.pydoc-markdown.loaders]]
 type = "python"
 search_path = ["src"]
-packages = ["hdx.database"]
+packages = ["hdx.freshness"]
 
 [tool.pydoc-markdown.renderer]
 type = "mkdocs"
