@@ -74,7 +74,7 @@ output_directory = "docs/build"
     [[tool.pydoc-markdown.renderer.pages]]
     title = "Home"
     name = "index"
-    source = "README.md"
+    source = "docs/main.md"
 
     [[tool.pydoc-markdown.renderer.pages]]
     title = "API Documentation"
