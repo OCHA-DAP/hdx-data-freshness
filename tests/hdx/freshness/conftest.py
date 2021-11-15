@@ -3,12 +3,14 @@ from collections import UserDict
 from os.path import join
 
 import pytest
-from hdx.hdx_configuration import Configuration
+from hdx.api.configuration import Configuration
 
 
 @pytest.fixture(scope="session")
 def configuration():
-    project_config_yaml = join("src", "hdx", "freshness", "project_configuration.yml")
+    project_config_yaml = join(
+        "src", "hdx", "freshness", "project_configuration.yml"
+    )
     Configuration._create(
         hdx_site="prod",
         user_agent="test",
@@ -38,7 +40,9 @@ def resourcecls():
             return MyResource(id)
 
         @classmethod
-        def update_in_hdx(cls, operation, batch_mode, skip_validation, ignore_check):
+        def update_in_hdx(
+            cls, operation, batch_mode, skip_validation, ignore_check
+        ):
             cls.touched = True
 
     return MyResource

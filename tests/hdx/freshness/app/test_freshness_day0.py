@@ -8,12 +8,12 @@ from os.path import join
 import pytest
 from hdx.database import Database
 
+from hdx.freshness.app.datafreshness import DataFreshness
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.database.dbinfodataset import DBInfoDataset
 from hdx.freshness.database.dborganization import DBOrganization
 from hdx.freshness.database.dbresource import DBResource
 from hdx.freshness.database.dbrun import DBRun
-from hdx.freshness.datafreshness import DataFreshness
 from hdx.freshness.testdata.dbtestresult import DBTestResult
 from hdx.freshness.testdata.serialize import (
     deserialize_datasets,
@@ -73,14 +73,19 @@ class TestFreshnessDay0:
         resourcecls,
     ):
         with Database(**nodatabase) as session:
-            freshness = DataFreshness(session=session, datasets=datasets, now=now)
+            freshness = DataFreshness(
+                session=session, datasets=datasets, now=now
+            )
             freshness.spread_datasets()
             freshness.add_new_run()
             datasets_to_check, resources_to_check = freshness.process_datasets(
                 hash_ids=forced_hash_ids
             )
             results, hash_results = freshness.check_urls(
-                resources_to_check, "test", results=results, hash_results=hash_results
+                resources_to_check,
+                "test",
+                results=results,
+                hash_results=hash_results,
             )
             resourcecls.populate_resourcedict(datasets)
             datasets_lastmodified = freshness.process_results(
@@ -117,7 +122,10 @@ Freshness Unavailable, Updated firstrun: 4
 
             dbsession = freshness.session
             dbrun = dbsession.query(DBRun).one()
-            assert str(dbrun) == "<Run number=0, Run date=2017-12-18 16:03:33.208327>"
+            assert (
+                str(dbrun)
+                == "<Run number=0, Run date=2017-12-18 16:03:33.208327>"
+            )
             dbresource = dbsession.query(DBResource).first()
             assert (
                 str(dbresource)
@@ -137,13 +145,19 @@ api=False, error=None)>"""
             assert count == 56
             count = (
                 dbsession.query(DBResource)
-                .filter_by(what_updated="internal-firstrun", error=None, api=None)
+                .filter_by(
+                    what_updated="internal-firstrun", error=None, api=None
+                )
                 .count()
             )
             assert count == 56
             count = (
                 dbsession.query(DBResource)
-                .filter_by(what_updated="internal-firstrun,hash", error=None, api=False)
+                .filter_by(
+                    what_updated="internal-firstrun,hash",
+                    error=None,
+                    api=False,
+                )
                 .count()
             )
             assert count == 0
@@ -190,7 +204,9 @@ api=False, error=None)>"""
             assert count == 0
             count = (
                 dbsession.query(DBResource)
-                .filter_by(what_updated="http header,hash", error=None, api=False)
+                .filter_by(
+                    what_updated="http header,hash", error=None, api=False
+                )
                 .count()
             )
             assert count == 0
@@ -286,7 +302,8 @@ maintainer=7d7f5f8d-7e3b-483a-8de1-2b122010c1eb, location=bgd)>"""
             assert count == 103
             dborganization = dbsession.query(DBOrganization).first()
             assert (
-                str(dborganization) == """<Organization(id=hdx, name=hdx, title=HDX)>"""
+                str(dborganization)
+                == """<Organization(id=hdx, name=hdx, title=HDX)>"""
             )
             count = dbsession.query(DBOrganization).count()
             assert count == 40

@@ -12,12 +12,12 @@ from os.path import join
 import gspread
 import pytest
 from gspread.urls import DRIVE_FILES_API_V3_URL
+from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.database import Database
-from hdx.hdx_configuration import Configuration
 
+from hdx.freshness.app.datafreshness import DataFreshness
 from hdx.freshness.database.dbdataset import DBDataset
-from hdx.freshness.datafreshness import DataFreshness
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,9 @@ class TestFreshnessCKAN:
             "mimeType": "application/vnd.google-apps.folder",
             "parents": ["1M8_Hv3myw9RpLq86kBL7QkMAYxcHjvb6"],
         }
-        r = gclient.request("post", DRIVE_FILES_API_V3_URL, json=payload, params=params)
+        r = gclient.request(
+            "post", DRIVE_FILES_API_V3_URL, json=payload, params=params
+        )
         folderid = r.json()["id"]
         yield gclient, folderid
 
@@ -87,7 +89,12 @@ class TestFreshnessCKAN:
         gclient.request("patch", url, json=payload, params=params)
 
     def test_generate_dataset(
-        self, configuration, datasetmetadata, nodatabase, setup_teardown_folder, params
+        self,
+        configuration,
+        datasetmetadata,
+        nodatabase,
+        setup_teardown_folder,
+        params,
     ):
         today = datetime.now()
         gclient, folderid = setup_teardown_folder
@@ -108,7 +115,9 @@ class TestFreshnessCKAN:
 
         wks, unchanging_url = create_gsheet("unchanging")
         # update the sheet with array
-        wks.update("A1", [[random.random() for i in range(4)] for j in range(3)])
+        wks.update(
+            "A1", [[random.random() for i in range(4)] for j in range(3)]
+        )
 
         changing_wks1, changing_url1 = create_gsheet("changing1")
         # update the sheet with array
@@ -186,11 +195,16 @@ class TestFreshnessCKAN:
                     datasets[4].get_resource()["id"],
                     datasets[7].get_resource()["id"],
                 ]
-                datasets_to_check, resources_to_check = freshness.process_datasets(
-                    hash_ids=hash_ids
+                (
+                    datasets_to_check,
+                    resources_to_check,
+                ) = freshness.process_datasets(hash_ids=hash_ids)
+                results, hash_results = freshness.check_urls(
+                    resources_to_check, "test"
                 )
-                results, hash_results = freshness.check_urls(resources_to_check, "test")
-                datasets_lastmodified = freshness.process_results(results, hash_results)
+                datasets_lastmodified = freshness.process_results(
+                    results, hash_results
+                )
                 freshness.update_dataset_latest_of_modifieds(
                     datasets_to_check, datasets_lastmodified
                 )
@@ -198,10 +212,12 @@ class TestFreshnessCKAN:
                 output1 = freshness.output_counts()
                 # change something
                 changing_wks1.update(
-                    "A1", [[random.random() for i in range(5)] for j in range(2)]
+                    "A1",
+                    [[random.random() for i in range(5)] for j in range(2)],
                 )
                 changing_wks2.update(
-                    "A1", [[random.random() for i in range(3)] for j in range(6)]
+                    "A1",
+                    [[random.random() for i in range(3)] for j in range(6)],
                 )
                 # second run
                 for i, dataset in enumerate(datasets):
@@ -221,11 +237,16 @@ class TestFreshnessCKAN:
                 )
                 freshness.spread_datasets()
                 freshness.add_new_run()
-                datasets_to_check, resources_to_check = freshness.process_datasets(
-                    hash_ids=hash_ids
+                (
+                    datasets_to_check,
+                    resources_to_check,
+                ) = freshness.process_datasets(hash_ids=hash_ids)
+                results, hash_results = freshness.check_urls(
+                    resources_to_check, "test"
                 )
-                results, hash_results = freshness.check_urls(resources_to_check, "test")
-                datasets_lastmodified = freshness.process_results(results, hash_results)
+                datasets_lastmodified = freshness.process_results(
+                    results, hash_results
+                )
                 freshness.update_dataset_latest_of_modifieds(
                     datasets_to_check, datasets_lastmodified
                 )

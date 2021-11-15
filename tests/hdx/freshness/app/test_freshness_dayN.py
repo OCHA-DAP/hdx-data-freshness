@@ -17,12 +17,12 @@ from os.path import join
 import pytest
 from hdx.database import Database
 
+from hdx.freshness.app.datafreshness import DataFreshness
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.database.dbinfodataset import DBInfoDataset
 from hdx.freshness.database.dborganization import DBOrganization
 from hdx.freshness.database.dbresource import DBResource
 from hdx.freshness.database.dbrun import DBRun
-from hdx.freshness.datafreshness import DataFreshness
 from hdx.freshness.testdata.dbtestresult import DBTestResult
 from hdx.freshness.testdata.serialize import (
     deserialize_datasets,
@@ -98,7 +98,10 @@ class TestFreshnessDayN:
                 hash_ids=forced_hash_ids
             )
             results, hash_results = freshness.check_urls(
-                resources_to_check, "test", results=results, hash_results=hash_results
+                resources_to_check,
+                "test",
+                results=results,
+                hash_results=hash_results,
             )
             resourcecls.populate_resourcedict(datasets)
             datasets_lastmodified = freshness.process_results(
@@ -146,7 +149,10 @@ Freshness Unavailable, Updated nothing: 4
             )
 
             dbrun = dbsession.query(DBRun).filter_by(run_number=1).one()
-            assert str(dbrun) == "<Run number=1, Run date=2017-12-19 10:53:28.606889>"
+            assert (
+                str(dbrun)
+                == "<Run number=1, Run date=2017-12-19 10:53:28.606889>"
+            )
             dbresource = dbsession.query(DBResource).first()
             assert (
                 str(dbresource)
@@ -202,12 +208,16 @@ api=False, error=None)>"""
             assert count == 3
             count = (
                 dbsession.query(DBResource)
-                .filter_by(run_number=1, what_updated="http header", error=None)
+                .filter_by(
+                    run_number=1, what_updated="http header", error=None
+                )
                 .count()
             )
             assert count == 0
             count = (
-                dbsession.query(DBResource).filter_by(run_number=1, api=True).count()
+                dbsession.query(DBResource)
+                .filter_by(run_number=1, api=True)
+                .count()
             )
             assert count == 3
             count = (
@@ -256,7 +266,9 @@ Dataset fresh=2, error=False)>"""
             assert count == 4
             count = (
                 dbsession.query(DBDataset)
-                .filter_by(run_number=1, fresh=0, what_updated="nothing", error=False)
+                .filter_by(
+                    run_number=1, fresh=0, what_updated="nothing", error=False
+                )
                 .count()
             )
             assert count == 59
@@ -280,40 +292,57 @@ Dataset fresh=2, error=False)>"""
             assert count == 1
             count = (
                 dbsession.query(DBDataset)
-                .filter_by(run_number=1, fresh=2, what_updated="nothing", error=False)
+                .filter_by(
+                    run_number=1, fresh=2, what_updated="nothing", error=False
+                )
                 .count()
             )
             assert count == 1
             count = (
                 dbsession.query(DBDataset)
-                .filter_by(run_number=1, fresh=3, what_updated="nothing", error=False)
+                .filter_by(
+                    run_number=1, fresh=3, what_updated="nothing", error=False
+                )
                 .count()
             )
             assert count == 23
             count = (
                 dbsession.query(DBDataset)
-                .filter_by(run_number=1, fresh=3, what_updated="nothing", error=True)
-                .count()
-            )
-            assert count == 4
-            count = (
-                dbsession.query(DBDataset)
                 .filter_by(
-                    run_number=1, fresh=None, what_updated="nothing", error=False
+                    run_number=1, fresh=3, what_updated="nothing", error=True
                 )
                 .count()
             )
             assert count == 4
             count = (
                 dbsession.query(DBDataset)
-                .filter_by(run_number=1, fresh=None, what_updated="nothing", error=True)
+                .filter_by(
+                    run_number=1,
+                    fresh=None,
+                    what_updated="nothing",
+                    error=False,
+                )
+                .count()
+            )
+            assert count == 4
+            count = (
+                dbsession.query(DBDataset)
+                .filter_by(
+                    run_number=1,
+                    fresh=None,
+                    what_updated="nothing",
+                    error=True,
+                )
                 .count()
             )
             assert count == 0
             count = (
                 dbsession.query(DBDataset)
                 .filter_by(
-                    run_number=1, fresh=None, what_updated="no resources", error=True
+                    run_number=1,
+                    fresh=None,
+                    what_updated="no resources",
+                    error=True,
                 )
                 .count()
             )
@@ -329,7 +358,8 @@ maintainer=7d7f5f8d-7e3b-483a-8de1-2b122010c1eb, location=bgd)>"""
             assert count == 104
             dborganization = dbsession.query(DBOrganization).first()
             assert (
-                str(dborganization) == """<Organization(id=hdx, name=hdx, title=HDX)>"""
+                str(dborganization)
+                == """<Organization(id=hdx, name=hdx, title=HDX)>"""
             )
             count = dbsession.query(DBOrganization).count()
             assert count == 40

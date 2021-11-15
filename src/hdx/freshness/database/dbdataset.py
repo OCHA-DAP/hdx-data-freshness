@@ -6,7 +6,9 @@ from hdx.freshness.database.dbrun import DBRun
 
 
 class DBDataset(Base):
-    run_number = Column(Integer, ForeignKey(DBRun.run_number), primary_key=True)
+    run_number = Column(
+        Integer, ForeignKey(DBRun.run_number), primary_key=True
+    )
     id = Column(String, ForeignKey(DBInfoDataset.id), primary_key=True)
     dataset_date = Column(String)
     update_frequency = Column(Integer)

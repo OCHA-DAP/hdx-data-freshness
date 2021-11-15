@@ -5,7 +5,7 @@ Unit tests for the retrieval class.
 import re
 from datetime import datetime
 
-from hdx.freshness.retrieval import retrieve
+from hdx.freshness.utils.retrieval import retrieve
 
 
 class TestRetrieve:

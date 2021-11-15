@@ -81,7 +81,9 @@ async def send_http(
             backoff_interval *= backoff
         # logger.info(f'sending {method.upper()} {url} with {kwargs}')
         try:
-            async with await getattr(session, method)(url, **kwargs) as response:
+            async with await getattr(session, method)(
+                url, **kwargs
+            ) as response:
                 if response.status == 200:
                     return await fn(response)
                 elif response.status in http_status_codes_to_retry:

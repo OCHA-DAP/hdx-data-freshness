@@ -6,7 +6,9 @@ from hdx.freshness.database.dbrun import DBRun
 
 
 class DBResource(Base):
-    run_number = Column(Integer, ForeignKey(DBRun.run_number), primary_key=True)
+    run_number = Column(
+        Integer, ForeignKey(DBRun.run_number), primary_key=True
+    )
     id = Column(String, primary_key=True)
     name = Column(String, nullable=False)
     dataset_id = Column(String, ForeignKey(DBInfoDataset.id), nullable=False)
@@ -25,9 +27,7 @@ class DBResource(Base):
     error = Column(String)
 
     def __repr__(self):
-        output = (
-            f"<Resource(run number={self.run_number}, id={self.id}, name={self.name}, "
-        )
+        output = f"<Resource(run number={self.run_number}, id={self.id}, name={self.name}, "
         output += f"dataset id={self.dataset_id},\nurl={self.url},\n"
         output += f"last modified={str(self.last_modified)}, metadata modified={str(self.metadata_modified)},\n"
         output += f"latest of modifieds={str(self.latest_of_modifieds)}, what updated={str(self.what_updated)},\n"

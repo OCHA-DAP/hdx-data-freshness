@@ -17,15 +17,15 @@ from hdx.utilities.easy_logging import setup_logging
 from hdx.utilities.path import script_dir_plus_file
 from hdx.utilities.useragent import UserAgent
 
-from hdx.freshness.datafreshness import DataFreshness
-from hdx.freshness.version import get_freshness_version
+from hdx.freshness.app import __version__
+from hdx.freshness.app.datafreshness import DataFreshness
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
 
 def main(db_url, db_params, do_touch, save, **ignore):
-    logger.info(f"> Data freshness {get_freshness_version()}")
+    logger.info(f"> Data freshness {__version__()}")
     if db_params:
         params = args_to_dict(db_params)
     elif db_url:
@@ -46,7 +46,9 @@ def main(db_url, db_params, do_touch, save, **ignore):
         results, hash_results = freshness.check_urls(
             resources_to_check, UserAgent.get()
         )
-        datasets_lastmodified = freshness.process_results(results, hash_results)
+        datasets_lastmodified = freshness.process_results(
+            results, hash_results
+        )
         freshness.update_dataset_latest_of_modifieds(
             datasets_to_check, datasets_lastmodified
         )
@@ -61,7 +63,9 @@ if __name__ == "__main__":
     parser.add_argument("-hk", "--hdx_key", default=None, help="HDX api key")
     parser.add_argument("-ua", "--user_agent", default=None, help="user agent")
     parser.add_argument("-pp", "--preprefix", default=None, help="preprefix")
-    parser.add_argument("-hs", "--hdx_site", default=None, help="HDX site to use")
+    parser.add_argument(
+        "-hs", "--hdx_site", default=None, help="HDX site to use"
+    )
     parser.add_argument(
         "-db", "--db_url", default=None, help="Database connection string"
     )
@@ -105,7 +109,9 @@ if __name__ == "__main__":
         db_url = getenv("DB_URL")
     if db_url and "://" not in db_url:
         db_url = f"postgresql://{db_url}"
-    project_config_yaml = script_dir_plus_file("project_configuration.yml", main)
+    project_config_yaml = script_dir_plus_file(
+        "project_configuration.yml", main
+    )
     facade(
         main,
         hdx_key=hdx_key,

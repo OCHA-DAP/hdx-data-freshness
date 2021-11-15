@@ -9,7 +9,7 @@ from os.path import join
 import pytest
 from hdx.database import Database
 
-from hdx.freshness.datafreshness import DataFreshness
+from hdx.freshness.app.datafreshness import DataFreshness
 
 
 class TestAging:
@@ -87,7 +87,9 @@ class TestAging:
         expected_status,
     ):
         with Database(**nodatabase) as session:
-            freshness = DataFreshness(session=session, datasets=datasets, now=now)
+            freshness = DataFreshness(
+                session=session, datasets=datasets, now=now
+            )
             last_modified = now - timedelta(days=days_last_modified)
             status = freshness.calculate_aging(last_modified, update_frequency)
             assert status == expected_status

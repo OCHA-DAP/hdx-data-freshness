@@ -9,7 +9,7 @@ import pytest
 from dateutil import parser
 from hdx.data.dataset import Dataset
 
-from hdx.freshness.datafreshness import DataFreshness
+from hdx.freshness.app.datafreshness import DataFreshness
 
 
 class TestProcessResults:
@@ -31,18 +31,24 @@ class TestProcessResults:
                         dataset_id = "c1c85ecb-5e84-48c6-8ba9-15689a6c2fc4"
                         what_updated = ""
                         http_last_modified = None
-                        latest_of_modifieds = parser.parse("2019-10-28 05:05:20")
+                        latest_of_modifieds = parser.parse(
+                            "2019-10-28 05:05:20"
+                        )
                         md5_hash = "5600bafa19852afae3d7fd27955df0e6"
                         error = ""
 
-                    result.filter_by.return_value.one.return_value = DBResource()
+                    result.filter_by.return_value.one.return_value = (
+                        DBResource()
+                    )
                 else:
 
                     class DBDataset:
                         fresh = 0
                         update_frequency = 7
 
-                    result.filter_by.return_value.one.return_value = DBDataset()
+                    result.filter_by.return_value.one.return_value = (
+                        DBDataset()
+                    )
                 return result
 
             @staticmethod

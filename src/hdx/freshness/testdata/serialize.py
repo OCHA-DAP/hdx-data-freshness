@@ -60,7 +60,14 @@ def serialize_now(session, now):
 
 def serialize_results(session, results):
     for id in results:
-        url, resource_format, err, http_last_modified, hash, force_hash = results[id]
+        (
+            url,
+            resource_format,
+            err,
+            http_last_modified,
+            hash,
+            force_hash,
+        ) = results[id]
         dbtestresult = DBTestResult(
             id=id,
             url=url,
@@ -76,9 +83,14 @@ def serialize_results(session, results):
 
 def serialize_hashresults(session, hash_results):
     for id in hash_results:
-        url, resource_format, err, http_last_modified, hash, force_hash = hash_results[
-            id
-        ]
+        (
+            url,
+            resource_format,
+            err,
+            http_last_modified,
+            hash,
+            force_hash,
+        ) = hash_results[id]
         dbtesthashresult = DBTestHashResult(
             id=id,
             url=url,
@@ -116,7 +128,8 @@ def deserialize_datasets(session):
                 "updated_by_script": dbtestdataset.updated_by_script,
                 "metadata_modified": dbtestdataset.metadata_modified,
                 "groups": [
-                    {"name": x} for x in dbtestdataset.dataset_location.split(",")
+                    {"name": x}
+                    for x in dbtestdataset.dataset_location.split(",")
                 ],
             }
         )

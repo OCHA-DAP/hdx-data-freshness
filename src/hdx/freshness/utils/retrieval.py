@@ -16,8 +16,8 @@ import tqdm
 import uvloop
 from dateutil import parser
 
-from hdx.freshness import retry
-from hdx.freshness.ratelimiter import RateLimiter
+from hdx.freshness.utils import retry
+from hdx.freshness.utils.ratelimiter import RateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,9 @@ mimetypes = {
     "shp": ["application/zip", "application/x-zip-compressed"],
     "csv": ["text/csv", "application/zip", "application/x-zip-compressed"],
     "xls": ["application/vnd.ms-excel"],
-    "xlsx": ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
+    "xlsx": [
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    ],
 }
 signatures = {
     "json": [b"[", b" [", b"{", b" {"],
@@ -49,7 +51,9 @@ async def fetch(metadata, session):
         http_last_modified = None
         if last_modified_str:
             try:
-                http_last_modified = parser.parse(last_modified_str, ignoretz=True)
+                http_last_modified = parser.parse(
+                    last_modified_str, ignoretz=True
+                )
                 # we set this but don't actually use it to calculate freshness any more
             except (ValueError, OverflowError):
                 pass
@@ -57,7 +61,14 @@ async def fetch(metadata, session):
         if length and int(length) > 419430400:
             response.close()
             err = "File too large to hash!"
-            return resource_id, url, resource_format, err, http_last_modified, None
+            return (
+                resource_id,
+                url,
+                resource_format,
+                err,
+                http_last_modified,
+                None,
+            )
         logger.info(f"Hashing {url}")
         mimetype = response.headers.get("Content-Type")
         signature = None
@@ -79,7 +90,10 @@ async def fetch(metadata, session):
             if expected_signatures is not None:
                 found = False
                 for expected_signature in expected_signatures:
-                    if signature[: len(expected_signature)] == expected_signature:
+                    if (
+                        signature[: len(expected_signature)]
+                        == expected_signature
+                    ):
                         found = True
                         break
                 if not found:
@@ -121,9 +135,14 @@ async def check_urls(urls, loop, user_agent):
     tasks = list()
 
     conn = aiohttp.TCPConnector(limit=100, limit_per_host=1, loop=loop)
-    timeout = aiohttp.ClientTimeout(total=60 * 60, sock_connect=30, sock_read=30)
+    timeout = aiohttp.ClientTimeout(
+        total=60 * 60, sock_connect=30, sock_read=30
+    )
     async with aiohttp.ClientSession(
-        connector=conn, timeout=timeout, loop=loop, headers={"User-Agent": user_agent}
+        connector=conn,
+        timeout=timeout,
+        loop=loop,
+        headers={"User-Agent": user_agent},
     ) as session:
         session = RateLimiter(session)
         for metadata in urls:
@@ -131,7 +150,14 @@ async def check_urls(urls, loop, user_agent):
             tasks.append(task)
         responses = dict()
         for f in tqdm.tqdm(asyncio.as_completed(tasks), total=len(tasks)):
-            resource_id, url, resource_format, err, http_last_modified, hash = await f
+            (
+                resource_id,
+                url,
+                resource_format,
+                err,
+                http_last_modified,
+                hash,
+            ) = await f
             responses[resource_id] = (
                 url,
                 resource_format,
