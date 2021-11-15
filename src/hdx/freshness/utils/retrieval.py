@@ -16,8 +16,8 @@ import tqdm
 import uvloop
 from dateutil import parser
 
-from hdx.freshness.utils import retry
-from hdx.freshness.utils.ratelimiter import RateLimiter
+from . import retry
+from .ratelimiter import RateLimiter
 
 logger = logging.getLogger(__name__)
 

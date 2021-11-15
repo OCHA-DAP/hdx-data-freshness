@@ -1,7 +1,7 @@
 from hdx.database import Base
 from sqlalchemy import Boolean, Column, ForeignKey, String
 
-from hdx.freshness.database.dborganization import DBOrganization
+from .dborganization import DBOrganization
 
 
 class DBInfoDataset(Base):

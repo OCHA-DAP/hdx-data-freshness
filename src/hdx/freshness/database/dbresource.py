@@ -1,8 +1,8 @@
 from hdx.database import Base
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 
-from hdx.freshness.database.dbinfodataset import DBInfoDataset
-from hdx.freshness.database.dbrun import DBRun
+from .dbinfodataset import DBInfoDataset
+from .dbrun import DBRun
 
 
 class DBResource(Base):

@@ -1,7 +1,7 @@
 from hdx.database import Base
 from sqlalchemy import Column, ForeignKey, String
 
-from hdx.freshness.testdata.dbtestdataset import DBTestDataset
+from .dbtestdataset import DBTestDataset
 
 
 class DBTestResource(Base):

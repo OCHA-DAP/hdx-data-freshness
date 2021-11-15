@@ -9,11 +9,11 @@ from collections import OrderedDict
 
 from hdx.data.dataset import Dataset
 
-from hdx.freshness.testdata.dbtestdataset import DBTestDataset
-from hdx.freshness.testdata.dbtestdate import DBTestDate
-from hdx.freshness.testdata.dbtesthashresult import DBTestHashResult
-from hdx.freshness.testdata.dbtestresource import DBTestResource
-from hdx.freshness.testdata.dbtestresult import DBTestResult
+from .dbtestdataset import DBTestDataset
+from .dbtestdate import DBTestDate
+from .dbtesthashresult import DBTestHashResult
+from .dbtestresource import DBTestResource
+from .dbtestresult import DBTestResult
 
 
 def serialize_datasets(session, datasets):
