@@ -16,15 +16,15 @@ from hdx.utilities.easy_logging import setup_logging
 from hdx.utilities.path import script_dir_plus_file
 from hdx.utilities.useragent import UserAgent
 
-from . import __version__
-from .datafreshness import DataFreshness
+from hdx.freshness.app import __version__
+from hdx.freshness.app.datafreshness import DataFreshness
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
 
 def main(db_url, db_params, do_touch, save, **ignore):
-    logger.info(f"> Data freshness {__version__()}")
+    logger.info(f"> Data freshness {__version__}")
     if db_params:
         params = args_to_dict(db_params)
     elif db_url:
