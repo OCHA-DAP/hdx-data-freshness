@@ -8,10 +8,10 @@ Calculate freshness for all datasets in HDX.
 import datetime
 import logging
 import re
-from parser import ParserError
 from urllib.parse import urlparse
 
 from dateutil import parser
+from dateutil.parser import ParserError
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.data.hdxobject import HDXError
