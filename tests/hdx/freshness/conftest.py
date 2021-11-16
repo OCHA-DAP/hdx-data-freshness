@@ -9,7 +9,7 @@ from hdx.api.configuration import Configuration
 @pytest.fixture(scope="session")
 def configuration():
     project_config_yaml = join(
-        "src", "hdx", "freshness", "project_configuration.yml"
+        "src", "hdx", "freshness", "app", "project_configuration.yml"
     )
     Configuration._create(
         hdx_site="prod",

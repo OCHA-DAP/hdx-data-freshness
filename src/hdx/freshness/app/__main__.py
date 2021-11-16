@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 REGISTER:
 ---------
@@ -17,8 +16,8 @@ from hdx.utilities.easy_logging import setup_logging
 from hdx.utilities.path import script_dir_plus_file
 from hdx.utilities.useragent import UserAgent
 
-from hdx.freshness.app import __version__
-from hdx.freshness.app.datafreshness import DataFreshness
+from . import __version__
+from .datafreshness import DataFreshness
 
 setup_logging()
 logger = logging.getLogger(__name__)

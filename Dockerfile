@@ -12,4 +12,4 @@ RUN apk add --no-cache --upgrade --virtual .build-deps \
     apk add --no-cache libpq && \
     rm -rf /var/lib/apk/*
 
-CMD ["python3", "-m", "hdx.freshness"]
+CMD ["python3", "-m", "hdx.freshness.app"]

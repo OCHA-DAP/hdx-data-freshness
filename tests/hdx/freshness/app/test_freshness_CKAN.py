@@ -26,7 +26,7 @@ class TestFreshnessCKAN:
     @pytest.fixture(scope="class")
     def configuration(self):
         project_config_yaml = join(
-            "src", "hdx", "freshness", "project_configuration.yml"
+            "src", "hdx", "freshness", "app", "project_configuration.yml"
         )
         hdx_key = os.getenv("HDX_KEY")
         Configuration._create(
