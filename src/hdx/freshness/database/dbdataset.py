@@ -13,24 +13,37 @@ class DBDataset(Base):
     run_number = Column(
         Integer, ForeignKey(DBRun.run_number), primary_key=True
     )
+
     id = Column(String, ForeignKey(DBInfoDataset.id), primary_key=True)
+
     dataset_date = Column(String)
+
     update_frequency = Column(Integer)
+
     review_date = Column(DateTime)
+
     last_modified = Column(DateTime, nullable=False)
+
     updated_by_script = Column(DateTime)
+
     metadata_modified = Column(
         DateTime, nullable=False
     )  # this field and above are CKAN fields
+
     latest_of_modifieds = Column(DateTime, nullable=False)
+
     what_updated = Column(String, nullable=False)
+
     last_resource_updated = Column(
         String, nullable=False
     )  # id of last resource updated
+
     last_resource_modified = Column(
         DateTime, nullable=False
     )  # date last resource updated
+
     fresh = Column(Integer)
+
     error = Column(Boolean, nullable=False)
     """
 
