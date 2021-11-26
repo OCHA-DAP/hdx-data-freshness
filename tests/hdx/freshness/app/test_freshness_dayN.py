@@ -145,7 +145,7 @@ Freshness Unavailable, Updated nothing: 4
 
 15 datasets have update frequency of Live
 19 datasets have update frequency of Never
-0 datasets have update frequency of Adhoc"""
+0 datasets have update frequency of As Needed"""
             )
 
             dbrun = dbsession.query(DBRun).filter_by(run_number=1).one()
@@ -220,13 +220,6 @@ api=False, error=None)>"""
                 .count()
             )
             assert count == 3
-            count = (
-                dbsession.query(DBResource)
-                .filter_by(run_number=1, what_updated="adhoc-nothing")
-                .filter(DBResource.error.isnot(None))
-                .count()
-            )
-            assert count == 0
             count = (
                 dbsession.query(DBResource)
                 .filter_by(run_number=1, what_updated="internal-nothing")

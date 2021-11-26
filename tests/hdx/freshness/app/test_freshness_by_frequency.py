@@ -12,7 +12,7 @@ from hdx.database import Database
 from hdx.freshness.app.datafreshness import DataFreshness
 
 
-class TestAging:
+class TestFreshnessByFrequency:
     @pytest.fixture(scope="class")
     def nodatabase(self):
         dbpath = join("tests", "test_freshness.db")
@@ -76,7 +76,7 @@ class TestAging:
             (455, 365, 3),
         ],
     )
-    def test_aging(
+    def test_freshness_by_frequency(
         self,
         configuration,
         nodatabase,
@@ -91,5 +91,7 @@ class TestAging:
                 session=session, datasets=datasets, now=now
             )
             last_modified = now - timedelta(days=days_last_modified)
-            status = freshness.calculate_aging(last_modified, update_frequency)
+            status = freshness.calculate_freshness(
+                last_modified, update_frequency
+            )
             assert status == expected_status

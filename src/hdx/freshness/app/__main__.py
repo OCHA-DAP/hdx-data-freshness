@@ -1,9 +1,4 @@
-"""
-REGISTER:
----------
-
-Caller script. Designed to call all other functions.
-
+"""Entry point to start data freshness
 """
 import argparse
 import logging
@@ -36,21 +31,33 @@ def main(db_url, db_params, do_touch, save, **ignore):
         testsession = None
         if save:
             testsession = Database.get_session("sqlite:///test_serialize.db")
+        # Setup including reading all datasets from HDX and setting threshold for how
+        # many resources to force hash
         freshness = DataFreshness(
             session=session, testsession=testsession, do_touch=do_touch
         )
+        # Arrange order of list of datasets so that datasets from the same organisation
+        # are moved away from each other
         freshness.spread_datasets()
+        # Add new run number and date
         freshness.add_new_run()
+        # Store metadata in freshness database, calculate an initial freshness based on
+        # the metadata and determine resources to be downloaded and hashed
         datasets_to_check, resources_to_check = freshness.process_datasets()
+        # Download resource urls and hash them
         results, hash_results = freshness.check_urls(
             resources_to_check, UserAgent.get()
         )
-        datasets_lastmodified = freshness.process_results(
+        # Work out if hashed files have changed and if so, touch resources.
+        # Determine latest of modifieds and freshness for all datasets
+        datasets_resourcesinfo = freshness.process_results(
             results, hash_results
         )
+        # Work out latest_of_modifieds for datasets and calculate freshness
         freshness.update_dataset_latest_of_modifieds(
-            datasets_to_check, datasets_lastmodified
+            datasets_to_check, datasets_resourcesinfo
         )
+        # Display output string
         freshness.output_counts()
         if testsession:
             testsession.close()

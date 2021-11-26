@@ -1,17 +1,12 @@
-"""
-Data freshness:
---------------
-
-Calculate freshness for all datasets in HDX.
-
+"""Determine freshness for all datasets in HDX
 """
 import datetime
 import logging
 import re
+from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
-from dateutil import parser
-from dateutil.parser import ParserError
+from dateutil.parser import ParserError, parse
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.data.hdxobject import HDXError
@@ -21,6 +16,7 @@ from hdx.utilities.dictandlist import (
     list_distribute_contents,
 )
 from sqlalchemy import and_, exists
+from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
 from hdx.freshness.database.dbdataset import DBDataset
@@ -42,22 +38,32 @@ default_no_urls_to_check = 1000
 
 
 class DataFreshness:
+    """Data freshness main class
+
+    Args:
+        session (sqlalchemy.orm.Session): Session to use for queries
+        testsession (Optional[sqlalchemy.orm.Session]): Session for test data or None
+        datasets (Optional[List[Dataset]]): List of datasets or read from HDX if None
+        now (datetime.datetime): Date to use or take current time if None
+        do_touch (bool): Whether to touch HDX resources whose hash has changed
+    """
+
     bracketed_date = re.compile(r"\((.*)\)")
 
     def __init__(
         self,
-        session=None,
-        testsession=None,
-        datasets=None,
-        now=None,
-        do_touch=False,
+        session: Session,
+        testsession: Optional[Session] = None,
+        datasets: Optional[List[Dataset]] = None,
+        now: datetime.datetime = None,
+        do_touch: bool = False,
     ):
         """"""
         self.session = session
         self.urls_to_check_count = 0
         self.never_update = 0
         self.live_update = 0
-        self.adhoc_update = 0
+        self.asneeded_update = 0
         self.dataset_what_updated = dict()
         self.resource_what_updated = dict()
         self.resource_last_modified_count = 0
@@ -65,33 +71,33 @@ class DataFreshness:
 
         self.url_internal = "data.humdata.org"
 
-        self.aging = dict()
+        self.freshness_by_frequency = dict()
         for key, value in Configuration.read()["aging"].items():
-            period = int(key)
-            aging_period = dict()
+            update_frequency = int(key)
+            freshness_frequency = dict()
             for status in value:
                 nodays = value[status]
-                aging_period[status] = datetime.timedelta(days=nodays)
-            self.aging[period] = aging_period
-        self.aging_statuses = {
+                freshness_frequency[status] = datetime.timedelta(days=nodays)
+            self.freshness_by_frequency[update_frequency] = freshness_frequency
+        self.freshness_statuses = {
             0: "0: Fresh",
             1: "1: Due",
             2: "2: Overdue",
             3: "3: Delinquent",
             None: "Freshness Unavailable",
         }
-        self.testsession = testsession
+        self.testsession: Optional[Session] = testsession
         if datasets is None:  # pragma: no cover
             Configuration.read().set_read_only(
                 True
             )  # so that we only get public datasets
             logger.info("Retrieving all datasets from HDX")
-            self.datasets = Dataset.get_all_datasets()
+            self.datasets: List[Dataset] = Dataset.get_all_datasets()
             Configuration.read().set_read_only(False)
             if self.testsession:
                 serialize_datasets(self.testsession, self.datasets)
         else:
-            self.datasets = datasets
+            self.datasets: List[Dataset] = datasets
         if now is None:  # pragma: no cover
             self.now = datetime.datetime.utcnow()
             if self.testsession:
@@ -119,7 +125,13 @@ class DataFreshness:
 
         logger.info(f"Will force hash {self.no_urls_to_check} resources")
 
-    def no_resources_force_hash(self):
+    def no_resources_force_hash(self) -> int:
+        """Get number of resources to force hash
+
+        Returns:
+            int: Number of resources to force hash
+        """
+
         columns = [DBResource.id, DBDataset.updated_by_script]
         filters = [
             DBResource.dataset_id == DBDataset.id,
@@ -140,29 +152,64 @@ class DataFreshness:
             return None
         return noresources
 
-    def spread_datasets(self):
-        self.datasets = list_distribute_contents(
+    def spread_datasets(self) -> None:
+        """Try to arrange the list of datasets so that downloads don't keep hitting the
+        same server by moving apart datasets from the same organisation
+
+        Returns:
+            None
+        """
+        self.datasets: List[Dataset] = list_distribute_contents(
             self.datasets, lambda x: x["organization"]["name"]
         )
 
-    def add_new_run(self):
+    def add_new_run(self) -> None:
+        """Add a new run number with corresponding date
+
+        Returns:
+            None
+        """
         dbrun = DBRun(run_number=self.run_number, run_date=self.now)
         self.session.add(dbrun)
         self.session.commit()
 
     @staticmethod
-    def internal_what_updated(dbresource, url_substr):
-        what_updated = f"{url_substr}-{dbresource.what_updated}"
+    def prefix_what_updated(dbresource: DBResource, prefix: str) -> None:
+        """Prefix the what_updated field of resource
+
+        Args:
+            dbresource (DBResource): DBResource object to change
+            prefix (str): Prefix to prepend
+
+        Returns:
+            None
+        """
+        what_updated = f"{prefix}-{dbresource.what_updated}"
         dbresource.what_updated = what_updated
 
     def process_resources(
         self,
-        dataset_id,
-        previous_dbdataset,
-        resources,
-        updated_by_script,
-        hash_ids=None,
-    ):
+        dataset_id: str,
+        previous_dbdataset: DBDataset,
+        resources: List[Resource],
+        updated_by_script: Optional[datetime.datetime],
+        hash_ids: List[str] = None,
+    ) -> Tuple[List[Tuple], Optional[str], Optional[datetime.datetime]]:
+        """Process HDX dataset's resources. If the resource has not been checked for
+        30 days and we are below the threshold for resource checking, then the resource
+        is flagged to be hashed even if the dataset is fresh.
+
+        Args:
+            dataset_id (str): Dataset id
+            previous_dbdataset (DBDataset): DBDataset object from previous run
+            resources (List[Resource]): HDX resources to process
+            updated_by_script (Optional[datetime.datetime]): Time script updated or None
+            hash_ids (Optional[List[str]]): Resource ids to hash for testing purposes
+
+        Returns:
+            Tuple[List[Tuple], Optional[str], Optional[datetime.datetime]]:
+            (resources to download, id of last resource updated, time updated)
+        """
         last_resource_updated = None
         last_resource_modified = None
         dataset_resources = list()
@@ -171,12 +218,10 @@ class DataFreshness:
             dict_of_lists_add(self.resource_what_updated, "total", resource_id)
             url = resource["url"]
             name = resource["name"]
-            metadata_modified = parser.parse(
+            metadata_modified = parse(
                 resource["metadata_modified"], ignoretz=True
             )
-            last_modified = parser.parse(
-                resource["last_modified"], ignoretz=True
-            )
+            last_modified = parse(resource["last_modified"], ignoretz=True)
             if last_resource_modified:
                 if last_modified > last_resource_modified:
                     last_resource_updated = resource_id
@@ -240,7 +285,7 @@ class DataFreshness:
                 )
                 continue
             if self.url_internal in url:
-                self.internal_what_updated(dbresource, "internal")
+                self.prefix_what_updated(dbresource, "internal")
                 dict_of_lists_add(
                     self.resource_what_updated,
                     dbresource.what_updated,
@@ -270,7 +315,24 @@ class DataFreshness:
             )
         return dataset_resources, last_resource_updated, last_resource_modified
 
-    def process_datasets(self, hash_ids=None):
+    def process_datasets(
+        self, hash_ids: Optional[List[str]] = None
+    ) -> Tuple[Dict[str, str], List[Tuple]]:
+        """Process HDX datasets. Extract necessary metadata and store in the
+        freshness database. Calculate an initial freshness based on the metadata
+        (last modified - which can change due to filestore resource changes,
+        review date - when someone clicks the reviewed button the UI,
+        updated by script - scripts provide the date of update in HDX metadata)
+        For datasets that are not initially fresh or which have resources that have not
+        been checked in the last 30 days (up to the threshold for the number of
+        resources to check), the resources are flagged to be downloaded and hashed.
+
+        Args:
+            hash_ids (Optional[List[str]]): Resource ids to hash for testing purposes
+
+        Returns:
+            Tuple[Dict[str, str], List[Tuple]]: (datasets to check, resources to check)
+        """
         resources_to_check = list()
         datasets_to_check = dict()
         logger.info("Processing datasets")
@@ -351,7 +413,7 @@ class DataFreshness:
                             updated_by_script = None
                         else:
                             try:
-                                updated_by_script = parser.parse(
+                                updated_by_script = parse(
                                     match.group(1), ignoretz=True
                                 )
                             except ParserError:
@@ -368,13 +430,11 @@ class DataFreshness:
                 hash_ids=hash_ids,
             )
             dataset_date = dataset.get("dataset_date")
-            metadata_modified = parser.parse(
+            metadata_modified = parse(
                 dataset["metadata_modified"], ignoretz=True
             )
             if "last_modified" in dataset:
-                last_modified = parser.parse(
-                    dataset["last_modified"], ignoretz=True
-                )
+                last_modified = parse(dataset["last_modified"], ignoretz=True)
             else:
                 last_modified = datetime.datetime(1970, 1, 1, 0, 0)
             if len(resources) == 0 and last_resource_updated is None:
@@ -389,7 +449,7 @@ class DataFreshness:
             if review_date is None:
                 latest_of_modifieds = last_modified
             else:
-                review_date = parser.parse(review_date, ignoretz=True)
+                review_date = parse(review_date, ignoretz=True)
                 if review_date > last_modified:
                     latest_of_modifieds = review_date
                 else:
@@ -407,9 +467,9 @@ class DataFreshness:
                     self.never_update += 1
                 elif update_frequency == -2:
                     fresh = 0
-                    self.adhoc_update += 1
+                    self.asneeded_update += 1
                 else:
-                    fresh = self.calculate_aging(
+                    fresh = self.calculate_freshness(
                         latest_of_modifieds, update_frequency
                     )
 
@@ -487,14 +547,14 @@ class DataFreshness:
                         previous_dbdataset.latest_of_modifieds
                     )
                     if update_frequency is not None and update_frequency > 0:
-                        fresh = self.calculate_aging(
+                        fresh = self.calculate_freshness(
                             previous_dbdataset.latest_of_modifieds,
                             update_frequency,
                         )
                         dbdataset.fresh = fresh
             self.session.add(dbdataset)
 
-            update_string = f"{self.aging_statuses[fresh]}, Updated {dbdataset.what_updated}"
+            update_string = f"{self.freshness_statuses[fresh]}, Updated {dbdataset.what_updated}"
             anyresourcestohash = False
             for (
                 url,
@@ -528,8 +588,28 @@ class DataFreshness:
         return datasets_to_check, resources_to_check
 
     def check_urls(
-        self, resources_to_check, user_agent, results=None, hash_results=None
-    ):
+        self,
+        resources_to_check: List[Tuple],
+        user_agent: str,
+        results: Optional[Dict] = None,
+        hash_results: Optional[Dict] = None,
+    ) -> Tuple[Dict[str, Tuple], Dict[str, Tuple]]:
+        """Download resources and hash them. If the hash has changed compared to the
+        previous run, download and hash again. Return two dictionaries, the first
+        with the hashes from the first downloads and the second with the hashes from
+        the second downloads.
+
+        Args:
+            resources_to_check (List[Tuple]): List of resources to be checked
+            user_agent (str): User agent string to use when downloading
+            results (Optional[Dict]): Test results to use in place of first downloads
+            hash_results (Optional[Dict]): Test results replacing second downloads
+
+        Returns:
+            Tuple[Dict[str, Tuple], Dict[str, Tuple]]:
+            (results of first download, results of second download)
+        """
+
         def get_domain(x):
             return urlparse(x[0]).netloc
 
@@ -563,8 +643,29 @@ class DataFreshness:
 
         return results, hash_results
 
-    def process_results(self, results, hash_results, resourcecls=Resource):
-        datasets_latest_of_modifieds = dict()
+    def process_results(
+        self,
+        results: Dict[str, Tuple],
+        hash_results: Dict[str, Tuple],
+        resourcecls: Union[Resource, Any] = Resource,
+    ) -> Dict[str, Dict[str, Tuple]]:
+        """Process the downloaded and hashed resources. If the two hashes are the same
+        but different to the previous run's, the file has been changed. If the two
+        hashes are different, it is an API (eg. editable Google sheet) where the hash
+        constantly changes. If the file is determined to have been changed, then the
+        resource on HDX is touched to update its last_modified field. Return a
+        dictionary of dictionaries from dataset id to resource ids to update information
+        about resources including their latest_of_modifieds.
+
+        Args:
+            results (Dict[str, Tuple]): Test results to use in place of first downloads
+            hash_results (Dict[str, Tuple]): Test results replacing second downloads
+            resourcecls (Union[Resource, Any]): Class to use. Defaults to Resource.
+
+        Returns:
+            Dict[str, Dict[str, Tuple]]: Dataset id to resource id to resource info
+        """
+        datasets_resourcesinfo = dict()
         for resource_id in sorted(results):
             url, _, err, http_last_modified, hash = results[resource_id]
             dbresource = (
@@ -573,7 +674,7 @@ class DataFreshness:
                 .one()
             )
             dataset_id = dbresource.dataset_id
-            datasetinfo = datasets_latest_of_modifieds.get(dataset_id, dict())
+            resourcesinfo = datasets_resourcesinfo.get(dataset_id, dict())
             what_updated = dbresource.what_updated
             update_last_modified = False
             if http_last_modified:
@@ -661,23 +762,25 @@ class DataFreshness:
                 dbresource.when_checked = self.now
                 what_updated = self.add_what_updated(what_updated, "error")
                 dbresource.error = err
-            datasetinfo[resource_id] = (
+            resourcesinfo[resource_id] = (
                 dbresource.error,
                 dbresource.latest_of_modifieds,
                 dbresource.what_updated,
             )
-            datasets_latest_of_modifieds[dataset_id] = datasetinfo
+            datasets_resourcesinfo[dataset_id] = resourcesinfo
             dict_of_lists_add(
                 self.resource_what_updated, what_updated, resource_id
             )
-            if update_last_modified and self.do_touch:
+            if (
+                update_last_modified and self.do_touch
+            ):  # Touch resource if needed
                 try:
                     logger.info(
                         f"Updating last modified for resource {resource_id}"
                     )
                     resource = resourcecls.read_from_hdx(resource_id)
                     if resource:
-                        last_modified = parser.parse(resource["last_modified"])
+                        last_modified = parse(resource["last_modified"])
                         dbdataset = (
                             self.session.query(DBDataset)
                             .filter_by(
@@ -688,7 +791,7 @@ class DataFreshness:
                         update_frequency = dbdataset.update_frequency
                         if update_frequency > 0:
                             if (
-                                self.calculate_aging(
+                                self.calculate_freshness(
                                     last_modified, update_frequency
                                 )
                                 == 0
@@ -725,18 +828,33 @@ class DataFreshness:
                         f"Last modified update failed for id {resource_id}!"
                     )
         self.session.commit()
-        return datasets_latest_of_modifieds
+        return datasets_resourcesinfo
 
     def update_dataset_latest_of_modifieds(
-        self, datasets_to_check, datasets_latest_of_modifieds
-    ):
-        for dataset_id in datasets_latest_of_modifieds:
+        self,
+        datasets_to_check: Dict[str, str],
+        datasets_resourcesinfo: Dict[str, Dict[str, Tuple]],
+    ) -> None:
+        """Given the dictionary of dictionaries from dataset id to resource ids to
+        update information about resources including their latest_of_modifieds, work
+        out latest_of_modifieds for datasets and calculate freshness.
+
+        Args:
+            datasets_to_check (Dict[str, str]): Datasets with resources that were hashed
+            datasets_resourcesinfo (Dict[str, Dict[str, Tuple]]): Dataset id to resource
+            id to resource info
+
+        Returns:
+            None
+        """
+
+        for dataset_id in datasets_resourcesinfo:
             dbdataset = (
                 self.session.query(DBDataset)
                 .filter_by(id=dataset_id, run_number=self.run_number)
                 .one()
             )
-            dataset = datasets_latest_of_modifieds[dataset_id]
+            dataset = datasets_resourcesinfo[dataset_id]
             dataset_latest_of_modifieds = dbdataset.latest_of_modifieds
             dataset_what_updated = dbdataset.what_updated
             last_resource_modified = dbdataset.last_resource_modified
@@ -769,17 +887,17 @@ class DataFreshness:
             )
             update_frequency = dbdataset.update_frequency
             if update_frequency is not None and update_frequency > 0:
-                dbdataset.fresh = self.calculate_aging(
+                dbdataset.fresh = self.calculate_freshness(
                     dbdataset.latest_of_modifieds, update_frequency
                 )
             dbdataset.error = all_errors
-            status = f"{self.aging_statuses[dbdataset.fresh]}, Updated {dbdataset.what_updated}"
+            status = f"{self.freshness_statuses[dbdataset.fresh]}, Updated {dbdataset.what_updated}"
             if all_errors:
                 status = f"{status},error"
             dict_of_lists_add(self.dataset_what_updated, status, dataset_id)
         self.session.commit()
         for dataset_id in datasets_to_check:
-            if dataset_id in datasets_latest_of_modifieds:
+            if dataset_id in datasets_resourcesinfo:
                 continue
             dict_of_lists_add(
                 self.dataset_what_updated,
@@ -787,7 +905,13 @@ class DataFreshness:
                 dataset_id,
             )
 
-    def output_counts(self):
+    def output_counts(self) -> str:
+        """Create and display output string
+
+        Returns:
+            str: Output string
+        """
+
         def add_what_updated_str(hdxobject_what_updated):
             nonlocal output_str
             output_str += (
@@ -807,15 +931,28 @@ class DataFreshness:
         output_str += (
             f"\n{self.never_update} datasets have update frequency of Never"
         )
-        output_str += (
-            f"\n{self.adhoc_update} datasets have update frequency of Adhoc"
-        )
+        output_str += f"\n{self.asneeded_update} datasets have update frequency of As Needed"
 
         logger.info(output_str)
         return output_str
 
     @staticmethod
-    def set_latest_of_modifieds(dbobject, modified_date, what_updated):
+    def set_latest_of_modifieds(
+        dbobject: Union[DBDataset, DBResource],
+        modified_date: datetime.datetime,
+        what_updated: str,
+    ) -> Tuple[str, bool]:
+        """Set latest of modifieds if provided date is greater than current and add
+        to the Database object's what_updated field.
+
+        Args:
+            dbobject (Union[DBDataset, DBResource]): Database object to update
+            modified_date (datetime.datetime): New modified date
+            what_updated (str): What updated eg. hash
+
+        Returns:
+            Tuple[str, bool]: (DB object's what_updated, whether new date > current)
+        """
         if modified_date > dbobject.latest_of_modifieds:
             dbobject.latest_of_modifieds = modified_date
             dbobject.what_updated = DataFreshness.add_what_updated(
@@ -827,7 +964,17 @@ class DataFreshness:
         return dbobject.what_updated, update
 
     @staticmethod
-    def add_what_updated(prev_what_updated, what_updated):
+    def add_what_updated(prev_what_updated: str, what_updated: str):
+        """Add to what_updated string any new cause of update (such as hash). "nothing"
+        is removed if anything else is added.
+
+        Args:
+            prev_what_updated (str): Previous what_updated string
+            what_updated (str): Additional what_updated string
+
+        Returns:
+            str: New what_updated string
+        """
         if what_updated in prev_what_updated:
             return prev_what_updated
         if prev_what_updated != "nothing" and prev_what_updated != "firstrun":
@@ -837,12 +984,27 @@ class DataFreshness:
         else:
             return what_updated
 
-    def calculate_aging(self, last_modified, update_frequency):
+    def calculate_freshness(
+        self, last_modified: datetime.datetime, update_frequency: int
+    ) -> int:
+        """Calculate freshness based on a last modified date and the expected update
+        frequency. Returns 0 for fresh, 1 for due, 2 for overdue and 3 for delinquent.
+
+        Args:
+            last_modified (datetime.datetime): Last modified date
+            update_frequency (int): Expected update frequency
+
+        Returns:
+            int: 0 for fresh, 1 for due, 2 for overdue and 3 for delinquent
+        """
         delta = self.now - last_modified
-        if delta >= self.aging[update_frequency]["Delinquent"]:
+        if (
+            delta
+            >= self.freshness_by_frequency[update_frequency]["Delinquent"]
+        ):
             return 3
-        elif delta >= self.aging[update_frequency]["Overdue"]:
+        elif delta >= self.freshness_by_frequency[update_frequency]["Overdue"]:
             return 2
-        elif delta >= self.aging[update_frequency]["Due"]:
+        elif delta >= self.freshness_by_frequency[update_frequency]["Due"]:
             return 1
         return 0

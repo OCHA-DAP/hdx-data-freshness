@@ -1,7 +1,11 @@
+"""Utility to retry HTTP requests with exponential backoff interval
+"""
 import asyncio
 import logging
+from typing import Any, Callable, List
 
 import aiohttp
+from aiohttp import ClientResponse
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +15,13 @@ HTTP_STATUS_CODES_TO_RETRY = [500, 502, 503, 504]
 
 class FailedRequest(Exception):
     """
-    A wrapper of all possible exception during a HTTP request
+    A wrapper for all possible exceptions during an HTTP request
+
+    Args:
+        raised (str): Exception type
+        message (str): Exception message
+        code (str): HTTP status code
+        url (str): URL that was requested
     """
 
     code = 0
@@ -19,7 +29,14 @@ class FailedRequest(Exception):
     url = ""
     raised = ""
 
-    def __init__(self, *, raised="", message="", code="", url=""):
+    def __init__(
+        self,
+        *,
+        raised: str = "",
+        message: str = "",
+        code: str = "",
+        url: str = "",
+    ):
         self.raised = raised
         self.message = message
         self.code = code
@@ -33,29 +50,30 @@ class FailedRequest(Exception):
 
 
 async def send_http(
-    session,
-    method,
-    url,
+    session: aiohttp.ClientSession,
+    method: str,
+    url: str,
     *,
-    retries=1,
-    interval=1,
-    backoff=2,
-    http_status_codes_to_retry=HTTP_STATUS_CODES_TO_RETRY,
-    fn=lambda x: x,
-    **kwargs,
+    retries: int = 1,
+    interval: int = 1,
+    backoff: int = 2,
+    http_status_codes_to_retry: List[int] = HTTP_STATUS_CODES_TO_RETRY,
+    fn: Callable[[ClientResponse], Any] = lambda x: x,
+    **kwargs: Any,
 ):
     """
-    Sends a HTTP request and implements a retry logic.
+    Send an HTTP request and implement retry logic
 
     Arguments:
-        session (obj): A client aiohttp session object
-        method (str): Method to use
+        session (aiohttp.ClientSession): A client aiohttp session object
+        method (str): Method to use eg. "get"
         url (str): URL for the request
         retries (int): Number of times to retry in case of failure
         interval (float): Time to wait before retries
         backoff (int): Multiply interval by this factor after each failure
         http_status_codes_to_retry (List[int]): List of status codes to retry
         fn (Callable[[x],x]: Function to call on successful connection
+        **kwargs
     """
     backoff_interval = interval
     raised_exc = None
@@ -111,7 +129,7 @@ async def send_http(
                 code = ""
             raised_exc = FailedRequest(
                 code=code,
-                message=exc,
+                message=str(exc),
                 raised=f"{exc.__class__.__module__}.{exc.__class__.__qualname__}",
                 url=url,
             )

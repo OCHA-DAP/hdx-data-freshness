@@ -278,7 +278,7 @@ firstrun: 2
 
 0 datasets have update frequency of Live
 1 datasets have update frequency of Never
-0 datasets have update frequency of Adhoc"""
+0 datasets have update frequency of As Needed"""
         )
         assert (
             output2
@@ -300,7 +300,7 @@ same hash: 3
 
 0 datasets have update frequency of Live
 1 datasets have update frequency of Never
-0 datasets have update frequency of Adhoc"""
+0 datasets have update frequency of As Needed"""
         )
 
         assert last_modifieds == [

@@ -1,15 +1,16 @@
-#!/usr/bin/python
-"""
-Retrieval
----------
-
-Retrieve urls and categorise them
-
+"""Utility to download and hash resources. Uses asyncio. Note that the purpose of
+asyncio is to help with IO-bound rather than CPU-bound code (for which multiprocessing
+is more suitable as it leverages multiple CPUs). Asyncio allows you to structure your
+code so that when one piece of linear single-threaded code (coroutine) is waiting for
+something to happen another can take over and use the CPU. While conceptually similar to
+threading, the difference is that with asyncio, it is the task of the developer rather
+than the OS to decide when to switch to the next task.
 """
 import asyncio
 import hashlib
 import logging
 from timeit import default_timer as timer
+from typing import Dict, List, Tuple, Union
 
 import aiohttp
 import tqdm
@@ -41,7 +42,19 @@ signatures = {
 }
 
 
-async def fetch(metadata, session):
+async def fetch(
+    metadata: Tuple, session: Union[aiohttp.ClientSession, RateLimiter]
+) -> Tuple:
+    """Asynchronous code to download a resource and hash it. Returns a tuple with
+    resource information including hashes.
+
+    Args:
+        metadata (Tuple): Resource to be checked
+        session (Union[aiohttp.ClientSession, RateLimiter]): session to use for requests
+
+    Returns:
+        Tuple: Resource information including hash
+    """
     url = metadata[0]
     resource_id = metadata[1]
     resource_format = metadata[2]
@@ -51,10 +64,11 @@ async def fetch(metadata, session):
         http_last_modified = None
         if last_modified_str:
             try:
+                # we set http_last_modified but don't actually use it to calculate
+                # freshness any more
                 http_last_modified = parser.parse(
                     last_modified_str, ignoretz=True
                 )
-                # we set this but don't actually use it to calculate freshness any more
             except (ValueError, OverflowError):
                 pass
         length = response.headers.get("Content-Length")
@@ -131,7 +145,19 @@ async def fetch(metadata, session):
         return resource_id, url, resource_format, str(e), None, None
 
 
-async def check_urls(urls, loop, user_agent):
+async def check_urls(
+    resources_to_check: List[Tuple], loop: uvloop.Loop, user_agent: str
+) -> Dict[str, Tuple]:
+    """Asynchronous code to download resources and hash them. Return dictionary with
+    resources information including hashes.
+
+    Args:
+        resources_to_check (List[Tuple]): List of resources to be checked
+        user_agent (str): User agent string to use when downloading
+
+    Returns:
+        Dict[str, Tuple]: Resources information including hashes
+    """
     tasks = list()
 
     conn = aiohttp.TCPConnector(limit=100, limit_per_host=1, loop=loop)
@@ -144,8 +170,10 @@ async def check_urls(urls, loop, user_agent):
         loop=loop,
         headers={"User-Agent": user_agent},
     ) as session:
-        session = RateLimiter(session)
-        for metadata in urls:
+        session = RateLimiter(
+            session
+        )  # Limit connections per timeframe to host
+        for metadata in resources_to_check:
             task = fetch(metadata, session)
             tasks.append(task)
         responses = dict()
@@ -168,11 +196,26 @@ async def check_urls(urls, loop, user_agent):
         return responses
 
 
-def retrieve(urls, user_agent):
+def retrieve(
+    resources_to_check: List[Tuple], user_agent: str
+) -> Dict[str, Tuple]:
+    """Download resources and hash them. Return dictionary with resources information
+    including hashes.
+
+    Args:
+        resources_to_check (List[Tuple]): List of resources to be checked
+        user_agent (str): User agent string to use when downloading
+
+    Returns:
+        Dict[str, Tuple]: Resources information including hashes
+    """
+
     start_time = timer()
     loop = uvloop.new_event_loop()
     asyncio.set_event_loop(loop)
-    future = asyncio.ensure_future(check_urls(urls, loop, user_agent))
+    future = asyncio.ensure_future(
+        check_urls(resources_to_check, loop, user_agent)
+    )
     results = loop.run_until_complete(future)
     logger.info(f"Execution time: {timer() - start_time} seconds")
     loop.run_until_complete(asyncio.sleep(0.250))

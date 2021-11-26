@@ -117,7 +117,7 @@ Freshness Unavailable, Updated firstrun: 4
 
 15 datasets have update frequency of Live
 19 datasets have update frequency of Never
-0 datasets have update frequency of Adhoc"""
+0 datasets have update frequency of As Needed"""
             )
 
             dbsession = freshness.session

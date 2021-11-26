@@ -1,13 +1,10 @@
+"""Functions to serialise and deserialise test data, for example for datasets
 """
-Serialize:
----------
-
-Serialize datasets and other types
-
-"""
-from collections import OrderedDict
+import datetime
+from typing import Dict, Iterable, List, Tuple
 
 from hdx.data.dataset import Dataset
+from sqlalchemy.orm import Session
 
 from .dbtestdataset import DBTestDataset
 from .dbtestdate import DBTestDate
@@ -16,7 +13,16 @@ from .dbtestresource import DBTestResource
 from .dbtestresult import DBTestResult
 
 
-def serialize_datasets(session, datasets):
+def serialize_datasets(session: Session, datasets: List[Dataset]) -> None:
+    """Serialise HDX datasets to database objects
+
+    Args:
+        session (sqlalchemy.orm.Session): Session to use for queries for test data
+        datasets (List[Dataset]): HDX datasets
+
+    Returns:
+        None
+    """
     for dataset in datasets:
         dataset_id = dataset["id"]
         dbtestdataset = DBTestDataset(
@@ -52,13 +58,32 @@ def serialize_datasets(session, datasets):
     session.commit()
 
 
-def serialize_now(session, now):
+def serialize_now(session: Session, now: datetime.datetime) -> None:
+    """Serialise date to database object
+
+    Args:
+        session (sqlalchemy.orm.Session): Session to use for queries for test data
+        now (datetime.datetime): Current date
+
+    Returns:
+        None
+    """
     dbtestdate = DBTestDate(test_date=now)
     session.add(dbtestdate)
     session.commit()
 
 
-def serialize_results(session, results):
+def serialize_results(session: Session, results: Dict[str, Tuple]) -> None:
+    """Serialise results of downloading and hashing urls (first time) to database
+    objects
+
+    Args:
+        session (sqlalchemy.orm.Session): Session to use for queries for test data
+        results (Dict[str, Tuple]): Results of downloading and hashing urls (1st time)
+
+    Returns:
+        None
+    """
     for id in results:
         (
             url,
@@ -81,7 +106,19 @@ def serialize_results(session, results):
     session.commit()
 
 
-def serialize_hashresults(session, hash_results):
+def serialize_hashresults(
+    session: Session, hash_results: Dict[str, Tuple]
+) -> None:
+    """Serialise results of downloading and hashing urls (second time) to database
+    objects
+
+    Args:
+        session (sqlalchemy.orm.Session): Session to use for queries for test data
+        hash_results (Dict[str, Tuple]): Results of downloading+hashing urls (2nd time)
+
+    Returns:
+        None
+    """
     for id in hash_results:
         (
             url,
@@ -104,8 +141,16 @@ def serialize_hashresults(session, hash_results):
     session.commit()
 
 
-def deserialize_datasets(session):
-    datasets = OrderedDict()
+def deserialize_datasets(session: Session) -> Iterable[Dataset]:
+    """Deserialise database objects to HDX datasets
+
+    Args:
+        session (sqlalchemy.orm.Session): Session to use for queries for test data
+
+    Returns:
+        Iterable[Dataset]: HDX Dataset objects
+    """
+    datasets = dict()
     for dbtestdataset in session.query(DBTestDataset):
         dataset_id = dbtestdataset.id
         organization = {
@@ -149,11 +194,28 @@ def deserialize_datasets(session):
     return datasets.values()
 
 
-def deserialize_now(session):
+def deserialize_now(session: Session) -> datetime.datetime:
+    """Deserialise database object to date
+
+    Args:
+        session (sqlalchemy.orm.Session): Session to use for queries for test data
+
+    Returns:
+        datetime.datetime: date
+    """
     return session.query(DBTestDate.test_date).scalar()
 
 
-def deserialize_results(session):
+def deserialize_results(session: Session) -> List[Tuple]:
+    """Deserialise database objects to results of downloading and hashing urls
+    (first time)
+
+    Args:
+        session (sqlalchemy.orm.Session): Session to use for queries for test data
+
+    Returns:
+        List[Tuple]: Results of downloading and hashing urls (first time)
+    """
     results = dict()
     for dbtestresult in session.query(DBTestResult):
         results[dbtestresult.id] = (
@@ -166,7 +228,16 @@ def deserialize_results(session):
     return results
 
 
-def deserialize_hashresults(session):
+def deserialize_hashresults(session: Session) -> List[Tuple]:
+    """Deserialise database objects to results of downloading and hashing urls
+    (second time)
+
+    Args:
+        session (sqlalchemy.orm.Session): Session to use for queries for test data
+
+    Returns:
+        List[Tuple]: Results of downloading and hashing urls (second time)
+    """
     hash_results = dict()
     for dbtesthashresult in session.query(DBTestHashResult):
         hash_results[dbtesthashresult.id] = (
