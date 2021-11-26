@@ -81,7 +81,7 @@ output_directory = "docs/build"
 
         [[tool.pydoc-markdown.renderer.pages.children]]
         title = "Data Freshness"
-        contents = ["hdx.freshness.app.datafreshness"]
+        contents = ["hdx.freshness.app.datafreshness.*"]
 
         [[tool.pydoc-markdown.renderer.pages.children]]
         title = "Database Mappings"
