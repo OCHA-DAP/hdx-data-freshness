@@ -27,7 +27,7 @@ def main(
     **ignore,
 ) -> None:
     """Run freshness. Either a database connection string (db_url) or database
-    connection parameters (db_params0 can be supplied.
+    connection parameters (db_params) can be supplied.
 
     Args:
         db_url (Optional[str]): Database connection string. Defaults to None.
