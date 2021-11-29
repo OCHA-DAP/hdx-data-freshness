@@ -3,6 +3,7 @@
 import argparse
 import logging
 from os import getenv
+from typing import Optional
 
 from hdx.database import Database
 from hdx.facades.keyword_arguments import facade
@@ -18,7 +19,25 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
-def main(db_url, db_params, do_touch, save, **ignore):
+def main(
+    db_url: Optional[str] = None,
+    db_params: Optional[str] = None,
+    do_touch: bool = True,
+    save: bool = False,
+    **ignore,
+) -> None:
+    """Run freshness. Either a database connection string (db_url) or database
+    connection parameters (db_params0 can be supplied.
+
+    Args:
+        db_url (Optional[str]): Database connection string. Defaults to None.
+        db_params (Optional[str]): Database connection parameters. Defaults to None.
+        do_touch (bool): Touch HDX datasets if files change. Defaults to False.
+        save (bool): Whether to save state for testing. Defaults to False.
+
+    Returns:
+        None
+    """
     logger.info(f"> Data freshness {__version__}")
     if db_params:
         params = args_to_dict(db_params)
