@@ -27,7 +27,8 @@ def main(
     **ignore,
 ) -> None:
     """Run freshness. Either a database connection string (db_url) or database
-    connection parameters (db_params) can be supplied.
+    connection parameters (db_params) can be supplied. If neither is supplied, a local
+    SQLite database with filename "freshness.db" is assumed.
 
     Args:
         db_url (Optional[str]): Database connection string. Defaults to None.
