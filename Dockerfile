@@ -1,6 +1,6 @@
-FROM mcarans/hdx-python-api
+FROM public.ecr.aws/unocha/hdx-scraper-baseimage:stable
 
-MAINTAINER Michael Rans <rans@email.com>
+WORKDIR /srv
 
 RUN apk add --no-cache --upgrade --virtual .build-deps \
         build-base \
