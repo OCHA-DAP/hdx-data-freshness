@@ -125,11 +125,11 @@ class DataFreshness:
 
         logger.info(f"Will force hash {self.no_urls_to_check} resources")
 
-    def no_resources_force_hash(self) -> int:
+    def no_resources_force_hash(self) -> Optional[int]:
         """Get number of resources to force hash
 
         Returns:
-            int: Number of resources to force hash
+            Optional[int]: Number of resources to force hash or None
         """
 
         columns = [DBResource.id, DBDataset.updated_by_script]
