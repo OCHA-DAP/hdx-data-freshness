@@ -613,7 +613,7 @@ class DataFreshness:
         def get_domain(x):
             return urlparse(x[0]).netloc
 
-        retrieval = Retrieval(user_agent, self.url_internal)
+        retrieval = Retrieval(user_agent)
         if results is None:  # pragma: no cover
             resources_to_check = list_distribute_contents(
                 resources_to_check, get_domain
