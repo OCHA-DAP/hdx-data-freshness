@@ -10,7 +10,7 @@ import asyncio
 import hashlib
 import logging
 from timeit import default_timer as timer
-from typing import Dict, List, Tuple, Union, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
 import aiohttp
 import tqdm
@@ -50,7 +50,9 @@ class Retrieval:
         "xlsx": [b"PK\x03\x04"],
     }
 
-    def __init__(self, user_agent: str, url_ignore: Optional[str] = None) -> None:
+    def __init__(
+        self, user_agent: str, url_ignore: Optional[str] = None
+    ) -> None:
         self.user_agent = user_agent
         self.url_ignore: Optional[str] = url_ignore
 
