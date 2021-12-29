@@ -9,8 +9,10 @@ than the OS to decide when to switch to the next task.
 import asyncio
 import hashlib
 import logging
+from io import BytesIO
 from timeit import default_timer as timer
 from typing import Dict, List, Optional, Tuple, Union
+from zipfile import ZipFile
 
 import aiohttp
 import tqdm
@@ -106,10 +108,29 @@ class Retrieval:
                 iterator = response.content.iter_any()
                 first_chunk = await iterator.__anext__()
                 signature = first_chunk[:4]
-                md5hash = hashlib.md5(first_chunk)
+                if resource_format == "xlsx" and mimetype == self.mimetypes["xlsx"][
+                    0] and signature == self.signatures["xlsx"][
+                    0] and self.url_ignore and self.url_ignore in url:
+                    md5hash = None
+                    zipbuffer = bytearray()
+                else:
+                    md5hash = hashlib.md5(first_chunk)
                 async for chunk in iterator:
                     if chunk:
-                        md5hash.update(chunk)
+                        if md5hash:
+                            md5hash.update(chunk)
+                        else:
+                            zipbuffer.extend(chunk)
+                if md5hash is None:
+                    with ZipFile(BytesIO(zipbuffer)) as zipfile:
+                        md5hash = hashlib.md5()
+                        for path in zipfile.namelist():
+                            if not path.startswith("xl/worksheets/"):
+                                continue
+                            if not path.endswith(".xml"):
+                                continue
+                            with zipfile.open(path) as wsfile:
+                                md5hash.update(wsfile.read())
                 err = None
                 if mimetype not in self.ignore_mimetypes:
                     expected_mimetypes = self.mimetypes.get(resource_format)
