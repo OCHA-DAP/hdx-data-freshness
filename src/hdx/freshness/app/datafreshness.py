@@ -30,7 +30,7 @@ from hdx.freshness.testdata.serialize import (
     serialize_now,
     serialize_results,
 )
-from hdx.freshness.utils.retrieval import retrieve
+from hdx.freshness.utils.retrieval import Retrieval
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ class DataFreshness:
         datasets: Optional[List[Dataset]] = None,
         now: datetime.datetime = None,
         do_touch: bool = False,
-    ):
+    ) -> None:
         """"""
         self.session = session
         self.urls_to_check_count = 0
@@ -613,11 +613,12 @@ class DataFreshness:
         def get_domain(x):
             return urlparse(x[0]).netloc
 
+        retrieval = Retrieval(user_agent, self.url_internal)
         if results is None:  # pragma: no cover
             resources_to_check = list_distribute_contents(
                 resources_to_check, get_domain
             )
-            results = retrieve(resources_to_check, user_agent)
+            results = retrieval.retrieve(resources_to_check)
             if self.testsession:
                 serialize_results(self.testsession, results)
 
@@ -637,7 +638,7 @@ class DataFreshness:
 
         if hash_results is None:  # pragma: no cover
             hash_check = list_distribute_contents(hash_check, get_domain)
-            hash_results = retrieve(hash_check, user_agent)
+            hash_results = retrieval.retrieve(hash_check)
             if self.testsession:
                 serialize_hashresults(self.testsession, hash_results)
 

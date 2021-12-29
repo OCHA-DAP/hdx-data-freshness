@@ -5,7 +5,7 @@ Unit tests for the retrieval class.
 import re
 from datetime import datetime
 
-from hdx.freshness.utils.retrieval import retrieve
+from hdx.freshness.utils.retrieval import Retrieval
 
 
 class TestRetrieve:
@@ -32,7 +32,7 @@ class TestRetrieve:
             (url9, "10", "csv"),
             (url9, "11", "xls"),
         ]
-        result = retrieve(urls, "test")
+        result = Retrieval("test").retrieve(urls)
         assert result["1"] == (
             url1,
             "html",

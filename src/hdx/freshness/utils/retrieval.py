@@ -10,7 +10,7 @@ import asyncio
 import hashlib
 import logging
 from timeit import default_timer as timer
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, Optional
 
 import aiohttp
 import tqdm
@@ -22,202 +22,211 @@ from .ratelimiter import RateLimiter
 
 logger = logging.getLogger(__name__)
 
-ignore_mimetypes = ["application/octet-stream", "application/binary"]
-mimetypes = {
-    "json": ["application/json"],
-    "geojson": ["application/json", "application/geo+json"],
-    "shp": ["application/zip", "application/x-zip-compressed"],
-    "csv": ["text/csv", "application/zip", "application/x-zip-compressed"],
-    "xls": ["application/vnd.ms-excel"],
-    "xlsx": [
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    ],
-}
-signatures = {
-    "json": [b"[", b" [", b"{", b" {"],
-    "geojson": [b"[", b" [", b"{", b" {"],
-    "shp": [b"PK\x03\x04"],
-    "xls": [b"\xd0\xcf\x11\xe0"],
-    "xlsx": [b"PK\x03\x04"],
-}
 
-
-async def fetch(
-    metadata: Tuple, session: Union[aiohttp.ClientSession, RateLimiter]
-) -> Tuple:
-    """Asynchronous code to download a resource and hash it. Returns a tuple with
-    resource information including hashes.
+class Retrieval:
+    """Retrieval class for downloading and hashing resources.
 
     Args:
-        metadata (Tuple): Resource to be checked
-        session (Union[aiohttp.ClientSession, RateLimiter]): session to use for requests
-
-    Returns:
-        Tuple: Resource information including hash
+        user_agent (str): User agent string to use when downloading
+        url_ignore (Optional[str]): Parts of url to ignore for special xlsx handling
     """
-    url = metadata[0]
-    resource_id = metadata[1]
-    resource_format = metadata[2]
 
-    async def fn(response):
-        last_modified_str = response.headers.get("Last-Modified")
-        http_last_modified = None
-        if last_modified_str:
-            try:
-                # we set http_last_modified but don't actually use it to calculate
-                # freshness any more
-                http_last_modified = parser.parse(
-                    last_modified_str, ignoretz=True
+    ignore_mimetypes = ["application/octet-stream", "application/binary"]
+    mimetypes = {
+        "json": ["application/json"],
+        "geojson": ["application/json", "application/geo+json"],
+        "shp": ["application/zip", "application/x-zip-compressed"],
+        "csv": ["text/csv", "application/zip", "application/x-zip-compressed"],
+        "xls": ["application/vnd.ms-excel"],
+        "xlsx": [
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ],
+    }
+    signatures = {
+        "json": [b"[", b" [", b"{", b" {"],
+        "geojson": [b"[", b" [", b"{", b" {"],
+        "shp": [b"PK\x03\x04"],
+        "xls": [b"\xd0\xcf\x11\xe0"],
+        "xlsx": [b"PK\x03\x04"],
+    }
+
+    def __init__(self, user_agent: str, url_ignore: Optional[str] = None) -> None:
+        self.user_agent = user_agent
+        self.url_ignore: Optional[str] = url_ignore
+
+    async def fetch(
+        self,
+        metadata: Tuple,
+        session: Union[aiohttp.ClientSession, RateLimiter],
+    ) -> Tuple:
+        """Asynchronous code to download a resource and hash it. Returns a tuple with
+        resource information including hashes.
+
+        Args:
+            metadata (Tuple): Resource to be checked
+            session (Union[aiohttp.ClientSession, RateLimiter]): session to use for requests
+
+        Returns:
+            Tuple: Resource information including hash
+        """
+        url = metadata[0]
+        resource_id = metadata[1]
+        resource_format = metadata[2]
+
+        async def fn(response):
+            last_modified_str = response.headers.get("Last-Modified")
+            http_last_modified = None
+            if last_modified_str:
+                try:
+                    # we set http_last_modified but don't actually use it to calculate
+                    # freshness any more
+                    http_last_modified = parser.parse(
+                        last_modified_str, ignoretz=True
+                    )
+                except (ValueError, OverflowError):
+                    pass
+            length = response.headers.get("Content-Length")
+            if length and int(length) > 419430400:
+                response.close()
+                err = "File too large to hash!"
+                return (
+                    resource_id,
+                    url,
+                    resource_format,
+                    err,
+                    http_last_modified,
+                    None,
                 )
-            except (ValueError, OverflowError):
-                pass
-        length = response.headers.get("Content-Length")
-        if length and int(length) > 419430400:
-            response.close()
-            err = "File too large to hash!"
-            return (
-                resource_id,
-                url,
-                resource_format,
-                err,
-                http_last_modified,
-                None,
-            )
-        logger.info(f"Hashing {url}")
-        mimetype = response.headers.get("Content-Type")
-        signature = None
+            logger.info(f"Hashing {url}")
+            mimetype = response.headers.get("Content-Type")
+
+            try:
+                iterator = response.content.iter_any()
+                first_chunk = await iterator.__anext__()
+                signature = first_chunk[:4]
+                md5hash = hashlib.md5(first_chunk)
+                async for chunk in iterator:
+                    if chunk:
+                        md5hash.update(chunk)
+                err = None
+                if mimetype not in self.ignore_mimetypes:
+                    expected_mimetypes = self.mimetypes.get(resource_format)
+                    if expected_mimetypes is not None:
+                        if not any(x in mimetype for x in expected_mimetypes):
+                            err = f"File mimetype {mimetype} does not match HDX format {resource_format}!"
+                expected_signatures = self.signatures.get(resource_format)
+                if expected_signatures is not None:
+                    found = False
+                    for expected_signature in expected_signatures:
+                        if (
+                            signature[: len(expected_signature)]
+                            == expected_signature
+                        ):
+                            found = True
+                            break
+                    if not found:
+                        sigerr = f"File signature {signature} does not match HDX format {resource_format}!"
+                        if err is None:
+                            err = sigerr
+                        else:
+                            err = f"{err} {sigerr}"
+                return (
+                    resource_id,
+                    url,
+                    resource_format,
+                    err,
+                    http_last_modified,
+                    md5hash.hexdigest(),
+                )
+            except Exception as exc:
+                try:
+                    code = exc.code
+                except AttributeError:
+                    code = ""
+                err = f"Exception during hashing: code={code} message={exc} raised={exc.__class__.__module__}.{exc.__class__.__qualname__} url={url}"
+                raise aiohttp.ClientResponseError(
+                    code=code,
+                    message=err,
+                    request_info=response.request_info,
+                    history=response.history,
+                ) from exc
 
         try:
-            md5hash = hashlib.md5()
-            async for chunk in response.content.iter_chunked(10240):
-                if chunk:
-                    md5hash.update(chunk)
-                    if not signature:
-                        signature = chunk[:4]
-            err = None
-            if mimetype not in ignore_mimetypes:
-                expected_mimetypes = mimetypes.get(resource_format)
-                if expected_mimetypes is not None:
-                    if not any(x in mimetype for x in expected_mimetypes):
-                        err = f"File mimetype {mimetype} does not match HDX format {resource_format}!"
-            expected_signatures = signatures.get(resource_format)
-            if expected_signatures is not None:
-                found = False
-                for expected_signature in expected_signatures:
-                    if (
-                        signature[: len(expected_signature)]
-                        == expected_signature
-                    ):
-                        found = True
-                        break
-                if not found:
-                    sigerr = f"File signature {signature} does not match HDX format {resource_format}!"
-                    if err is None:
-                        err = sigerr
-                    else:
-                        err = f"{err} {sigerr}"
-            return (
-                resource_id,
-                url,
-                resource_format,
-                err,
-                http_last_modified,
-                md5hash.hexdigest(),
+            return await retry.send_http(
+                session, "get", url, retries=2, interval=5, backoff=4, fn=fn
             )
-        except Exception as exc:
-            try:
-                code = exc.code
-            except AttributeError:
-                code = ""
-            err = f"Exception during hashing: code={code} message={exc} raised={exc.__class__.__module__}.{exc.__class__.__qualname__} url={url}"
-            raise aiohttp.ClientResponseError(
-                code=code,
-                message=err,
-                request_info=response.request_info,
-                history=response.history,
-            ) from exc
+        except Exception as e:
+            return resource_id, url, resource_format, str(e), None, None
 
-    try:
-        return await retry.send_http(
-            session, "get", url, retries=2, interval=5, backoff=4, fn=fn
+    async def check_urls(
+        self, resources_to_check: List[Tuple], loop: uvloop.Loop
+    ) -> Dict[str, Tuple]:
+        """Asynchronous code to download resources and hash them. Return dictionary with
+        resources information including hashes.
+
+        Args:
+            resources_to_check (List[Tuple]): List of resources to be checked
+            loop (uvloop.Loop): Event loop to use
+
+        Returns:
+            Dict[str, Tuple]: Resources information including hashes
+        """
+        tasks = list()
+
+        conn = aiohttp.TCPConnector(limit=100, limit_per_host=1, loop=loop)
+        timeout = aiohttp.ClientTimeout(
+            total=60 * 60, sock_connect=30, sock_read=30
         )
-    except Exception as e:
-        return resource_id, url, resource_format, str(e), None, None
+        async with aiohttp.ClientSession(
+            connector=conn,
+            timeout=timeout,
+            loop=loop,
+            headers={"User-Agent": self.user_agent},
+        ) as session:
+            session = RateLimiter(
+                session
+            )  # Limit connections per timeframe to host
+            for metadata in resources_to_check:
+                task = self.fetch(metadata, session)
+                tasks.append(task)
+            responses = dict()
+            for f in tqdm.tqdm(asyncio.as_completed(tasks), total=len(tasks)):
+                (
+                    resource_id,
+                    url,
+                    resource_format,
+                    err,
+                    http_last_modified,
+                    hash,
+                ) = await f
+                responses[resource_id] = (
+                    url,
+                    resource_format,
+                    err,
+                    http_last_modified,
+                    hash,
+                )
+            return responses
 
+    def retrieve(self, resources_to_check: List[Tuple]) -> Dict[str, Tuple]:
+        """Download resources and hash them. Return dictionary with resources information
+        including hashes.
 
-async def check_urls(
-    resources_to_check: List[Tuple], loop: uvloop.Loop, user_agent: str
-) -> Dict[str, Tuple]:
-    """Asynchronous code to download resources and hash them. Return dictionary with
-    resources information including hashes.
+        Args:
+            resources_to_check (List[Tuple]): List of resources to be checked
 
-    Args:
-        resources_to_check (List[Tuple]): List of resources to be checked
-        user_agent (str): User agent string to use when downloading
+        Returns:
+            Dict[str, Tuple]: Resources information including hashes
+        """
 
-    Returns:
-        Dict[str, Tuple]: Resources information including hashes
-    """
-    tasks = list()
-
-    conn = aiohttp.TCPConnector(limit=100, limit_per_host=1, loop=loop)
-    timeout = aiohttp.ClientTimeout(
-        total=60 * 60, sock_connect=30, sock_read=30
-    )
-    async with aiohttp.ClientSession(
-        connector=conn,
-        timeout=timeout,
-        loop=loop,
-        headers={"User-Agent": user_agent},
-    ) as session:
-        session = RateLimiter(
-            session
-        )  # Limit connections per timeframe to host
-        for metadata in resources_to_check:
-            task = fetch(metadata, session)
-            tasks.append(task)
-        responses = dict()
-        for f in tqdm.tqdm(asyncio.as_completed(tasks), total=len(tasks)):
-            (
-                resource_id,
-                url,
-                resource_format,
-                err,
-                http_last_modified,
-                hash,
-            ) = await f
-            responses[resource_id] = (
-                url,
-                resource_format,
-                err,
-                http_last_modified,
-                hash,
-            )
-        return responses
-
-
-def retrieve(
-    resources_to_check: List[Tuple], user_agent: str
-) -> Dict[str, Tuple]:
-    """Download resources and hash them. Return dictionary with resources information
-    including hashes.
-
-    Args:
-        resources_to_check (List[Tuple]): List of resources to be checked
-        user_agent (str): User agent string to use when downloading
-
-    Returns:
-        Dict[str, Tuple]: Resources information including hashes
-    """
-
-    start_time = timer()
-    loop = uvloop.new_event_loop()
-    asyncio.set_event_loop(loop)
-    future = asyncio.ensure_future(
-        check_urls(resources_to_check, loop, user_agent)
-    )
-    results = loop.run_until_complete(future)
-    logger.info(f"Execution time: {timer() - start_time} seconds")
-    loop.run_until_complete(asyncio.sleep(0.250))
-    loop.close()
-    return results
+        start_time = timer()
+        loop = uvloop.new_event_loop()
+        asyncio.set_event_loop(loop)
+        future = asyncio.ensure_future(
+            self.check_urls(resources_to_check, loop)
+        )
+        results = loop.run_until_complete(future)
+        logger.info(f"Execution time: {timer() - start_time} seconds")
+        loop.run_until_complete(asyncio.sleep(0.250))
+        loop.close()
+        return results
