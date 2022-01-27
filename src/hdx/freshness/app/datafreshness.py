@@ -624,17 +624,27 @@ class DataFreshness:
 
         hash_check = list()
         for resource_id in results:
-            url, resource_format, err, http_last_modified, hash = results[
-                resource_id
-            ]
+            (
+                url,
+                resource_format,
+                err,
+                http_last_modified,
+                hash,
+                xlsx_hash,
+            ) = results[resource_id]
             if hash:
                 dbresource = (
                     self.session.query(DBResource)
                     .filter_by(id=resource_id, run_number=self.run_number)
                     .one()
                 )
-                if dbresource.md5_hash != hash:  # File changed
-                    hash_check.append((url, resource_id, resource_format))
+                if dbresource.md5_hash == hash:  # File unchanged
+                    continue
+                if (
+                    xlsx_hash and dbresource.md5_hash == xlsx_hash
+                ):  # File unchanged
+                    continue
+                hash_check.append((url, resource_id, resource_format))
 
         if hash_results is None:  # pragma: no cover
             hash_check = list_distribute_contents(hash_check, get_domain)
@@ -668,7 +678,9 @@ class DataFreshness:
         """
         datasets_resourcesinfo = dict()
         for resource_id in sorted(results):
-            url, _, err, http_last_modified, hash = results[resource_id]
+            url, _, err, http_last_modified, hash, xlsx_hash = results[
+                resource_id
+            ]
             dbresource = (
                 self.session.query(DBResource)
                 .filter_by(id=resource_id, run_number=self.run_number)
@@ -698,6 +710,7 @@ class DataFreshness:
                         hash_err,
                         hash_http_last_modified,
                         hash_hash,
+                        hash_xlsx_hash,
                     ) = hash_results[resource_id]
                     if hash_http_last_modified:
                         if (
@@ -709,6 +722,13 @@ class DataFreshness:
                                 hash_http_last_modified
                             )
                     if hash_hash:
+                        if hash_hash != hash:
+                            if (  # Check if this is an xlsx file that has been hashed
+                                hash_xlsx_hash
+                                and hash_xlsx_hash == xlsx_hash
+                            ):
+                                hash = xlsx_hash
+                                hash_hash = hash_xlsx_hash
                         if hash_hash == hash:
                             if (
                                 dbresource.md5_hash is None

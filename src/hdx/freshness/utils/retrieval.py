@@ -12,12 +12,12 @@ import logging
 from io import BytesIO
 from timeit import default_timer as timer
 from typing import Dict, List, Optional, Tuple, Union
-from zipfile import ZipFile
 
 import aiohttp
 import tqdm
 import uvloop
 from dateutil import parser
+from openpyxl import load_workbook
 
 from . import retry
 from .ratelimiter import RateLimiter
@@ -100,6 +100,7 @@ class Retrieval:
                     err,
                     http_last_modified,
                     None,
+                    None,
                 )
             logger.info(f"Hashing {url}")
             mimetype = response.headers.get("Content-Type")
@@ -108,29 +109,32 @@ class Retrieval:
                 iterator = response.content.iter_any()
                 first_chunk = await iterator.__anext__()
                 signature = first_chunk[:4]
-                if resource_format == "xlsx" and mimetype == self.mimetypes["xlsx"][
-                    0] and signature == self.signatures["xlsx"][
-                    0] and self.url_ignore and self.url_ignore in url:
-                    md5hash = None
-                    zipbuffer = bytearray()
+                if (
+                    resource_format == "xlsx"
+                    and mimetype == self.mimetypes["xlsx"][0]
+                    and signature == self.signatures["xlsx"][0]
+                    and (
+                        self.url_ignore not in url if self.url_ignore else True
+                    )
+                ):
+                    xlsxbuffer = bytearray(first_chunk)
                 else:
-                    md5hash = hashlib.md5(first_chunk)
+                    xlsxbuffer = None
+                md5hash = hashlib.md5(first_chunk)
                 async for chunk in iterator:
                     if chunk:
-                        if md5hash:
-                            md5hash.update(chunk)
-                        else:
-                            zipbuffer.extend(chunk)
-                if md5hash is None:
-                    with ZipFile(BytesIO(zipbuffer)) as zipfile:
-                        md5hash = hashlib.md5()
-                        for path in zipfile.namelist():
-                            if not path.startswith("xl/worksheets/"):
-                                continue
-                            if not path.endswith(".xml"):
-                                continue
-                            with zipfile.open(path) as wsfile:
-                                md5hash.update(wsfile.read())
+                        md5hash.update(chunk)
+                        if xlsxbuffer:
+                            xlsxbuffer.extend(chunk)
+                if xlsxbuffer:
+                    workbook = load_workbook(filename=BytesIO(xlsxbuffer))
+                    xlsx_md5hash = hashlib.md5()
+                    for sheet_name in workbook.sheetnames:
+                        sheet = workbook[sheet_name]
+                        for cols in sheet.iter_rows(values_only=True):
+                            xlsx_md5hash.update(bytes(str(cols), "utf-8"))
+                else:
+                    xlsx_md5hash = None
                 err = None
                 if mimetype not in self.ignore_mimetypes:
                     expected_mimetypes = self.mimetypes.get(resource_format)
@@ -160,6 +164,7 @@ class Retrieval:
                     err,
                     http_last_modified,
                     md5hash.hexdigest(),
+                    xlsx_md5hash.hexdigest() if xlsx_md5hash else None,
                 )
             except Exception as exc:
                 try:
@@ -179,7 +184,7 @@ class Retrieval:
                 session, "get", url, retries=2, interval=5, backoff=4, fn=fn
             )
         except Exception as e:
-            return resource_id, url, resource_format, str(e), None, None
+            return resource_id, url, resource_format, str(e), None, None, None
 
     async def check_urls(
         self, resources_to_check: List[Tuple], loop: uvloop.Loop
@@ -221,6 +226,7 @@ class Retrieval:
                     err,
                     http_last_modified,
                     hash,
+                    hash_xlsx,
                 ) = await f
                 responses[resource_id] = (
                     url,
@@ -228,6 +234,7 @@ class Retrieval:
                     err,
                     http_last_modified,
                     hash,
+                    hash_xlsx,
                 )
             return responses
 

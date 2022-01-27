@@ -91,6 +91,7 @@ def serialize_results(session: Session, results: Dict[str, Tuple]) -> None:
             err,
             http_last_modified,
             hash,
+            xlsx_hash,
             force_hash,
         ) = results[id]
         dbtestresult = DBTestResult(
@@ -100,6 +101,7 @@ def serialize_results(session: Session, results: Dict[str, Tuple]) -> None:
             err=err,
             http_last_modified=http_last_modified,
             hash=hash,
+            xlsx_hash=xlsx_hash,
             force_hash=force_hash,
         )
         session.add(dbtestresult)
@@ -127,6 +129,7 @@ def serialize_hashresults(
             http_last_modified,
             hash,
             force_hash,
+            xlsx_hash,
         ) = hash_results[id]
         dbtesthashresult = DBTestHashResult(
             id=id,
@@ -135,6 +138,7 @@ def serialize_hashresults(
             err=err,
             http_last_modified=http_last_modified,
             hash=hash,
+            xlsx_hash=xlsx_hash,
             force_hash=force_hash,
         )
         session.add(dbtesthashresult)
@@ -224,6 +228,7 @@ def deserialize_results(session: Session) -> List[Tuple]:
             dbtestresult.err,
             dbtestresult.http_last_modified,
             dbtestresult.hash,
+            dbtestresult.xlsx_hash,
         )
     return results
 
@@ -246,5 +251,6 @@ def deserialize_hashresults(session: Session) -> List[Tuple]:
             dbtesthashresult.err,
             dbtesthashresult.http_last_modified,
             dbtesthashresult.hash,
+            dbtesthashresult.xlsx_hash,
         )
     return hash_results
