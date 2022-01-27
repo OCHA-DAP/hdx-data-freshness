@@ -724,8 +724,7 @@ class DataFreshness:
                     if hash_hash:
                         if hash_hash != hash:
                             if (  # Check if this is an xlsx file that has been hashed
-                                hash_xlsx_hash
-                                and hash_xlsx_hash == xlsx_hash
+                                hash_xlsx_hash and hash_xlsx_hash == xlsx_hash
                             ):
                                 hash = xlsx_hash
                                 hash_hash = hash_xlsx_hash
