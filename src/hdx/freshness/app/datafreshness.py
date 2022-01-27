@@ -728,6 +728,7 @@ class DataFreshness:
                             ):
                                 hash = xlsx_hash
                                 hash_hash = hash_xlsx_hash
+                                hash_to_set = hash
                         if hash_hash == hash:
                             if (
                                 dbresource.md5_hash is None
