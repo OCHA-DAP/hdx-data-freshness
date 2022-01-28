@@ -167,6 +167,7 @@ class TestProcessResults:
                 None,
                 parser.parse("2019-11-03 14:23:40"),
                 "33caf1b1106613d123989c2b459c383d",
+                None,
             )
         }
         return results

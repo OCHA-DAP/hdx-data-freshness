@@ -128,8 +128,8 @@ def serialize_hashresults(
             err,
             http_last_modified,
             hash,
-            force_hash,
             xlsx_hash,
+            force_hash,
         ) = hash_results[id]
         dbtesthashresult = DBTestHashResult(
             id=id,
