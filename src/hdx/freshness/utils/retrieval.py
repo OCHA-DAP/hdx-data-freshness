@@ -106,7 +106,7 @@ class Retrieval:
             mimetype = response.headers.get("Content-Type")
 
             try:
-                iterator = response.content.iter_any()
+                iterator = response.content.iter_chunked(10240)
                 first_chunk = await iterator.__anext__()
                 signature = first_chunk[:4]
                 if (
