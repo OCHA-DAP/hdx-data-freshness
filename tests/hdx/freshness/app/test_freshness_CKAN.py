@@ -111,7 +111,7 @@ class TestFreshnessCKAN:
             spreadsheetid = r.json()["id"]
             gsheet = gclient.open_by_key(spreadsheetid)
             gsheet.share("", role="reader", perm_type="anyone")
-            return gsheet.sheet1, f"{gsheet.url}/export?format=csv"
+            return gsheet.sheet1, f"{gsheet.url}/export?format=xlsx"
 
         wks, unchanging_url = create_gsheet("unchanging")
         # update the sheet with array
@@ -162,7 +162,7 @@ class TestFreshnessCKAN:
             resource = {
                 "name": f"test_resource_{i}",
                 "description": f"Test Resource {i}",
-                "format": "csv",
+                "format": "xlsx",
                 "url": unchanging_url,
             }
             switcher = {
