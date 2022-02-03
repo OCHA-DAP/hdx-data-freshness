@@ -244,8 +244,6 @@ class TestFreshnessCKAN:
                 results, hash_results = freshness.check_urls(
                     resources_to_check, "test"
                 )
-                print(results)
-                print(hash_results)
                 datasets_lastmodified = freshness.process_results(
                     results, hash_results
                 )
