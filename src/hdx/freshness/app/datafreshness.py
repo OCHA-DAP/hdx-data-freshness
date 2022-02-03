@@ -702,6 +702,12 @@ class DataFreshness:
                     what_updated = self.add_what_updated(
                         what_updated, "same hash"
                     )
+                elif (
+                    xlsx_hash and dbresource.md5_hash == xlsx_hash
+                ):  # File unchanged
+                    what_updated = self.add_what_updated(
+                        what_updated, "same hash"
+                    )
                 else:  # File updated
                     hash_to_set = hash
                     (
