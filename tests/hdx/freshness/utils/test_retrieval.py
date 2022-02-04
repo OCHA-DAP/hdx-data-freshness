@@ -32,18 +32,22 @@ class TestRetrieve:
             (url9, "10", "csv"),
             (url9, "11", "xls"),
         ]
-        result = Retrieval("test").retrieve(urls)
+        result = Retrieval("test", url_ignore="data.humdata.org").retrieve(
+            urls
+        )
         assert result["1"] == (
             url1,
             "html",
             None,
             datetime(2004, 9, 1, 13, 24, 52),
             "982f40d035e618a332c287cdca7f3d0e",
+            None,
         )
         assert result["2"] == (
             url2,
             "csv",
             "code=404 message=Non-retryable response code raised=aiohttp.ClientResponseError url=https://github.com/mcarans/hdx-data-freshness/raw/d1616d76c3b6b8ef5029eb6964b93cde688efd53/tests/fixtures/day0/notfound",
+            None,
             None,
             None,
         )
@@ -67,6 +71,7 @@ class TestRetrieve:
         assert result["8"][0] == url8
         assert result["8"][1] == "xlsx"
         assert result["8"][4] == "74f72b149defd3f1a3c9000600734a96"
+        assert result["8"][5] == "c3d51c5b077a48221e77797f7e771d1f"
         assert result["9"][0] == url9
         assert result["9"][1] == "html"
         assert result["9"][4] == "9070c22e0c8c41204c6d4e509929246e"

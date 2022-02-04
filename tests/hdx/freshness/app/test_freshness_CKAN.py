@@ -8,6 +8,7 @@ import os
 import random
 from datetime import datetime, timedelta
 from os.path import join
+from time import sleep
 
 import gspread
 import pytest
@@ -99,7 +100,7 @@ class TestFreshnessCKAN:
         today = datetime.now()
         gclient, folderid = setup_teardown_folder
 
-        def create_gsheet(name):
+        def create_gsheet(name, update):
             payload = {
                 "name": name,
                 "mimeType": "application/vnd.google-apps.spreadsheet",
@@ -110,25 +111,22 @@ class TestFreshnessCKAN:
             )
             spreadsheetid = r.json()["id"]
             gsheet = gclient.open_by_key(spreadsheetid)
+            wks = gsheet.sheet1
+            wks.update("A1", update)
             gsheet.share("", role="reader", perm_type="anyone")
-            return gsheet.sheet1, f"{gsheet.url}/export?format=csv"
+            return wks, f"{gsheet.url}/export?format=xlsx"
 
-        wks, unchanging_url = create_gsheet("unchanging")
-        # update the sheet with array
-        wks.update(
-            "A1", [[random.random() for i in range(4)] for j in range(3)]
+        wks, unchanging_url = create_gsheet(
+            "unchanging",
+            [[random.random() for i in range(4)] for j in range(3)],
         )
-
-        changing_wks1, changing_url1 = create_gsheet("changing1")
-        # update the sheet with array
-        changing_wks1.update(
-            "A1", [[random.random() for i in range(5)] for j in range(2)]
+        changing_wks1, changing_url1 = create_gsheet(
+            "changing1",
+            [[random.random() for i in range(5)] for j in range(2)],
         )
-
-        changing_wks2, changing_url2 = create_gsheet("changing2")
-        # update the sheet with array
-        changing_wks2.update(
-            "A1", [[random.random() for i in range(3)] for j in range(6)]
+        changing_wks2, changing_url2 = create_gsheet(
+            "changing2",
+            [[random.random() for i in range(3)] for j in range(6)],
         )
 
         datasets = list()
@@ -162,8 +160,7 @@ class TestFreshnessCKAN:
             resource = {
                 "name": f"test_resource_{i}",
                 "description": f"Test Resource {i}",
-                "format": "csv",
-                "url": unchanging_url,
+                "format": "xlsx",
             }
             switcher = {
                 0: (unchanging_url, fresh),
@@ -210,6 +207,7 @@ class TestFreshnessCKAN:
                 )
                 freshness.now.isoformat()
                 output1 = freshness.output_counts()
+
                 # change something
                 changing_wks1.update(
                     "A1",
@@ -219,6 +217,8 @@ class TestFreshnessCKAN:
                     "A1",
                     [[random.random() for i in range(3)] for j in range(6)],
                 )
+                sleep(5)
+
                 # second run
                 for i, dataset in enumerate(datasets):
                     dataset = Dataset.read_from_hdx(dataset["id"])

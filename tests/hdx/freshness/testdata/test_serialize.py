@@ -41,7 +41,7 @@ class TestSerialize:
     @staticmethod
     def get_deserialized(d):
         return {
-            key: (value[0], value[1], value[2], value[3], value[4])
+            key: (value[0], value[1], value[2], value[3], value[4], value[5])
             for key, value in d.items()
         }
 
@@ -107,6 +107,7 @@ class TestSerialize:
                 "code=404 message=Non-retryable response code raised=aiohttp.errors.HttpProcessingError url=http://siged.sep.gob.mx/SIGED/content/conn/WCPortalUCM/path/Contribution%20Folders/PortalSIGED/Descargas/Datos%20Abiertos/Censo/Personal/Cuestionarios/PERSONAL_CUES_CT_CENSADOS.zip",
                 None,
                 None,
+                None,
                 False,
             ),
             "563e2bd1-b200-416b-99be-425777ad686a": (
@@ -115,6 +116,7 @@ class TestSerialize:
                 None,
                 None,
                 "bde2adc82876bd845cc4c5233c224a10",
+                None,
                 False,
             ),
             "a9cb1b9e-93b2-4ff4-82a7-3aab8b13d7b6": (
@@ -123,6 +125,7 @@ class TestSerialize:
                 None,
                 None,
                 "1a1e0af350ac825ba21adefd94926c9d",
+                None,
                 False,
             ),
         }
@@ -138,6 +141,7 @@ class TestSerialize:
                 None,
                 datetime.datetime(2015, 7, 24, 7, 8, 48),
                 "73ba2b7904c778ed218357d9c1515c0c",
+                None,
                 True,
             ),
             "3eb2c0ac-4b27-49b6-be25-f5ccb7128d65": (
@@ -146,6 +150,7 @@ class TestSerialize:
                 None,
                 datetime.datetime(2013, 2, 28, 13, 53, 42),
                 "3e59e8be4973de25eaa4283e075ad5b2",
+                None,
                 True,
             ),
             "e3eea5de-80bf-4b2a-9729-31b89d6fb36c": (
@@ -154,6 +159,7 @@ class TestSerialize:
                 None,
                 None,
                 "71d1ecb069dbd2fc32f79eb6e0859c55",
+                None,
                 True,
             ),
             "e351d04f-fade-45f9-81fa-0ea673bd9b33": (
@@ -162,6 +168,7 @@ class TestSerialize:
                 None,
                 None,
                 "6827a97f982da889840d03f568a04f32",
+                None,
                 False,
             ),
         }
