@@ -41,7 +41,8 @@ frequency is Never, As Needed or Live then the dataset is always fresh.
 5. If the resource is not fresh by this measure, then we download the
     file and calculate an MD5 hash for it. In our database, we store
     previous hash values, so we can check if the hash has changed since
-    the last time we took the hash.
+    the last time we took the hash. For xlsx, if the hash is constantly 
+    changing, we hash the individual sheets in the workbook.
 6. There are some resources where the hash changes constantly because
     they connect to an api which generates a file on the fly. To
     identify these, we hash again and check if the hash changes in the
