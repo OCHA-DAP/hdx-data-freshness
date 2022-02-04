@@ -30,6 +30,7 @@ class Retrieval:
 
     Args:
         user_agent (str): User agent string to use when downloading
+        url_ignore (Optional[str]): Parts of url to ignore for special xlsx handling
     """
 
     ignore_mimetypes = ["application/octet-stream", "application/binary"]
@@ -51,8 +52,11 @@ class Retrieval:
         "xlsx": [b"PK\x03\x04"],
     }
 
-    def __init__(self, user_agent: str) -> None:
+    def __init__(
+        self, user_agent: str, url_ignore: Optional[str] = None
+    ) -> None:
         self.user_agent = user_agent
+        self.url_ignore: Optional[str] = url_ignore
 
     async def fetch(
         self,
