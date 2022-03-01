@@ -1,1 +1,1 @@
-__version__ = "1.7.6"
+from ._version import version as __version__  # noqa: F401

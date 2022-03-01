@@ -45,6 +45,7 @@ coverage.xml
 *,cover
 .hypothesis/
 tests/*.log
+.pytest_cache/
 
 # Translations
 *.mo
@@ -62,8 +63,8 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
-documentation/
+documentation/_*/
+documentation/source/
 
 # PyBuilder
 target/
@@ -77,6 +78,9 @@ target/
 # celery beat schedule file
 celerybeat-schedule
 
+# dotenv
+.env
+
 # virtualenv
 venv/
 ENV/
@@ -86,3 +90,9 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# IntelliJ
+.idea/
+
+# setuptools_scm
+_version.py

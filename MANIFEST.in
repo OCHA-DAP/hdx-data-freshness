@@ -1,6 +1,0 @@
-include *.txt
-include pyproject.toml
-include Dockerfile
-include LICENSE
-recursive-include src *.yml
-recursive-include src *.txt
