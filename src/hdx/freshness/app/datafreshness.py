@@ -114,7 +114,7 @@ class DataFreshness:
             self.previous_run_number = self.previous_run_number[0]
             self.run_number = self.previous_run_number + 1
             no_resources = self.no_resources_force_hash()
-            if no_resources and no_resources < default_no_urls_to_check:
+            if no_resources:
                 self.no_urls_to_check = no_resources
             else:
                 self.no_urls_to_check = default_no_urls_to_check

@@ -90,7 +90,7 @@ class Retrieval:
                 except (ValueError, OverflowError):
                     pass
             length = response.headers.get("Content-Length")
-            if length and int(length) > 104857600:
+            if length and int(length) > 419430400:
                 response.close()
                 err = "File too large to hash!"
                 return (
@@ -127,12 +127,15 @@ class Retrieval:
                         if xlsxbuffer:
                             xlsxbuffer.extend(chunk)
                 if xlsxbuffer:
-                    workbook = load_workbook(filename=BytesIO(xlsxbuffer))
+                    workbook = load_workbook(
+                        filename=BytesIO(xlsxbuffer), read_only=True
+                    )
                     xlsx_md5hash = hashlib.md5()
                     for sheet_name in workbook.sheetnames:
                         sheet = workbook[sheet_name]
                         for cols in sheet.iter_rows(values_only=True):
                             xlsx_md5hash.update(bytes(str(cols), "utf-8"))
+                    workbook.close()
                     xlsxbuffer = None
                 else:
                     xlsx_md5hash = None
