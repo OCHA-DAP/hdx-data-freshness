@@ -6,7 +6,7 @@ import re
 from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
-from dateutil.parser import ParserError, parse
+from dateutil.parser import parse, ParserError
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.data.hdxobject import HDXError
@@ -16,8 +16,8 @@ from hdx.utilities.dictandlist import (
     list_distribute_contents,
 )
 from sqlalchemy import and_, exists
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
-from sqlalchemy.orm.exc import NoResultFound
 
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.database.dbinfodataset import DBInfoDataset
@@ -114,7 +114,7 @@ class DataFreshness:
             self.previous_run_number = self.previous_run_number[0]
             self.run_number = self.previous_run_number + 1
             no_resources = self.no_resources_force_hash()
-            if no_resources:
+            if no_resources and no_resources < default_no_urls_to_check:
                 self.no_urls_to_check = no_resources
             else:
                 self.no_urls_to_check = default_no_urls_to_check
