@@ -1,6 +1,6 @@
-pytest==7.0.1
+pytest==7.1.2
 pytest-cov==3.0.0
-gspread==5.2.0
-tox==3.24.5
+gspread==5.4.0
+tox==3.25.0
 tox-wheel==0.7.0
 -r requirements.txt
