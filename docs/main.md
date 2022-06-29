@@ -10,8 +10,7 @@ This library is part of the [Humanitarian Data Exchange](https://data.humdata.or
 humanitarian related data, please upload your datasets to HDX.
 
 The code for the library is [here](https://github.com/OCHA-DAP/hdx-data-freshness).
-The library has detailed API documentation which can be found in the menu on the left and starts 
-[here](https://hdx-data-freshness.readthedocs.io/en/latest/api-documentation/data-freshness/). 
+The library has detailed API documentation which can be found in the menu at the top. 
 
 # Description
 
