@@ -218,7 +218,7 @@ class TestFreshnessCKAN:
                     [[random.random() for i in range(3)] for j in range(6)],
                 )
 
-            sleep(300)
+            sleep(5)
 
             with Database(**nodatabase) as session:
                 # second run
