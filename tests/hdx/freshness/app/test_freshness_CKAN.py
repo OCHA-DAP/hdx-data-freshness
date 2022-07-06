@@ -217,8 +217,10 @@ class TestFreshnessCKAN:
                     "A1",
                     [[random.random() for i in range(3)] for j in range(6)],
                 )
-                sleep(5)
 
+            sleep(300)
+
+            with Database(**nodatabase) as session:
                 # second run
                 for i, dataset in enumerate(datasets):
                     dataset = Dataset.read_from_hdx(dataset["id"])
