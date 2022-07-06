@@ -285,15 +285,15 @@ firstrun: 2
             == """
 *** Resources ***
 * total: 8 *,
-hash: 2,
-nothing: 3,
+hash: 3,
+nothing: 2,
 same hash: 3
 
 *** Datasets ***
 * total: 8 *,
 0: Fresh, Updated hash: 2,
 0: Fresh, Updated nothing: 2,
-0: Fresh, Updated script update: 1,
+0: Fresh, Updated script update,hash: 1,
 1: Due, Updated nothing: 1,
 1: Due, Updated review date: 1,
 3: Delinquent, Updated nothing: 1
@@ -362,9 +362,9 @@ same hash: 3
             {
                 "last_modified": fresh_dt,
                 "updated_by_script": updated_by_script_dt,
-                "latest_of_modifieds": updated_by_script_dt,
-                "what_updated": "script update",
-                "last_resource_modified": fresh_dt,
+                "latest_of_modifieds": run2_last_modified_dt,
+                "what_updated": "script update,hash",
+                "last_resource_modified": run2_last_modified_dt,
                 "fresh": 0,
             },
         ]

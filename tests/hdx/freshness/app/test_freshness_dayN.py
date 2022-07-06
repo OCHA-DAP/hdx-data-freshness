@@ -119,11 +119,11 @@ class TestFreshnessDayN:
 * total: 657 *,
 api: 3,
 error: 26,
-first hash: 3,
+first hash: 4,
 hash: 3,
 internal-filestore: 10,
 internal-nothing: 46,
-nothing: 559,
+nothing: 558,
 repeat hash: 1,
 same hash: 6
 
@@ -199,7 +199,7 @@ api=False, error=None)>"""
                 .filter_by(run_number=1, what_updated="first hash", error=None)
                 .count()
             )
-            assert count == 3
+            assert count == 4
             count = (
                 dbsession.query(DBResource)
                 .filter_by(run_number=1, what_updated="hash", error=None)
@@ -233,7 +233,7 @@ api=False, error=None)>"""
                 .filter_by(run_number=1)
                 .filter(DBResource.what_updated.like("%hash%"))
             )
-            assert hash_updated.count() == 7
+            assert hash_updated.count() == 8
             count = (
                 dbsession.query(DBResource)
                 .filter_by(run_number=0)

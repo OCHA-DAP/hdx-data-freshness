@@ -61,6 +61,7 @@ class DataFreshness:
         """"""
         self.session = session
         self.urls_to_check_count = 0
+        self.updated_by_script_netlocs_checked = set()
         self.never_update = 0
         self.live_update = 0
         self.asneeded_update = 0
@@ -277,13 +278,19 @@ class DataFreshness:
                     pass
             self.session.add(dbresource)
 
+            should_hash = False
             if updated_by_script:
-                dict_of_lists_add(
-                    self.resource_what_updated,
-                    dbresource.what_updated,
-                    resource_id,
-                )
-                continue
+                netloc = urlparse(url).netloc
+                if netloc in self.updated_by_script_netlocs_checked:
+                    dict_of_lists_add(
+                        self.resource_what_updated,
+                        dbresource.what_updated,
+                        resource_id,
+                    )
+                    continue
+                else:
+                    should_hash = True
+                    self.updated_by_script_netlocs_checked.add(netloc)
             if self.url_internal in url:
                 self.prefix_what_updated(dbresource, "internal")
                 dict_of_lists_add(
@@ -294,7 +301,7 @@ class DataFreshness:
                 continue
             if hash_ids:
                 should_hash = resource_id in hash_ids
-            else:
+            elif not should_hash:
                 should_hash = (
                     self.urls_to_check_count < self.no_urls_to_check
                     and (
@@ -610,13 +617,13 @@ class DataFreshness:
             (results of first download, results of second download)
         """
 
-        def get_domain(x):
+        def get_netloc(x):
             return urlparse(x[0]).netloc
 
         retrieval = Retrieval(user_agent, self.url_internal)
         if results is None:  # pragma: no cover
             resources_to_check = list_distribute_contents(
-                resources_to_check, get_domain
+                resources_to_check, get_netloc
             )
             results = retrieval.retrieve(resources_to_check)
             if self.testsession:
@@ -647,7 +654,7 @@ class DataFreshness:
                 hash_check.append((url, resource_id, resource_format))
 
         if hash_results is None:  # pragma: no cover
-            hash_check = list_distribute_contents(hash_check, get_domain)
+            hash_check = list_distribute_contents(hash_check, get_netloc)
             hash_results = retrieval.retrieve(hash_check)
             if self.testsession:
                 serialize_hashresults(self.testsession, hash_results)
