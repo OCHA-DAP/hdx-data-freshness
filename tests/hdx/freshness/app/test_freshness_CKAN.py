@@ -128,9 +128,11 @@ class TestFreshnessCKAN:
             "changing2",
             [[random.random() for i in range(3)] for j in range(6)],
         )
+        broken_url = "file://lala:10"
 
         datasets = list()
         last_modifieds = list()
+        marked_broken = list()
         fresh_dt = datetime.utcnow() - timedelta(days=1)
         due_dt = fresh_dt - timedelta(days=8)
         days7 = timedelta(days=7)
@@ -140,7 +142,7 @@ class TestFreshnessCKAN:
         due = due_dt.isoformat()
         overdue = overdue_dt.isoformat()
         delinquent = delinquent_dt.isoformat()
-        for i in range(8):
+        for i in range(9):
             dataset = Dataset(
                 {"name": f"freshness_test_{i}", "title": f"freshness test {i}"}
             )
@@ -171,6 +173,7 @@ class TestFreshnessCKAN:
                 5: (unchanging_url, overdue),
                 6: (unchanging_url, delinquent),
                 7: (changing_url1, fresh),
+                8: (broken_url, fresh),
             }
             resource["url"], resource["last_modified"] = switcher.get(i)
             dataset.add_update_resource(resource)
@@ -178,6 +181,7 @@ class TestFreshnessCKAN:
             dataset.create_in_hdx(updated_by_script="freshness_ignore")
             datasets.append(dataset)
             last_modifieds.append({"start": dataset["last_modified"]})
+            marked_broken.append(False)
         updated_by_script_dt = None
         try:
             with Database(**nodatabase) as session:
@@ -191,6 +195,7 @@ class TestFreshnessCKAN:
                     datasets[3].get_resource()["id"],
                     datasets[4].get_resource()["id"],
                     datasets[7].get_resource()["id"],
+                    datasets[8].get_resource()["id"],
                 ]
                 (
                     datasets_to_check,
@@ -261,19 +266,23 @@ class TestFreshnessCKAN:
                 dataset = Dataset.read_from_hdx(dataset["id"])
                 if dataset:
                     last_modifieds[i]["run2"] = dataset["last_modified"]
+                    if dataset.get_resource().is_broken():
+                        marked_broken[i] = True
                     dataset.delete_from_hdx()
 
         assert (
             output1
             == """
 *** Resources ***
-* total: 8 *,
+* total: 9 *,
+error: 1,
 first hash: 6,
 firstrun: 2
 
 *** Datasets ***
-* total: 8 *,
+* total: 9 *,
 0: Fresh, Updated firstrun: 4,
+0: Fresh, Updated firstrun,error: 1,
 1: Due, Updated firstrun: 1,
 2: Overdue, Updated firstrun: 2,
 3: Delinquent, Updated firstrun: 1
@@ -286,15 +295,17 @@ firstrun: 2
             output2
             == """
 *** Resources ***
-* total: 8 *,
+* total: 9 *,
+error: 1,
 hash: 3,
 nothing: 2,
 same hash: 3
 
 *** Datasets ***
-* total: 8 *,
+* total: 9 *,
 0: Fresh, Updated hash: 2,
 0: Fresh, Updated nothing: 2,
+0: Fresh, Updated nothing,error: 1,
 0: Fresh, Updated script update,hash: 1,
 1: Due, Updated nothing: 1,
 1: Due, Updated review date: 1,
@@ -314,6 +325,18 @@ same hash: 3
             {"start": overdue, "run1": overdue, "run2": overdue},
             {"start": delinquent, "run1": delinquent, "run2": delinquent},
             {"start": fresh, "run1": fresh, "run2": fresh},
+            {"start": fresh, "run1": fresh, "run2": fresh},
+        ]
+        assert marked_broken == [
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            True,
         ]
         assert updated_by_script_dt is not None
         expected = [
@@ -367,6 +390,14 @@ same hash: 3
                 "latest_of_modifieds": run2_last_modified_dt,
                 "what_updated": "script update,hash",
                 "last_resource_modified": run2_last_modified_dt,
+                "fresh": 0,
+            },
+            {
+                "last_modified": fresh_dt,
+                "updated_by_script": None,
+                "latest_of_modifieds": fresh_dt,
+                "what_updated": "nothing",
+                "last_resource_modified": fresh_dt,
                 "fresh": 0,
             },
         ]

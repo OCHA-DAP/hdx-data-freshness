@@ -172,6 +172,20 @@ class TestProcessResults:
         }
         return results
 
+    @pytest.fixture(scope="function")
+    def broken_results(self):
+        results = {
+            "5cf4261f-b571-4bf4-9a5c-2998f49be722": (
+                "http://export.hotosm.org/downloads/1364e367-304e-4df2-989c-839760c3728d/hotosm_afg_points_of_interest_polygons_kml.zip",
+                "application/zip",
+                "error!",
+                None,
+                None,
+                None,
+            )
+        }
+        return results
+
     def test_process_results(
         self, configuration, session, now, datasets, results, resourcecls
     ):
@@ -193,3 +207,31 @@ class TestProcessResults:
             }
         }
         assert resourcecls.touched is True
+
+    def test_process_broken_results(
+        self,
+        configuration,
+        session,
+        now,
+        datasets,
+        broken_results,
+        resourcecls,
+    ):
+        freshness = DataFreshness(
+            session=session, datasets=datasets, now=now, do_touch=True
+        )
+        resourcecls.populate_resourcedict(datasets)
+        resourcecls.broken = False
+        datasets_lastmodified = freshness.process_results(
+            broken_results, broken_results, resourcecls=resourcecls
+        )
+        assert datasets_lastmodified == {
+            "c1c85ecb-5e84-48c6-8ba9-15689a6c2fc4": {
+                "5cf4261f-b571-4bf4-9a5c-2998f49be722": (
+                    "error!",
+                    datetime.datetime(2019, 10, 28, 5, 5, 20),
+                    "",
+                )
+            }
+        }
+        assert resourcecls.broken is True

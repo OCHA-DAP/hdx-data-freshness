@@ -68,6 +68,7 @@ class DataFreshness:
         self.dataset_what_updated = dict()
         self.resource_what_updated = dict()
         self.resource_last_modified_count = 0
+        self.resource_broken_count = 0
         self.do_touch = do_touch
 
         self.url_internal = "data.humdata.org"
@@ -697,6 +698,7 @@ class DataFreshness:
             resourcesinfo = datasets_resourcesinfo.get(dataset_id, dict())
             what_updated = dbresource.what_updated
             update_last_modified = False
+            is_broken = False
             if http_last_modified:
                 if (
                     dbresource.http_last_modified is None
@@ -791,11 +793,13 @@ class DataFreshness:
                             what_updated, "error"
                         )
                         dbresource.error = hash_err
+                        is_broken = True
                     dbresource.md5_hash = hash_to_set
             if err:
                 dbresource.when_checked = self.now
                 what_updated = self.add_what_updated(what_updated, "error")
                 dbresource.error = err
+                is_broken = True
             resourcesinfo[resource_id] = (
                 dbresource.error,
                 dbresource.latest_of_modifieds,
@@ -836,10 +840,6 @@ class DataFreshness:
                         else:
                             dotouch = True
                         if dotouch:
-                            self.resource_last_modified_count += 1
-                            logger.info(
-                                f"Resource last modified count: {self.resource_last_modified_count}"
-                            )
                             resource[
                                 "last_modified"
                             ] = dbresource.latest_of_modifieds.isoformat()
@@ -848,6 +848,10 @@ class DataFreshness:
                                 batch_mode="KEEP_OLD",
                                 skip_validation=True,
                                 ignore_check=True,
+                            )
+                            self.resource_last_modified_count += 1
+                            logger.info(
+                                f"Resource last modified count: {self.resource_last_modified_count}"
                             )
                         else:
                             logger.info(
@@ -860,6 +864,24 @@ class DataFreshness:
                 except HDXError:
                     logger.exception(
                         f"Last modified update failed for id {resource_id}!"
+                    )
+            if is_broken and self.do_touch:
+                try:
+                    logger.info(f"Marking resource {resource_id} as broken")
+                    resource = resourcecls.read_from_hdx(resource_id)
+                    if resource:
+                        resource.mark_broken()
+                        self.resource_broken_count += 1
+                        logger.info(
+                            f"Resource broken count: {self.resource_broken_count}"
+                        )
+                    else:
+                        logger.error(
+                            f"Mark broken failed for id {resource_id}! Resource does not exist."
+                        )
+                except HDXError:
+                    logger.exception(
+                        f"Mark broken failed for id {resource_id}!"
                     )
         self.session.commit()
         return datasets_resourcesinfo

@@ -23,6 +23,7 @@ def configuration():
 def resourcecls():
     class MyResource(UserDict):
         touched = False
+        broken = False
         resourcedict = None
 
         def __init__(self, id):
@@ -44,5 +45,9 @@ def resourcecls():
             cls, operation, batch_mode, skip_validation, ignore_check
         ):
             cls.touched = True
+
+        @classmethod
+        def mark_broken(cls):
+            cls.broken = True
 
     return MyResource
