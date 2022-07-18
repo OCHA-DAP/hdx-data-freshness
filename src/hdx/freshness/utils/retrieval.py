@@ -33,6 +33,7 @@ class Retrieval:
         url_ignore (Optional[str]): Parts of url to ignore for special xlsx handling
     """
 
+    toolargeerror = "File too large to hash!"
     ignore_mimetypes = ["application/octet-stream", "application/binary"]
     mimetypes = {
         "json": ["application/json"],
@@ -92,7 +93,7 @@ class Retrieval:
             length = response.headers.get("Content-Length")
             if length and int(length) > 419430400:
                 response.close()
-                err = "File too large to hash!"
+                err = self.toolargeerror
                 return (
                     resource_id,
                     url,

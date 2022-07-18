@@ -793,13 +793,15 @@ class DataFreshness:
                             what_updated, "error"
                         )
                         dbresource.error = hash_err
-                        is_broken = True
+                        if hash_err != Retrieval.toolargeerror:
+                            is_broken = True
                     dbresource.md5_hash = hash_to_set
             if err:
                 dbresource.when_checked = self.now
                 what_updated = self.add_what_updated(what_updated, "error")
                 dbresource.error = err
-                is_broken = True
+                if err != Retrieval.toolargeerror:
+                    is_broken = True
             resourcesinfo[resource_id] = (
                 dbresource.error,
                 dbresource.latest_of_modifieds,
