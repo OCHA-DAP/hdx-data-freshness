@@ -688,9 +688,12 @@ class DataFreshness:
         def check_broken(error):
             if error == Retrieval.toolargeerror:
                 return False
-            match_error = re.search(Retrieval.clienterror_regex, error)
-            if match_error:
+            if Retrieval.notmatcherror in error:
                 return True
+            else:
+                match_error = re.search(Retrieval.clienterror_regex, error)
+                if match_error:
+                    return True
             return False
 
         datasets_resourcesinfo = dict()
