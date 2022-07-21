@@ -34,6 +34,8 @@ class Retrieval:
     """
 
     toolargeerror = "File too large to hash!"
+    notmatcherror = "does not match HDX format"
+    clienterror_regex = ".Client(.*)Error "
     ignore_mimetypes = ["application/octet-stream", "application/binary"]
     mimetypes = {
         "json": ["application/json"],
@@ -145,7 +147,7 @@ class Retrieval:
                     expected_mimetypes = self.mimetypes.get(resource_format)
                     if expected_mimetypes is not None:
                         if not any(x in mimetype for x in expected_mimetypes):
-                            err = f"File mimetype {mimetype} does not match HDX format {resource_format}!"
+                            err = f"File mimetype {mimetype} {self.notmatcherror} {resource_format}!"
                 expected_signatures = self.signatures.get(resource_format)
                 if expected_signatures is not None:
                     found = False
@@ -157,7 +159,7 @@ class Retrieval:
                             found = True
                             break
                     if not found:
-                        sigerr = f"File signature {signature} does not match HDX format {resource_format}!"
+                        sigerr = f"File signature {signature} {self.notmatcherror} {resource_format}!"
                         if err is None:
                             err = sigerr
                         else:

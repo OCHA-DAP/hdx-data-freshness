@@ -173,12 +173,34 @@ class TestProcessResults:
         return results
 
     @pytest.fixture(scope="function")
-    def broken_results(self):
+    def error1(self):
+        return "code=404 message=Non-retryable response code raised=aiohttp.ClientResponseError url=http://export.hotosm.org/downloads/64fa006f-4781-4d07-a645-ed0ea9d047e7/hotosm_uga_rr_railways_points_kml.zip"
+
+    @pytest.fixture(scope="function")
+    def error2(self):
+        return "code= message=Timeout on reading data from socket raised=aiohttp.client_exceptions.ServerTimeoutError url=https://fdw.fews.net/api/marketpricefacts/?dataset=FEWS_NET_Staple_Food_Price_Data&country=NG&format=csv&fields=website&end_date"
+
+    @pytest.fixture(scope="function")
+    def broken_results1(self, error1):
         results = {
             "5cf4261f-b571-4bf4-9a5c-2998f49be722": (
                 "http://export.hotosm.org/downloads/1364e367-304e-4df2-989c-839760c3728d/hotosm_afg_points_of_interest_polygons_kml.zip",
                 "application/zip",
-                "error!",
+                error1,
+                None,
+                None,
+                None,
+            )
+        }
+        return results
+
+    @pytest.fixture(scope="function")
+    def broken_results2(self, error2):
+        results = {
+            "5cf4261f-b571-4bf4-9a5c-2998f49be722": (
+                "http://export.hotosm.org/downloads/1364e367-304e-4df2-989c-839760c3728d/hotosm_afg_points_of_interest_polygons_kml.zip",
+                "application/zip",
+                error2,
                 None,
                 None,
                 None,
@@ -208,13 +230,14 @@ class TestProcessResults:
         }
         assert resourcecls.touched is True
 
-    def test_process_broken_results(
+    def test_process_broken_results1(
         self,
         configuration,
         session,
         now,
         datasets,
-        broken_results,
+        error1,
+        broken_results1,
         resourcecls,
     ):
         freshness = DataFreshness(
@@ -223,15 +246,44 @@ class TestProcessResults:
         resourcecls.populate_resourcedict(datasets)
         resourcecls.broken = False
         datasets_lastmodified = freshness.process_results(
-            broken_results, broken_results, resourcecls=resourcecls
+            broken_results1, broken_results1, resourcecls=resourcecls
         )
         assert datasets_lastmodified == {
             "c1c85ecb-5e84-48c6-8ba9-15689a6c2fc4": {
                 "5cf4261f-b571-4bf4-9a5c-2998f49be722": (
-                    "error!",
+                    error1,
                     datetime.datetime(2019, 10, 28, 5, 5, 20),
                     "",
                 )
             }
         }
         assert resourcecls.broken is True
+
+    def test_process_broken_results2(
+        self,
+        configuration,
+        session,
+        now,
+        datasets,
+        error2,
+        broken_results2,
+        resourcecls,
+    ):
+        freshness = DataFreshness(
+            session=session, datasets=datasets, now=now, do_touch=True
+        )
+        resourcecls.populate_resourcedict(datasets)
+        resourcecls.broken = False
+        datasets_lastmodified = freshness.process_results(
+            broken_results2, broken_results2, resourcecls=resourcecls
+        )
+        assert datasets_lastmodified == {
+            "c1c85ecb-5e84-48c6-8ba9-15689a6c2fc4": {
+                "5cf4261f-b571-4bf4-9a5c-2998f49be722": (
+                    error2,
+                    datetime.datetime(2019, 10, 28, 5, 5, 20),
+                    "",
+                )
+            }
+        }
+        assert resourcecls.broken is False

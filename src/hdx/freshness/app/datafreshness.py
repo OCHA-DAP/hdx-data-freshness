@@ -684,6 +684,15 @@ class DataFreshness:
         Returns:
             Dict[str, Dict[str, Tuple]]: Dataset id to resource id to resource info
         """
+
+        def check_broken(error):
+            if error == Retrieval.toolargeerror:
+                return False
+            match_error = re.search(Retrieval.clienterror_regex, error)
+            if match_error:
+                return True
+            return False
+
         datasets_resourcesinfo = dict()
         for resource_id in sorted(results):
             url, _, err, http_last_modified, hash, xlsx_hash = results[
@@ -793,14 +802,14 @@ class DataFreshness:
                             what_updated, "error"
                         )
                         dbresource.error = hash_err
-                        if hash_err != Retrieval.toolargeerror:
+                        if check_broken(hash_err):
                             is_broken = True
                     dbresource.md5_hash = hash_to_set
             if err:
                 dbresource.when_checked = self.now
                 what_updated = self.add_what_updated(what_updated, "error")
                 dbresource.error = err
-                if err != Retrieval.toolargeerror:
+                if check_broken(err):
                     is_broken = True
             resourcesinfo[resource_id] = (
                 dbresource.error,
