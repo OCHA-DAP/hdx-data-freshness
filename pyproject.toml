@@ -107,11 +107,11 @@ output_directory = "docs"
 legacy_tox_ini = """
 [tox]
 isolated_build = true
-envlist = py38, lint
+envlist = py310, lint
 
 [gh-actions]
 python =
-    3: py38, lint
+    3: py310, lint
 
 [testenv]
 recreate = true
