@@ -3,6 +3,7 @@ name: Create image
 on:
   push:
     branches:
+      - main
       - dev
       - ops-*
       - hdx-*
