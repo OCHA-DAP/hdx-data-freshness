@@ -107,11 +107,11 @@ output_directory = "docs"
 legacy_tox_ini = """
 [tox]
 isolated_build = true
-envlist = py38, lint
+envlist = py310, lint
 
 [gh-actions]
 python =
-    3: py38, lint
+    3: py310, lint
 
 [testenv]
 recreate = true
@@ -123,7 +123,7 @@ commands =
     pytest --cov=hdx --no-cov-on-fail --junitxml=.tox/test-results.xml --cov-report=xml --cov-report=term-missing
 
 [testenv:lint]
-wheel_build_env = py38
+wheel_build_env = py310
 deps =
     flakeheaven
     flake8
@@ -133,7 +133,7 @@ commands =
     flakeheaven lint src tests
 
 [testenv:docs]
-wheel_build_env = py38
+wheel_build_env = py310
 deps =
     pydoc-markdown
 commands =
