@@ -2,8 +2,9 @@
 each run.
 """
 from hdx.database import Base
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 
+from . import CustomDateTime
 from .dbinfodataset import DBInfoDataset
 from .dbrun import DBRun
 
@@ -17,16 +18,16 @@ class DBResource(Base):
     name = Column(String, nullable=False)
     dataset_id = Column(String, ForeignKey(DBInfoDataset.id), nullable=False)
     url = Column(String, nullable=False)
-    last_modified = Column(DateTime, nullable=False)
+    last_modified = Column(CustomDateTime, nullable=False)
     metadata_modified = Column(
-        DateTime, default=None
+        CustomDateTime, default=None
     )  # this field and above are CKAN fields
-    latest_of_modifieds = Column(DateTime, nullable=False)
+    latest_of_modifieds = Column(CustomDateTime, nullable=False)
     what_updated = Column(String, nullable=False)
-    http_last_modified = Column(DateTime, default=None)
+    http_last_modified = Column(CustomDateTime, default=None)
     md5_hash = Column(String, default=None)
-    hash_last_modified = Column(DateTime, default=None)
-    when_checked = Column(DateTime, default=None)
+    hash_last_modified = Column(CustomDateTime, default=None)
+    when_checked = Column(CustomDateTime, default=None)
     api = Column(Boolean)
     error = Column(String)
     """
@@ -38,16 +39,16 @@ class DBResource(Base):
     name = Column(String, nullable=False)
     dataset_id = Column(String, ForeignKey(DBInfoDataset.id), nullable=False)
     url = Column(String, nullable=False)
-    last_modified = Column(DateTime, nullable=False)
+    last_modified = Column(CustomDateTime, nullable=False)
     metadata_modified = Column(
-        DateTime, default=None
+        CustomDateTime, default=None
     )  # this field and above are CKAN fields
-    latest_of_modifieds = Column(DateTime, nullable=False)
+    latest_of_modifieds = Column(CustomDateTime, nullable=False)
     what_updated = Column(String, nullable=False)
-    http_last_modified = Column(DateTime, default=None)
+    http_last_modified = Column(CustomDateTime, default=None)
     md5_hash = Column(String, default=None)
-    hash_last_modified = Column(DateTime, default=None)
-    when_checked = Column(DateTime, default=None)
+    hash_last_modified = Column(CustomDateTime, default=None)
+    when_checked = Column(CustomDateTime, default=None)
     api = Column(Boolean)
     error = Column(String)
 

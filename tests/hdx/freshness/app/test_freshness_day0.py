@@ -124,17 +124,17 @@ Freshness Unavailable, Updated firstrun: 4
             dbrun = dbsession.query(DBRun).one()
             assert (
                 str(dbrun)
-                == "<Run number=0, Run date=2017-12-18 16:03:33.208327>"
+                == "<Run number=0, Run date=2017-12-18 16:03:33.208327+00:00>"
             )
             dbresource = dbsession.query(DBResource).first()
             assert (
                 str(dbresource)
                 == """<Resource(run number=0, id=b21d6004-06b5-41e5-8e3e-0f28140bff64, name=Topline Numbers.csv, dataset id=a2150ad9-2b87-49f5-a6b2-c85dff366b75,
 url=https://docs.google.com/spreadsheets/d/e/2PACX-1vRjFRZGLB8IMp0anSGR1tcGxwJgkyx0bTN9PsinqtaLWKHBEfz77LkinXeVqIE_TsGVt-xM6DQzXpkJ/pub?gid=0&single=true&output=csv,
-last modified=2017-12-16 15:11:15.202742, metadata modified=2017-12-16 15:11:15.202742,
-latest of modifieds=2017-12-16 15:11:15.202742, what updated=first hash,
+last modified=2017-12-16 15:11:15.202742+00:00, metadata modified=2017-12-16 15:11:15.202742+00:00,
+latest of modifieds=2017-12-16 15:11:15.202742+00:00, what updated=first hash,
 http last modified=None,
-MD5 hash=be5802368e5a6f7ad172f27732001f3a, hash last modified=None, when checked=2017-12-18 16:03:33.208327,
+MD5 hash=be5802368e5a6f7ad172f27732001f3a, hash last modified=None, when checked=2017-12-18 16:03:33.208327+00:00,
 api=False, error=None)>"""
             )
             count = (
@@ -214,9 +214,9 @@ api=False, error=None)>"""
             assert (
                 str(dbdataset)
                 == """<Dataset(run number=0, id=a2150ad9-2b87-49f5-a6b2-c85dff366b75, dataset date=09/21/2017, update frequency=1,
-review date=None, last modified=2017-12-16 15:11:15.204215, metadata modified=2017-12-16 15:11:15.204215, updated by script=None,
-latest of modifieds=2017-12-16 15:11:15.204215, what updated=firstrun,
-Resource b21d6004-06b5-41e5-8e3e-0f28140bff64: last modified=2017-12-16 15:11:15.202742,
+review date=None, last modified=2017-12-16 15:11:15.204215+00:00, metadata modified=2017-12-16 15:11:15.204215+00:00, updated by script=None,
+latest of modifieds=2017-12-16 15:11:15.204215+00:00, what updated=firstrun,
+Resource b21d6004-06b5-41e5-8e3e-0f28140bff64: last modified=2017-12-16 15:11:15.202742+00:00,
 Dataset fresh=2, error=False)>"""
             )
             count = (

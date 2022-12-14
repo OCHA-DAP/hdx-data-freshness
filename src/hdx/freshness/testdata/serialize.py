@@ -1,6 +1,6 @@
 """Functions to serialise and deserialise test data, for example for datasets
 """
-import datetime
+from datetime import datetime
 from typing import Dict, Iterable, List, Tuple
 
 from hdx.data.dataset import Dataset
@@ -58,12 +58,12 @@ def serialize_datasets(session: Session, datasets: List[Dataset]) -> None:
     session.commit()
 
 
-def serialize_now(session: Session, now: datetime.datetime) -> None:
+def serialize_now(session: Session, now: datetime) -> None:
     """Serialise date to database object
 
     Args:
         session (sqlalchemy.orm.Session): Session to use for queries for test data
-        now (datetime.datetime): Current date
+        now (datetime): Current date
 
     Returns:
         None
@@ -198,14 +198,14 @@ def deserialize_datasets(session: Session) -> Iterable[Dataset]:
     return datasets.values()
 
 
-def deserialize_now(session: Session) -> datetime.datetime:
+def deserialize_now(session: Session) -> datetime:
     """Deserialise database object to date
 
     Args:
         session (sqlalchemy.orm.Session): Session to use for queries for test data
 
     Returns:
-        datetime.datetime: date
+        datetime: date
     """
     return session.query(DBTestDate.test_date).scalar()
 

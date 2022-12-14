@@ -2,7 +2,9 @@
 of downloading and hashing urls (second time).
 """
 from hdx.database import Base
-from sqlalchemy import Boolean, Column, DateTime, String
+from sqlalchemy import Boolean, Column, String
+
+from hdx.freshness.database import CustomDateTime
 
 
 class DBTestHashResult(Base):
@@ -11,7 +13,7 @@ class DBTestHashResult(Base):
     url = Column(String, nullable=False)
     format = Column(String, nullable=False)
     err = Column(String)
-    http_last_modified = Column(DateTime)
+    http_last_modified = Column(CustomDateTime)
     hash = Column(String)
     xlsx_hash = Column(String)
     force_hash = Column(Boolean, nullable=False)
@@ -21,7 +23,7 @@ class DBTestHashResult(Base):
     url = Column(String, nullable=False)
     format = Column(String, nullable=False)
     err = Column(String)
-    http_last_modified = Column(DateTime)
+    http_last_modified = Column(CustomDateTime)
     hash = Column(String)
     xlsx_hash = Column(String)
     force_hash = Column(Boolean, nullable=False)

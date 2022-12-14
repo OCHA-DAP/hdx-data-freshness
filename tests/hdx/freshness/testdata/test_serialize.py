@@ -2,13 +2,14 @@
 Unit tests for the serializing code.
 
 """
-import datetime
 import os
 import pickle
+from datetime import datetime, timezone
 from os.path import join
 
 import pytest
 from hdx.database import Database
+from hdx.utilities.dateparse import now_utc
 
 from hdx.freshness.testdata.serialize import (
     deserialize_datasets,
@@ -94,7 +95,7 @@ class TestSerialize:
                 )
 
     def test_serialize_now(self, session):
-        now = datetime.datetime.utcnow()
+        now = now_utc()
         serialize_now(session, now)
         result = deserialize_now(session)
         assert result == now
@@ -139,7 +140,7 @@ class TestSerialize:
                 "http://data.humdata.org/dataset/e66dbc70-17fe-4230-b9d6-855d192fc05c/resource/dc8da7da-59bc-4fad-98b8-9a0303b2deed/download/myanmar-adm2.geojson",
                 "application/json",
                 None,
-                datetime.datetime(2015, 7, 24, 7, 8, 48),
+                datetime(2015, 7, 24, 7, 8, 48, tzinfo=timezone.utc),
                 "73ba2b7904c778ed218357d9c1515c0c",
                 None,
                 True,
@@ -148,7 +149,7 @@ class TestSerialize:
                 "http://sddr.faoswalim.org/Shapefiles/Administrative/Somalia%20Major%20Primary%20Roads.ZIP",
                 "application/zip",
                 None,
-                datetime.datetime(2013, 2, 28, 13, 53, 42),
+                datetime(2013, 2, 28, 13, 53, 42, tzinfo=timezone.utc),
                 "3e59e8be4973de25eaa4283e075ad5b2",
                 None,
                 True,

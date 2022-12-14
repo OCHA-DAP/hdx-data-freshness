@@ -6,7 +6,7 @@ import json
 import logging
 import os
 import random
-from datetime import datetime, timedelta
+from datetime import timedelta
 from os.path import join
 from time import sleep
 
@@ -16,6 +16,7 @@ from gspread.urls import DRIVE_FILES_API_V3_URL
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.database import Database
+from hdx.utilities.dateparse import now_utc
 
 from hdx.freshness.app.datafreshness import DataFreshness
 from hdx.freshness.database.dbdataset import DBDataset
@@ -97,7 +98,7 @@ class TestFreshnessCKAN:
         setup_teardown_folder,
         params,
     ):
-        today = datetime.now()
+        today = now_utc()
         gclient, folderid = setup_teardown_folder
 
         def create_gsheet(name, update):
@@ -133,15 +134,15 @@ class TestFreshnessCKAN:
         datasets = list()
         last_modifieds = list()
         marked_broken = list()
-        fresh_dt = datetime.utcnow() - timedelta(days=1)
+        fresh_dt = now_utc() - timedelta(days=1)
         due_dt = fresh_dt - timedelta(days=8)
         days7 = timedelta(days=7)
         overdue_dt = due_dt - days7
         delinquent_dt = overdue_dt - days7
-        fresh = fresh_dt.isoformat()
-        due = due_dt.isoformat()
-        overdue = overdue_dt.isoformat()
-        delinquent = delinquent_dt.isoformat()
+        fresh = fresh_dt.replace(tzinfo=None).isoformat()
+        due = due_dt.replace(tzinfo=None).isoformat()
+        overdue = overdue_dt.replace(tzinfo=None).isoformat()
+        delinquent = delinquent_dt.replace(tzinfo=None).isoformat()
         for i in range(9):
             dataset = Dataset(
                 {"name": f"freshness_test_{i}", "title": f"freshness test {i}"}
@@ -233,8 +234,10 @@ class TestFreshnessCKAN:
                     if i == 5:
                         dataset["review_date"] = due
                     if i == 7:
-                        updated_by_script_dt = datetime.utcnow()
-                        updated_by_script = updated_by_script_dt.isoformat()
+                        updated_by_script_dt = now_utc()
+                        updated_by_script = updated_by_script_dt.replace(
+                            tzinfo=None
+                        ).isoformat()
                         dataset[
                             "updated_by_script"
                         ] = f"freshness ({updated_by_script})"
@@ -258,7 +261,9 @@ class TestFreshnessCKAN:
                     datasets_to_check, datasets_lastmodified
                 )
                 run2_last_modified_dt = freshness.now
-                run2_last_modified = run2_last_modified_dt.isoformat()
+                run2_last_modified = run2_last_modified_dt.replace(
+                    tzinfo=None
+                ).isoformat()
                 output2 = freshness.output_counts()
         finally:
             # tear down

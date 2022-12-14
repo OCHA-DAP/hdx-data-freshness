@@ -1,16 +1,17 @@
 """Determine freshness for all datasets in HDX
 """
-import datetime
 import logging
 import re
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
-from dateutil.parser import ParserError, parse
+from dateutil.parser import ParserError
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.data.hdxobject import HDXError
 from hdx.data.resource import Resource
+from hdx.utilities.dateparse import now_utc, parse_date
 from hdx.utilities.dictandlist import (
     dict_of_lists_add,
     list_distribute_contents,
@@ -44,7 +45,7 @@ class DataFreshness:
         session (sqlalchemy.orm.Session): Session to use for queries
         testsession (Optional[sqlalchemy.orm.Session]): Session for test data or None
         datasets (Optional[List[Dataset]]): List of datasets or read from HDX if None
-        now (datetime.datetime): Date to use or take current time if None
+        now (datetime): Date to use or take current time if None
         do_touch (bool): Whether to touch HDX resources whose hash has changed
     """
 
@@ -55,7 +56,7 @@ class DataFreshness:
         session: Session,
         testsession: Optional[Session] = None,
         datasets: Optional[List[Dataset]] = None,
-        now: datetime.datetime = None,
+        now: datetime = None,
         do_touch: bool = False,
     ) -> None:
         """"""
@@ -79,7 +80,7 @@ class DataFreshness:
             freshness_frequency = dict()
             for status in value:
                 nodays = value[status]
-                freshness_frequency[status] = datetime.timedelta(days=nodays)
+                freshness_frequency[status] = timedelta(days=nodays)
             self.freshness_by_frequency[update_frequency] = freshness_frequency
         self.freshness_statuses = {
             0: "0: Fresh",
@@ -101,7 +102,7 @@ class DataFreshness:
         else:
             self.datasets: List[Dataset] = datasets
         if now is None:  # pragma: no cover
-            self.now = datetime.datetime.utcnow()
+            self.now = now_utc()
             if self.testsession:
                 serialize_now(self.testsession, self.now)
         else:
@@ -194,9 +195,9 @@ class DataFreshness:
         dataset_id: str,
         previous_dbdataset: DBDataset,
         resources: List[Resource],
-        updated_by_script: Optional[datetime.datetime],
+        updated_by_script: Optional[datetime],
         hash_ids: List[str] = None,
-    ) -> Tuple[List[Tuple], Optional[str], Optional[datetime.datetime]]:
+    ) -> Tuple[List[Tuple], Optional[str], Optional[datetime]]:
         """Process HDX dataset's resources. If the resource has not been checked for
         30 days and we are below the threshold for resource checking, then the resource
         is flagged to be hashed even if the dataset is fresh.
@@ -205,11 +206,11 @@ class DataFreshness:
             dataset_id (str): Dataset id
             previous_dbdataset (DBDataset): DBDataset object from previous run
             resources (List[Resource]): HDX resources to process
-            updated_by_script (Optional[datetime.datetime]): Time script updated or None
+            updated_by_script (Optional[datetime]): Time script updated or None
             hash_ids (Optional[List[str]]): Resource ids to hash for testing purposes
 
         Returns:
-            Tuple[List[Tuple], Optional[str], Optional[datetime.datetime]]:
+            Tuple[List[Tuple], Optional[str], Optional[datetime]]:
             (resources to download, id of last resource updated, time updated)
         """
         last_resource_updated = None
@@ -220,10 +221,12 @@ class DataFreshness:
             dict_of_lists_add(self.resource_what_updated, "total", resource_id)
             url = resource["url"]
             name = resource["name"]
-            metadata_modified = parse(
-                resource["metadata_modified"], ignoretz=True
+            metadata_modified = parse_date(
+                resource["metadata_modified"], include_microseconds=True
             )
-            last_modified = parse(resource["last_modified"], ignoretz=True)
+            last_modified = parse_date(
+                resource["last_modified"], include_microseconds=True
+            )
             if last_resource_modified:
                 if last_modified > last_resource_modified:
                     last_resource_updated = resource_id
@@ -421,8 +424,8 @@ class DataFreshness:
                             updated_by_script = None
                         else:
                             try:
-                                updated_by_script = parse(
-                                    match.group(1), ignoretz=True
+                                updated_by_script = parse_date(
+                                    match.group(1), include_microseconds=True
                                 )
                             except ParserError:
                                 updated_by_script = None
@@ -438,16 +441,18 @@ class DataFreshness:
                 hash_ids=hash_ids,
             )
             dataset_date = dataset.get("dataset_date")
-            metadata_modified = parse(
-                dataset["metadata_modified"], ignoretz=True
+            metadata_modified = parse_date(
+                dataset["metadata_modified"], include_microseconds=True
             )
             if "last_modified" in dataset:
-                last_modified = parse(dataset["last_modified"], ignoretz=True)
+                last_modified = parse_date(
+                    dataset["last_modified"], include_microseconds=True
+                )
             else:
-                last_modified = datetime.datetime(1970, 1, 1, 0, 0)
+                last_modified = datetime(1970, 1, 1, 0, 0)
             if len(resources) == 0 and last_resource_updated is None:
                 last_resource_updated = "NO RESOURCES"
-                last_resource_modified = datetime.datetime(1970, 1, 1, 0, 0)
+                last_resource_modified = datetime(1970, 1, 1, 0, 0)
                 error = True
                 what_updated = "no resources"
             else:
@@ -457,7 +462,9 @@ class DataFreshness:
             if review_date is None:
                 latest_of_modifieds = last_modified
             else:
-                review_date = parse(review_date, ignoretz=True)
+                review_date = parse_date(
+                    review_date, include_microseconds=True
+                )
                 if review_date > last_modified:
                     latest_of_modifieds = review_date
                 else:
@@ -831,7 +838,10 @@ class DataFreshness:
                     )
                     resource = resourcecls.read_from_hdx(resource_id)
                     if resource:
-                        last_modified = parse(resource["last_modified"])
+                        last_modified = parse_date(
+                            resource["last_modified"],
+                            include_microseconds=True,
+                        )
                         dbdataset = (
                             self.session.query(DBDataset)
                             .filter_by(
@@ -853,9 +863,10 @@ class DataFreshness:
                         else:
                             dotouch = True
                         if dotouch:
-                            resource[
-                                "last_modified"
-                            ] = dbresource.latest_of_modifieds.isoformat()
+                            dt_notz = dbresource.latest_of_modifieds.replace(
+                                tzinfo=None
+                            )
+                            resource["last_modified"] = dt_notz.isoformat()
                             resource.update_in_hdx(
                                 operation="patch",
                                 batch_mode="KEEP_OLD",
@@ -1008,7 +1019,7 @@ class DataFreshness:
     @staticmethod
     def set_latest_of_modifieds(
         dbobject: Union[DBDataset, DBResource],
-        modified_date: datetime.datetime,
+        modified_date: datetime,
         what_updated: str,
     ) -> Tuple[str, bool]:
         """Set latest of modifieds if provided date is greater than current and add
@@ -1016,7 +1027,7 @@ class DataFreshness:
 
         Args:
             dbobject (Union[DBDataset, DBResource]): Database object to update
-            modified_date (datetime.datetime): New modified date
+            modified_date (datetime): New modified date
             what_updated (str): What updated eg. hash
 
         Returns:
@@ -1054,13 +1065,13 @@ class DataFreshness:
             return what_updated
 
     def calculate_freshness(
-        self, last_modified: datetime.datetime, update_frequency: int
+        self, last_modified: datetime, update_frequency: int
     ) -> int:
         """Calculate freshness based on a last modified date and the expected update
         frequency. Returns 0 for fresh, 1 for due, 2 for overdue and 3 for delinquent.
 
         Args:
-            last_modified (datetime.datetime): Last modified date
+            last_modified (datetime): Last modified date
             update_frequency (int): Expected update frequency
 
         Returns:

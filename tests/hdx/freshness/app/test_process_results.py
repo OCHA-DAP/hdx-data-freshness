@@ -2,12 +2,12 @@
 Unit tests for process_results.
 
 """
-import datetime
+from datetime import datetime, timezone
 from unittest.mock import Mock
 
 import pytest
-from dateutil import parser
 from hdx.data.dataset import Dataset
+from hdx.utilities.dateparse import parse_date
 
 from hdx.freshness.app.datafreshness import DataFreshness
 
@@ -31,8 +31,8 @@ class TestProcessResults:
                         dataset_id = "c1c85ecb-5e84-48c6-8ba9-15689a6c2fc4"
                         what_updated = ""
                         http_last_modified = None
-                        latest_of_modifieds = parser.parse(
-                            "2019-10-28 05:05:20"
+                        latest_of_modifieds = parse_date(
+                            "2019-10-28 05:05:20", include_microseconds=True
                         )
                         md5_hash = "5600bafa19852afae3d7fd27955df0e6"
                         error = ""
@@ -59,7 +59,7 @@ class TestProcessResults:
 
     @pytest.fixture(scope="function")
     def now(self):
-        return parser.parse("2019-11-03 23:01:31.438713")
+        return parse_date("2019-11-03 23:01:31.438713", include_microseconds=True)
 
     @pytest.fixture(scope="function")
     def datasets(self):
@@ -165,7 +165,7 @@ class TestProcessResults:
                 "http://export.hotosm.org/downloads/1364e367-304e-4df2-989c-839760c3728d/hotosm_afg_points_of_interest_polygons_kml.zip",
                 "application/zip",
                 None,
-                parser.parse("2019-11-03 14:23:40"),
+                parse_date("2019-11-03 14:23:40", include_microseconds=True),
                 "33caf1b1106613d123989c2b459c383d",
                 None,
             )
@@ -259,7 +259,7 @@ class TestProcessResults:
             "c1c85ecb-5e84-48c6-8ba9-15689a6c2fc4": {
                 "3adb573a-f056-41b7-8ee5-ec245676a7ce": (
                     "",
-                    datetime.datetime(2019, 11, 3, 23, 1, 31, 438713),
+                    datetime(2019, 11, 3, 23, 1, 31, 438713, tzinfo=timezone.utc),
                     ",hash",
                 )
             }
@@ -288,7 +288,7 @@ class TestProcessResults:
             "c1c85ecb-5e84-48c6-8ba9-15689a6c2fc4": {
                 "5cf4261f-b571-4bf4-9a5c-2998f49be722": (
                     error1,
-                    datetime.datetime(2019, 10, 28, 5, 5, 20),
+                    datetime(2019, 10, 28, 5, 5, 20, tzinfo=timezone.utc),
                     "",
                 )
             }
@@ -317,7 +317,7 @@ class TestProcessResults:
             "c1c85ecb-5e84-48c6-8ba9-15689a6c2fc4": {
                 "5cf4261f-b571-4bf4-9a5c-2998f49be722": (
                     error2,
-                    datetime.datetime(2019, 10, 28, 5, 5, 20),
+                    datetime(2019, 10, 28, 5, 5, 20, tzinfo=timezone.utc),
                     "",
                 )
             }
@@ -346,7 +346,7 @@ class TestProcessResults:
             "c1c85ecb-5e84-48c6-8ba9-15689a6c2fc4": {
                 "5cf4261f-b571-4bf4-9a5c-2998f49be722": (
                     error3,
-                    datetime.datetime(2019, 10, 28, 5, 5, 20),
+                    datetime(2019, 10, 28, 5, 5, 20, tzinfo=timezone.utc),
                     "",
                 )
             }
@@ -375,7 +375,7 @@ class TestProcessResults:
             "c1c85ecb-5e84-48c6-8ba9-15689a6c2fc4": {
                 "5cf4261f-b571-4bf4-9a5c-2998f49be722": (
                     error4,
-                    datetime.datetime(2019, 10, 28, 5, 5, 20),
+                    datetime(2019, 10, 28, 5, 5, 20, tzinfo=timezone.utc),
                     "",
                 )
             }

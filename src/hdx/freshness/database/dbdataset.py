@@ -2,8 +2,9 @@
 each run.
 """
 from hdx.database import Base
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 
+from . import CustomDateTime
 from .dbinfodataset import DBInfoDataset
 from .dbrun import DBRun
 
@@ -20,17 +21,17 @@ class DBDataset(Base):
 
     update_frequency = Column(Integer)
 
-    review_date = Column(DateTime)
+    review_date = Column(CustomDateTime)
 
-    last_modified = Column(DateTime, nullable=False)
+    last_modified = Column(CustomDateTime, nullable=False)
 
-    updated_by_script = Column(DateTime)
+    updated_by_script = Column(CustomDateTime)
 
     metadata_modified = Column(
-        DateTime, nullable=False
+        CustomDateTime, nullable=False
     )  # this field and above are CKAN fields
 
-    latest_of_modifieds = Column(DateTime, nullable=False)
+    latest_of_modifieds = Column(CustomDateTime, nullable=False)
 
     what_updated = Column(String, nullable=False)
 
@@ -39,7 +40,7 @@ class DBDataset(Base):
     )  # id of last resource updated
 
     last_resource_modified = Column(
-        DateTime, nullable=False
+        CustomDateTime, nullable=False
     )  # date last resource updated
 
     fresh = Column(Integer)
@@ -53,19 +54,19 @@ class DBDataset(Base):
     id = Column(String, ForeignKey(DBInfoDataset.id), primary_key=True)
     dataset_date = Column(String)
     update_frequency = Column(Integer)
-    review_date = Column(DateTime)
-    last_modified = Column(DateTime, nullable=False)
-    updated_by_script = Column(DateTime)
+    review_date = Column(CustomDateTime)
+    last_modified = Column(CustomDateTime, nullable=False)
+    updated_by_script = Column(CustomDateTime)
     metadata_modified = Column(
-        DateTime, nullable=False
+        CustomDateTime, nullable=False
     )  # this field and above are CKAN fields
-    latest_of_modifieds = Column(DateTime, nullable=False)
+    latest_of_modifieds = Column(CustomDateTime, nullable=False)
     what_updated = Column(String, nullable=False)
     last_resource_updated = Column(
         String, nullable=False
     )  # id of last resource updated
     last_resource_modified = Column(
-        DateTime, nullable=False
+        CustomDateTime, nullable=False
     )  # date last resource updated
     fresh = Column(Integer)
     error = Column(Boolean, nullable=False)
