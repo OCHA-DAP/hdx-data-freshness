@@ -1,12 +1,6 @@
 name: Create image
 
 on:
-  push:
-    branches:
-      - main
-      - dev
-      - ops-*
-      - hdx-*
   release:
     types: [published]
 
