@@ -6,6 +6,7 @@ from sqlalchemy import DateTime, TypeDecorator
 
 class CustomDateTime(TypeDecorator):
     impl = DateTime
+    cache_ok = True
 
     def process_bind_param(self, value: Optional[datetime], dialect):
         if value is None:
