@@ -3,11 +3,12 @@ Unit tests for the aging code.
 
 """
 import os
-from datetime import datetime, timedelta
+from datetime import timedelta
 from os.path import join
 
 import pytest
 from hdx.database import Database
+from hdx.utilities.dateparse import now_utc
 
 from hdx.freshness.app.datafreshness import DataFreshness
 
@@ -24,7 +25,7 @@ class TestFreshnessByFrequency:
 
     @pytest.fixture(scope="class")
     def now(self):
-        return datetime.utcnow()
+        return now_utc()
 
     @pytest.fixture(scope="class")
     def datasets(self):

@@ -311,7 +311,7 @@ class DataFreshness:
                     and (
                         dbresource.when_checked is None
                         or self.now - dbresource.when_checked
-                        > datetime.timedelta(days=30)
+                        > timedelta(days=30)
                     )
                 )
             resource_format = resource["format"].lower()
