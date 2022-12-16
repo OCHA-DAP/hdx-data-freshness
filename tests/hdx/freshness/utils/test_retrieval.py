@@ -3,7 +3,7 @@ Unit tests for the retrieval class.
 
 """
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
 from hdx.freshness.utils.retrieval import Retrieval
 
@@ -39,7 +39,7 @@ class TestRetrieve:
             url1,
             "html",
             None,
-            datetime(2014, 6, 7, 0, 53, 56),
+            datetime(2014, 6, 7, 0, 53, 56, timezone.utc),
             "c9ef27e27f0bb5a772e12af426102804",
             None,
         )
