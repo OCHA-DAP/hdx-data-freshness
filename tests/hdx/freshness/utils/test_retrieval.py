@@ -39,7 +39,7 @@ class TestRetrieve:
             url1,
             "html",
             None,
-            datetime(2014, 6, 7, 0, 53, 56, timezone.utc),
+            datetime(2014, 6, 7, 0, 53, 56, tzinfo=timezone.utc),
             "c9ef27e27f0bb5a772e12af426102804",
             None,
         )
