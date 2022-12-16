@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import aiohttp
 import tqdm
 import uvloop
-from dateutil import parser
+from hdx.utilities.dateparse import parse_date
 from openpyxl import load_workbook
 
 from . import retry
@@ -87,8 +87,8 @@ class Retrieval:
                 try:
                     # we set http_last_modified but don't actually use it to calculate
                     # freshness any more
-                    http_last_modified = parser.parse(
-                        last_modified_str, ignoretz=True
+                    http_last_modified = parse_date(
+                        last_modified_str, include_microseconds=True
                     )
                 except (ValueError, OverflowError):
                     pass
