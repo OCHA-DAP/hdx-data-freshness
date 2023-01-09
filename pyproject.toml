@@ -106,7 +106,6 @@ python =
 recreate = true
 package = wheel
 wheel_build_env = .pkg
-pass_env = GSHEET_AUTH
 deps =
     -r test-requirements.txt
 commands =
