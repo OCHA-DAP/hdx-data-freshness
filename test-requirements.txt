@@ -1,6 +1,5 @@
 pytest==7.2.0
 pytest-cov==4.0.0
 gspread==5.7.2
-tox==3.27.1
-tox-wheel==1.0.0
+tox==4.2.6
 -r requirements.txt
