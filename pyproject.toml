@@ -106,7 +106,7 @@ python =
 recreate = true
 package = wheel
 wheel_build_env = .pkg
-pass_env = HDX_KEY
+pass_env = HDX_KEY, GSHEET_AUTH
 deps =
     -r test-requirements.txt
 commands =
