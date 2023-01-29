@@ -23,3 +23,6 @@ class CustomDateTime(TypeDecorator):
             return value.replace(tzinfo=timezone.utc)
 
         return value.astimezone(timezone.utc)
+
+    def coerce_compared_value(self, op, value):
+        return self.impl.coerce_compared_value(op, value)
