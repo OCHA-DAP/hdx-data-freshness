@@ -1,6 +1,6 @@
 aiodns==3.0.0
 aiohttp==3.8.3
 hdx-python-api==5.9.6
-hdx-python-database[postgresql]==1.1.7
+git+ssh://git@github.com/OCHA-DAP/hdx-python-database@main#egg=hdx-python-database
 tqdm==4.64.1
 uvloop==0.17.0
