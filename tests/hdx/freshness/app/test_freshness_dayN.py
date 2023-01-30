@@ -16,7 +16,7 @@ from os.path import join
 
 import pytest
 from hdx.database import Database
-from sqlalchemy import text
+from hdx.utilities.dateparse import parse_date
 
 from hdx.freshness.app.datafreshness import DataFreshness
 from hdx.freshness.database.dbdataset import DBDataset
@@ -92,11 +92,30 @@ class TestFreshnessDayN:
             freshness.add_new_run()
             dbsession = freshness.session
             # insert resource with run number -1 with hash 999 to test repeated hash
-            dbsession.execute(
-                text(
-                    "INSERT INTO dbresources(run_number,id,name,dataset_id,url,last_modified,metadata_modified,latest_of_modifieds,what_updated,http_last_modified,md5_hash,hash_last_modified,when_checked,api,error) VALUES (-1,'010ab2d2-8f98-409b-a1f0-4707ad6c040a','sidih_190.csv','54d6b4b8-8cc9-42d3-82ce-3fa4fd3d9be1','https://ds-ec2.scraperwiki.com/egzfk1p/siqsxsgjnxgk3r2/cgi-bin/csv/sidih_190.csv','2015-05-07 14:44:56.599079','2015-05-07 14:44:56.599079','2015-05-07 14:44:56.599079','',NULL,'999','2017-12-16 16:03:33.208327','2017-12-16 16:03:33.208327','0',NULL);"
-                )
+            modified = parse_date(
+                "2015-05-07 14:44:56.599079", include_microseconds=True
             )
+            hash_modified = parse_date(
+                "2017-12-16 16:03:33.208327", include_microseconds=True
+            )
+            dbresource = DBResource(
+                run_number=-1,
+                id="010ab2d2-8f98-409b-a1f0-4707ad6c040a",
+                name="sidih_190.csv",
+                dataset_id="54d6b4b8-8cc9-42d3-82ce-3fa4fd3d9be1",
+                url="https://ds-ec2.scraperwiki.com/egzfk1p/siqsxsgjnxgk3r2/cgi-bin/csv/sidih_190.csv",
+                last_modified=modified,
+                metadata_modified=modified,
+                latest_of_modifieds=modified,
+                what_updated="",
+                http_last_modified=None,
+                md5_hash="999",
+                hash_last_modified=hash_modified,
+                when_checked=hash_modified,
+                api=False,
+                error=None,
+            )
+            dbsession.add(dbresource)
             datasets_to_check, resources_to_check = freshness.process_datasets(
                 hash_ids=forced_hash_ids
             )
