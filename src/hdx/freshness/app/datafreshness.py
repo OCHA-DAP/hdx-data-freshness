@@ -2,7 +2,7 @@
 """
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
@@ -449,10 +449,12 @@ class DataFreshness:
                     dataset["last_modified"], include_microseconds=True
                 )
             else:
-                last_modified = datetime(1970, 1, 1, 0, 0)
+                last_modified = datetime(1970, 1, 1, 0, 0, tzinfo=timezone.utc)
             if len(resources) == 0 and last_resource_updated is None:
                 last_resource_updated = "NO RESOURCES"
-                last_resource_modified = datetime(1970, 1, 1, 0, 0)
+                last_resource_modified = datetime(
+                    1970, 1, 1, 0, 0, tzinfo=timezone.utc
+                )
                 error = True
                 what_updated = "no resources"
             else:
