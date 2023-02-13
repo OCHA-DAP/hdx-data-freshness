@@ -43,7 +43,7 @@ class TestFreshnessDayN:
         except FileNotFoundError:
             pass
         shutil.copyfile(join("tests", "fixtures", "day0", dbfile), dbpath)
-        return {"driver": "sqlite", "database": dbpath}
+        return {"dialect": "sqlite", "database": dbpath}
 
     @pytest.fixture(scope="class")
     def serializedbsession(self):
@@ -267,7 +267,7 @@ api=False, error=None)>"""
             dbdataset = dbsession.query(DBDataset).first()
             assert (
                 str(dbdataset)
-                == """<Dataset(run number=0, id=a2150ad9-2b87-49f5-a6b2-c85dff366b75, dataset date=09/21/2017, update frequency=1,
+                == """<Dataset(run number=0, id=a2150ad9-2b87-49f5-a6b2-c85dff366b75, reference period=09/21/2017, update frequency=1,
 review date=None, last modified=2017-12-16 15:11:15.204215+00:00, metadata modified=2017-12-16 15:11:15.204215+00:00, updated by script=None,
 latest of modifieds=2017-12-16 15:11:15.204215+00:00, what updated=firstrun,
 Resource b21d6004-06b5-41e5-8e3e-0f28140bff64: last modified=2017-12-16 15:11:15.202742+00:00,

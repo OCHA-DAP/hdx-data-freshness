@@ -440,7 +440,7 @@ class DataFreshness:
                 updated_by_script,
                 hash_ids=hash_ids,
             )
-            dataset_date = dataset.get("dataset_date")
+            reference_period = dataset.get("dataset_date")
             metadata_modified = parse_date(
                 dataset["metadata_modified"], include_microseconds=True
             )
@@ -493,7 +493,7 @@ class DataFreshness:
             dbdataset = DBDataset(
                 run_number=self.run_number,
                 id=dataset_id,
-                dataset_date=dataset_date,
+                dataset_date=reference_period,
                 update_frequency=update_frequency,
                 review_date=review_date,
                 last_modified=last_modified,

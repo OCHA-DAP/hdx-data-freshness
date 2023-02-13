@@ -21,7 +21,7 @@ class TestFreshnessByFrequency:
             os.remove(dbpath)
         except FileNotFoundError:
             pass
-        return {"driver": "sqlite", "database": dbpath}
+        return {"dialect": "sqlite", "database": dbpath}
 
     @pytest.fixture(scope="class")
     def now(self):

@@ -6,6 +6,7 @@ from os import getenv
 from typing import Optional
 
 from hdx.database import Database
+from hdx.database.dburi import get_params_from_connection_uri
 from hdx.facades.keyword_arguments import facade
 from hdx.utilities.dictandlist import args_to_dict
 from hdx.utilities.easy_logging import setup_logging
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def main(
-    db_url: Optional[str] = None,
+    db_uri: Optional[str] = None,
     db_params: Optional[str] = None,
     do_touch: bool = True,
     save: bool = False,
@@ -31,7 +32,7 @@ def main(
     SQLite database with filename "freshness.db" is assumed.
 
     Args:
-        db_url (Optional[str]): Database connection string. Defaults to None.
+        db_uri (Optional[str]): Database connection URI. Defaults to None.
         db_params (Optional[str]): Database connection parameters. Defaults to None.
         do_touch (bool): Touch HDX datasets if files change. Defaults to False.
         save (bool): Whether to save state for testing. Defaults to False.
@@ -42,10 +43,10 @@ def main(
     logger.info(f"> Data freshness {__version__}")
     if db_params:
         params = args_to_dict(db_params)
-    elif db_url:
-        params = Database.get_params_from_sqlalchemy_url(db_url)
+    elif db_uri:
+        params = get_params_from_connection_uri(db_uri)
     else:
-        params = {"driver": "sqlite", "database": "freshness.db"}
+        params = {"dialect": "sqlite", "database": "freshness.db"}
     logger.info(f"> Database parameters: {params}")
     with Database(**params) as session:
         testsession = None
