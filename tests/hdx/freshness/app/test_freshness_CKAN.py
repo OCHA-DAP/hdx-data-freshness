@@ -4,9 +4,9 @@ Unit tests for the freshness class.
 """
 import json
 import logging
-import os
 import random
 from datetime import timedelta
+from os import getenv, remove
 from os.path import join
 from time import sleep
 
@@ -30,7 +30,7 @@ class TestFreshnessCKAN:
         project_config_yaml = join(
             "src", "hdx", "freshness", "app", "project_configuration.yml"
         )
-        hdx_key = os.getenv("HDX_KEY")
+        hdx_key = getenv("HDX_KEY")
         Configuration._create(
             hdx_site="stage",
             user_agent="test",
@@ -46,7 +46,7 @@ class TestFreshnessCKAN:
     def nodatabase(self):
         dbpath = join("tests", "test_freshness.db")
         try:
-            os.remove(dbpath)
+            remove(dbpath)
         except FileNotFoundError:
             pass
         return {"dialect": "sqlite", "database": dbpath}
@@ -62,7 +62,7 @@ class TestFreshnessCKAN:
 
     @pytest.fixture(scope="function")
     def gclient(self):
-        gsheet_auth = os.getenv("GSHEET_AUTH")
+        gsheet_auth = getenv("GSHEET_AUTH")
         if not gsheet_auth:
             raise ValueError("No gsheet authorisation supplied!")
         info = json.loads(gsheet_auth)

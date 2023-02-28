@@ -2,7 +2,7 @@
 Unit tests for the freshness class.
 
 """
-import os
+from os import remove
 from os.path import join
 
 import pytest
@@ -28,7 +28,7 @@ class TestFreshnessDay0:
     def nodatabase(self):
         dbpath = join("tests", "test_freshness.db")
         try:
-            os.remove(dbpath)
+            remove(dbpath)
         except FileNotFoundError:
             pass
         return {"dialect": "sqlite", "database": dbpath}

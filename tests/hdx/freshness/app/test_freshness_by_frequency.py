@@ -2,8 +2,8 @@
 Unit tests for the aging code.
 
 """
-import os
 from datetime import timedelta
+from os import remove
 from os.path import join
 
 import pytest
@@ -18,7 +18,7 @@ class TestFreshnessByFrequency:
     def nodatabase(self):
         dbpath = join("tests", "test_freshness.db")
         try:
-            os.remove(dbpath)
+            remove(dbpath)
         except FileNotFoundError:
             pass
         return {"dialect": "sqlite", "database": dbpath}
