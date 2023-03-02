@@ -17,6 +17,7 @@ from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.database import Database
 from hdx.utilities.dateparse import now_utc
+from sqlalchemy import select
 
 from hdx.freshness.app.datafreshness import DataFreshness
 from hdx.freshness.database.dbdataset import DBDataset
@@ -409,9 +410,10 @@ same hash: 3
         nonmatching = list()
         for i, dataset in enumerate(datasets):
             dbdataset = (
-                session.query(DBDataset)
-                .filter_by(run_number=1, id=dataset["id"])
-                .one()
+                session.execute(
+                    select(DBDataset).filter_by(run_number=1, id=dataset["id"])
+                )
+                .scalar_one()
                 .__dict__
             )
             for key, expect in expected[i].items():

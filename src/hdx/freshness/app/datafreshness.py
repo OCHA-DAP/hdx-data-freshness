@@ -16,7 +16,7 @@ from hdx.utilities.dictandlist import (
     dict_of_lists_add,
     list_distribute_contents,
 )
-from sqlalchemy import and_, exists
+from sqlalchemy import and_, exists, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
@@ -107,14 +107,13 @@ class DataFreshness:
                 serialize_now(self.testsession, self.now)
         else:
             self.now = now
-        self.previous_run_number = (
-            self.session.query(DBRun.run_number)
+        self.previous_run_number = self.session.scalar(
+            select(DBRun.run_number)
             .distinct()
             .order_by(DBRun.run_number.desc())
-            .first()
+            .limit(1)
         )
         if self.previous_run_number is not None:
-            self.previous_run_number = self.previous_run_number[0]
             self.run_number = self.previous_run_number + 1
             no_resources = self.no_resources_force_hash()
             if no_resources:
@@ -142,10 +141,10 @@ class DataFreshness:
             DBDataset.run_number == self.previous_run_number,
             DBResource.url.notlike(f"%{self.url_internal}%"),
         ]
-        query = self.session.query(*columns).filter(and_(*filters))
+        results = self.session.execute(select(*columns).filter(and_(*filters)))
         noscriptupdate = 0
         noresources = 0
-        for result in query:
+        for result in results:
             updated_by_script = result[1]
             if updated_by_script is not None:
                 noscriptupdate += 1
@@ -247,14 +246,12 @@ class DataFreshness:
             )
             if previous_dbdataset is not None:
                 try:
-                    previous_dbresource = (
-                        self.session.query(DBResource)
-                        .filter_by(
+                    previous_dbresource = self.session.execute(
+                        select(DBResource).filter_by(
                             id=resource_id,
                             run_number=previous_dbdataset.run_number,
                         )
-                        .one()
-                    )
+                    ).scalar_one()
                     if last_modified > previous_dbresource.last_modified:
                         dbresource.what_updated = "filestore"
                     else:
@@ -357,11 +354,9 @@ class DataFreshness:
             organization_name = dataset["organization"]["name"]
             organization_title = dataset["organization"]["title"]
             try:
-                dborganization = (
-                    self.session.query(DBOrganization)
-                    .filter_by(id=organization_id)
-                    .one()
-                )
+                dborganization = self.session.execute(
+                    select(DBOrganization).filter_by(id=organization_id)
+                ).scalar_one()
                 dborganization.name = organization_name
                 dborganization.title = organization_title
             except NoResultFound:
@@ -377,11 +372,9 @@ class DataFreshness:
             dataset_maintainer = dataset["maintainer"]
             dataset_location = ",".join([x["name"] for x in dataset["groups"]])
             try:
-                dbinfodataset = (
-                    self.session.query(DBInfoDataset)
-                    .filter_by(id=dataset_id)
-                    .one()
-                )
+                dbinfodataset = self.session.execute(
+                    select(DBInfoDataset).filter_by(id=dataset_id)
+                ).scalar_one()
                 dbinfodataset.name = dataset_name
                 dbinfodataset.title = dataset_title
                 dbinfodataset.private = dataset_private
@@ -400,13 +393,11 @@ class DataFreshness:
                 )
                 self.session.add(dbinfodataset)
             try:
-                previous_dbdataset = (
-                    self.session.query(DBDataset)
-                    .filter_by(
+                previous_dbdataset = self.session.execute(
+                    select(DBDataset).filter_by(
                         run_number=self.previous_run_number, id=dataset_id
                     )
-                    .one()
-                )
+                ).scalar_one()
             except NoResultFound:
                 previous_dbdataset = None
 
@@ -650,11 +641,11 @@ class DataFreshness:
                 xlsx_hash,
             ) = results[resource_id]
             if hash:
-                dbresource = (
-                    self.session.query(DBResource)
-                    .filter_by(id=resource_id, run_number=self.run_number)
-                    .one()
-                )
+                dbresource = self.session.execute(
+                    select(DBResource).filter_by(
+                        id=resource_id, run_number=self.run_number
+                    )
+                ).scalar_one()
                 if dbresource.md5_hash == hash:  # File unchanged
                     continue
                 if (
@@ -709,11 +700,11 @@ class DataFreshness:
             url, _, err, http_last_modified, hash, xlsx_hash = results[
                 resource_id
             ]
-            dbresource = (
-                self.session.query(DBResource)
-                .filter_by(id=resource_id, run_number=self.run_number)
-                .one()
-            )
+            dbresource = self.session.execute(
+                select(DBResource).filter_by(
+                    id=resource_id, run_number=self.run_number
+                )
+            ).scalar_one()
             dataset_id = dbresource.dataset_id
             resourcesinfo = datasets_resourcesinfo.get(dataset_id, dict())
             what_updated = dbresource.what_updated
@@ -778,14 +769,16 @@ class DataFreshness:
                             else:
                                 # Check if hash has occurred before
                                 # select distinct md5_hash from dbresources where id = '714ef7b5-a303-4e4f-be2f-03b2ce2933c7' and md5_hash='2f3cd6a6fce5ad4d7001780846ad87a7';
-                                if self.session.query(
-                                    exists().where(
-                                        and_(
-                                            DBResource.id == resource_id,
-                                            DBResource.md5_hash == hash,
+                                if self.session.scalar(
+                                    select(
+                                        exists().where(
+                                            and_(
+                                                DBResource.id == resource_id,
+                                                DBResource.md5_hash == hash,
+                                            )
                                         )
                                     )
-                                ).scalar():
+                                ):
                                     dbresource.what_updated = (
                                         self.add_what_updated(
                                             what_updated, "repeat hash"
@@ -844,13 +837,11 @@ class DataFreshness:
                             resource["last_modified"],
                             include_microseconds=True,
                         )
-                        dbdataset = (
-                            self.session.query(DBDataset)
-                            .filter_by(
+                        dbdataset = self.session.execute(
+                            select(DBDataset).filter_by(
                                 id=dataset_id, run_number=self.run_number
                             )
-                            .one()
-                        )
+                        ).scalar_one()
                         update_frequency = dbdataset.update_frequency
                         if update_frequency > 0:
                             if (
@@ -931,11 +922,11 @@ class DataFreshness:
         """
 
         for dataset_id in datasets_resourcesinfo:
-            dbdataset = (
-                self.session.query(DBDataset)
-                .filter_by(id=dataset_id, run_number=self.run_number)
-                .one()
-            )
+            dbdataset = self.session.execute(
+                select(DBDataset).filter_by(
+                    id=dataset_id, run_number=self.run_number
+                )
+            ).scalar_one()
             dataset = datasets_resourcesinfo[dataset_id]
             dataset_latest_of_modifieds = dbdataset.latest_of_modifieds
             dataset_what_updated = dbdataset.what_updated

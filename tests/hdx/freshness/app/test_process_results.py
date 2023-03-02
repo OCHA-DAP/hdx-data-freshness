@@ -17,15 +17,9 @@ class TestProcessResults:
     def session(self):
         class TestSession:
             @staticmethod
-            def query(somethingin):
-                something = str(somethingin)
+            def execute(somethingin):
                 result = Mock()
-                result.scalar.return_value = False
-                result.distinct.return_value.order_by.return_value.first.return_value = (
-                    None
-                )
-
-                if "DBResource" in something:
+                if somethingin.column_descriptions[0]["name"] == "DBResource":
 
                     class DBResource:
                         dataset_id = "c1c85ecb-5e84-48c6-8ba9-15689a6c2fc4"
@@ -37,19 +31,19 @@ class TestProcessResults:
                         md5_hash = "5600bafa19852afae3d7fd27955df0e6"
                         error = ""
 
-                    result.filter_by.return_value.one.return_value = (
-                        DBResource()
-                    )
+                    result.scalar_one.return_value = DBResource()
                 else:
 
                     class DBDataset:
                         fresh = 0
                         update_frequency = 7
 
-                    result.filter_by.return_value.one.return_value = (
-                        DBDataset()
-                    )
+                    result.scalar_one.return_value = DBDataset()
                 return result
+
+            @staticmethod
+            def scalar(_):
+                return None  # None works as False for select(exists()...)
 
             @staticmethod
             def commit():

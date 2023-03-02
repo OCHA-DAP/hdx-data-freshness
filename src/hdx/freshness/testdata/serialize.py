@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Dict, Iterable, List, Tuple
 
 from hdx.data.dataset import Dataset
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .dbtestdataset import DBTestDataset
@@ -155,7 +156,7 @@ def deserialize_datasets(session: Session) -> Iterable[Dataset]:
         Iterable[Dataset]: HDX Dataset objects
     """
     datasets = dict()
-    for dbtestdataset in session.query(DBTestDataset):
+    for dbtestdataset in session.scalars(select(DBTestDataset)):
         dataset_id = dbtestdataset.id
         organization = {
             "id": dbtestdataset.organization_id,
@@ -184,7 +185,7 @@ def deserialize_datasets(session: Session) -> Iterable[Dataset]:
         )
         dataset.set_requestable(dbtestdataset.is_requestdata_type)
         datasets[dataset_id] = dataset
-    for dbtestresource in session.query(DBTestResource):
+    for dbtestresource in session.scalars(select(DBTestResource)):
         dataset = datasets[dbtestresource.dataset_id]
         resource = {
             "id": dbtestresource.id,
@@ -207,7 +208,7 @@ def deserialize_now(session: Session) -> datetime:
     Returns:
         datetime: date
     """
-    return session.query(DBTestDate.test_date).scalar()
+    return session.execute(select(DBTestDate.test_date)).scalar_one()
 
 
 def deserialize_results(session: Session) -> List[Tuple]:
@@ -221,7 +222,7 @@ def deserialize_results(session: Session) -> List[Tuple]:
         List[Tuple]: Results of downloading and hashing urls (first time)
     """
     results = dict()
-    for dbtestresult in session.query(DBTestResult):
+    for dbtestresult in session.scalars(select(DBTestResult)):
         results[dbtestresult.id] = (
             dbtestresult.url,
             dbtestresult.format,
@@ -244,7 +245,7 @@ def deserialize_hashresults(session: Session) -> List[Tuple]:
         List[Tuple]: Results of downloading and hashing urls (second time)
     """
     hash_results = dict()
-    for dbtesthashresult in session.query(DBTestHashResult):
+    for dbtesthashresult in session.scalars(select(DBTestHashResult)):
         hash_results[dbtesthashresult.id] = (
             dbtesthashresult.url,
             dbtesthashresult.format,
