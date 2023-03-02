@@ -188,7 +188,7 @@ api=False, error=None)>"""
             )
             dbresource = (
                 dbsession.query(DBResource)
-                .filter(
+                .where(
                     DBResource.run_number == 1,
                     DBResource.id == "7b82976a-ae81-4cef-a76f-12ba14152086",
                 )
@@ -206,7 +206,7 @@ api=False, error=None)>"""
             )
             count = (
                 dbsession.query(DBResource)
-                .filter(DBResource.url.like("%data.humdata.org%"))
+                .where(DBResource.url.like("%data.humdata.org%"))
                 .count()
             )
             assert count == 112
@@ -245,7 +245,7 @@ api=False, error=None)>"""
             count = (
                 dbsession.query(DBResource)
                 .filter_by(run_number=1, what_updated="internal-nothing")
-                .filter(DBResource.error.isnot(None))
+                .where(DBResource.error.isnot(None))
                 .count()
             )
             assert count == 0
@@ -253,14 +253,14 @@ api=False, error=None)>"""
             hash_updated = (
                 dbsession.query(DBResource.id)
                 .filter_by(run_number=1)
-                .filter(DBResource.what_updated.like("%hash%"))
+                .where(DBResource.what_updated.like("%hash%"))
             )
             assert hash_updated.count() == 8
             count = (
                 dbsession.query(DBResource)
                 .filter_by(run_number=0)
-                .filter(DBResource.md5_hash.isnot(None))
-                .filter(DBResource.id.in_(hash_updated.as_scalar()))
+                .where(DBResource.md5_hash.isnot(None))
+                .where(DBResource.id.in_(hash_updated.as_scalar()))
                 .count()
             )
             assert count == 4

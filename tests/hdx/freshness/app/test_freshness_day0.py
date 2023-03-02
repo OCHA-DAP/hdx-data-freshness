@@ -139,7 +139,7 @@ api=False, error=None)>"""
             )
             count = (
                 dbsession.query(DBResource)
-                .filter(DBResource.url.like("%data.humdata.org%"))
+                .where(DBResource.url.like("%data.humdata.org%"))
                 .count()
             )
             assert count == 56
@@ -185,7 +185,7 @@ api=False, error=None)>"""
             assert count == 4
             count = (
                 dbsession.query(DBResource)
-                .filter(DBResource.error.isnot(None))
+                .where(DBResource.error.isnot(None))
                 .filter_by(what_updated="firstrun")
                 .count()
             )

@@ -141,7 +141,7 @@ class DataFreshness:
             DBDataset.run_number == self.previous_run_number,
             DBResource.url.notlike(f"%{self.url_internal}%"),
         ]
-        results = self.session.execute(select(*columns).filter(and_(*filters)))
+        results = self.session.execute(select(*columns).where(and_(*filters)))
         noscriptupdate = 0
         noresources = 0
         for result in results:
