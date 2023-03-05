@@ -16,7 +16,7 @@ from hdx.utilities.dictandlist import (
     dict_of_lists_add,
     list_distribute_contents,
 )
-from sqlalchemy import and_, exists, select
+from sqlalchemy import exists, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
@@ -141,7 +141,7 @@ class DataFreshness:
             DBDataset.run_number == self.previous_run_number,
             DBResource.url.notlike(f"%{self.url_internal}%"),
         ]
-        results = self.session.execute(select(*columns).where(and_(*filters)))
+        results = self.session.execute(select(*columns).where(*filters))
         noscriptupdate = 0
         noresources = 0
         for result in results:
@@ -355,7 +355,9 @@ class DataFreshness:
             organization_title = dataset["organization"]["title"]
             try:
                 dborganization = self.session.execute(
-                    select(DBOrganization).filter_by(id=organization_id)
+                    select(DBOrganization).where(
+                        DBOrganization.id == organization_id
+                    )
                 ).scalar_one()
                 dborganization.name = organization_name
                 dborganization.title = organization_title
@@ -373,7 +375,7 @@ class DataFreshness:
             dataset_location = ",".join([x["name"] for x in dataset["groups"]])
             try:
                 dbinfodataset = self.session.execute(
-                    select(DBInfoDataset).filter_by(id=dataset_id)
+                    select(DBInfoDataset).where(DBInfoDataset.id == dataset_id)
                 ).scalar_one()
                 dbinfodataset.name = dataset_name
                 dbinfodataset.title = dataset_title
@@ -772,10 +774,8 @@ class DataFreshness:
                                 if self.session.scalar(
                                     select(
                                         exists().where(
-                                            and_(
-                                                DBResource.id == resource_id,
-                                                DBResource.md5_hash == hash,
-                                            )
+                                            DBResource.id == resource_id,
+                                            DBResource.md5_hash == hash,
                                         )
                                     )
                                 ):

@@ -1,19 +1,20 @@
 """SQLAlchemy class representing DBOrganization row. Holds static organisation metadata.
 """
-from hdx.database import Base
-from sqlalchemy import Column, String
+from sqlalchemy.orm import Mapped, mapped_column
+
+from hdx.database.no_timezone import Base
 
 
 class DBOrganization(Base):
     """
-    id = Column(String, primary_key=True)
-    name = Column(String, nullable=False)
-    title = Column(String, nullable=False)
+    id: Mapped[str] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    title: Mapped[str] = mapped_column(nullable=False)
     """
 
-    id = Column(String, primary_key=True)
-    name = Column(String, nullable=False)
-    title = Column(String, nullable=False)
+    id: Mapped[str] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    title: Mapped[str] = mapped_column(nullable=False)
 
     def __repr__(self) -> str:
         """String representation of DBOrganization row

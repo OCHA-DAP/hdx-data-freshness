@@ -1,30 +1,34 @@
 """SQLAlchemy class representing DBTestResource row. Holds test data for resources with
 the aim of mimicking what would come from HDX.
 """
-from hdx.database import Base
-from sqlalchemy import Column, ForeignKey, String
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
 
-from .dbtestdataset import DBTestDataset
+from hdx.database.no_timezone import Base
 
 
 class DBTestResource(Base):
     """
-    id = Column(String, primary_key=True)
-    name = Column(String, nullable=False)
-    format = Column(String, nullable=False)
-    dataset_id = Column(String, ForeignKey(DBTestDataset.id), nullable=False)
-    url = Column(String, nullable=False)
-    metadata_modified = Column(String, nullable=False)
-    last_modified = Column(String, nullable=False)
+    id: Mapped[str] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    format: Mapped[str] = mapped_column(nullable=False)
+    dataset_id: Mapped[str] = mapped_column(
+        ForeignKey("dbtestdatasets.id"), nullable=False
+    )
+    url: Mapped[str] = mapped_column(nullable=False)
+    metadata_modified: Mapped[str] = mapped_column(nullable=False)
+    last_modified: Mapped[str] = mapped_column(nullable=False)
     """
 
-    id = Column(String, primary_key=True)
-    name = Column(String, nullable=False)
-    format = Column(String, nullable=False)
-    dataset_id = Column(String, ForeignKey(DBTestDataset.id), nullable=False)
-    url = Column(String, nullable=False)
-    metadata_modified = Column(String, nullable=False)
-    last_modified = Column(String, nullable=False)
+    id: Mapped[str] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    format: Mapped[str] = mapped_column(nullable=False)
+    dataset_id: Mapped[str] = mapped_column(
+        ForeignKey("dbtestdatasets.id"), nullable=False
+    )
+    url: Mapped[str] = mapped_column(nullable=False)
+    metadata_modified: Mapped[str] = mapped_column(nullable=False)
+    last_modified: Mapped[str] = mapped_column(nullable=False)
 
     def __repr__(self) -> str:
         """String representation of DBTestResource row

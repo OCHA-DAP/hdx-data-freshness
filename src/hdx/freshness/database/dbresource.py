@@ -1,56 +1,60 @@
 """SQLAlchemy class representing DBResource row. Holds dynamic resource metadata for
 each run.
 """
-from hdx.database import Base
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from datetime import datetime
 
-from . import CustomDateTime
-from .dbinfodataset import DBInfoDataset
-from .dbrun import DBRun
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
+
+from hdx.database.no_timezone import Base
 
 
 class DBResource(Base):
     """
-    run_number = Column(
-        Integer, ForeignKey(DBRun.run_number), primary_key=True
+    run_number: Mapped[int] = mapped_column(
+        ForeignKey("dbruns.run_number"), primary_key=True
     )
-    id = Column(String, primary_key=True)
-    name = Column(String, nullable=False)
-    dataset_id = Column(String, ForeignKey(DBInfoDataset.id), nullable=False)
-    url = Column(String, nullable=False)
-    last_modified = Column(CustomDateTime, nullable=False)
-    metadata_modified = Column(
-        CustomDateTime, default=None
+    id: Mapped[str] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    dataset_id: Mapped[str] = mapped_column(
+        ForeignKey("dbinfodatasets.id"), nullable=False
+    )
+    url: Mapped[str] = mapped_column(nullable=False)
+    last_modified: Mapped[datetime] = mapped_column(nullable=False)
+    metadata_modified: Mapped[datetime] = mapped_column(
+        default=None
     )  # this field and above are CKAN fields
-    latest_of_modifieds = Column(CustomDateTime, nullable=False)
-    what_updated = Column(String, nullable=False)
-    http_last_modified = Column(CustomDateTime, default=None)
-    md5_hash = Column(String, default=None)
-    hash_last_modified = Column(CustomDateTime, default=None)
-    when_checked = Column(CustomDateTime, default=None)
-    api = Column(Boolean)
-    error = Column(String)
+    latest_of_modifieds: Mapped[datetime] = mapped_column(nullable=False)
+    what_updated: Mapped[str] = mapped_column(nullable=False)
+    http_last_modified: Mapped[datetime] = mapped_column(default=None)
+    md5_hash: Mapped[str] = mapped_column(default=None)
+    hash_last_modified: Mapped[datetime] = mapped_column(default=None)
+    when_checked: Mapped[datetime] = mapped_column(default=None)
+    api: Mapped[bool]
+    error: Mapped[str]
     """
 
-    run_number = Column(
-        Integer, ForeignKey(DBRun.run_number), primary_key=True
+    run_number: Mapped[int] = mapped_column(
+        ForeignKey("dbruns.run_number"), primary_key=True
     )
-    id = Column(String, primary_key=True)
-    name = Column(String, nullable=False)
-    dataset_id = Column(String, ForeignKey(DBInfoDataset.id), nullable=False)
-    url = Column(String, nullable=False)
-    last_modified = Column(CustomDateTime, nullable=False)
-    metadata_modified = Column(
-        CustomDateTime, default=None
+    id: Mapped[str] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    dataset_id: Mapped[str] = mapped_column(
+        ForeignKey("dbinfodatasets.id"), nullable=False
+    )
+    url: Mapped[str] = mapped_column(nullable=False)
+    last_modified: Mapped[datetime] = mapped_column(nullable=False)
+    metadata_modified: Mapped[datetime] = mapped_column(
+        default=None
     )  # this field and above are CKAN fields
-    latest_of_modifieds = Column(CustomDateTime, nullable=False)
-    what_updated = Column(String, nullable=False)
-    http_last_modified = Column(CustomDateTime, default=None)
-    md5_hash = Column(String, default=None)
-    hash_last_modified = Column(CustomDateTime, default=None)
-    when_checked = Column(CustomDateTime, default=None)
-    api = Column(Boolean)
-    error = Column(String)
+    latest_of_modifieds: Mapped[datetime] = mapped_column(nullable=False)
+    what_updated: Mapped[str] = mapped_column(nullable=False)
+    http_last_modified: Mapped[datetime] = mapped_column(default=None, nullable=True)
+    md5_hash: Mapped[str] = mapped_column(default=None, nullable=True)
+    hash_last_modified: Mapped[datetime] = mapped_column(default=None, nullable=True)
+    when_checked: Mapped[datetime] = mapped_column(default=None, nullable=True)
+    api: Mapped[bool] = mapped_column(nullable=True)
+    error: Mapped[str] = mapped_column(nullable=True)
 
     def __repr__(self) -> str:
         """String representation of DBResource row

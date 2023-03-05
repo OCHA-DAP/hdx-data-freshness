@@ -1,75 +1,76 @@
 """SQLAlchemy class representing DBDataset row. Holds dynamic dataset metadata for
 each run.
 """
-from hdx.database import Base
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from datetime import datetime
 
-from . import CustomDateTime
-from .dbinfodataset import DBInfoDataset
-from .dbrun import DBRun
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
+
+from hdx.database.no_timezone import Base
 
 
 class DBDataset(Base):
     """
-    run_number = Column(
-        Integer, ForeignKey(DBRun.run_number), primary_key=True
+    run_number: Mapped[int] = mapped_column(
+        ForeignKey("dbruns.run_number"), primary_key=True
     )
 
-    id = Column(String, ForeignKey(DBInfoDataset.id), primary_key=True)
+    id: Mapped[str] = mapped_column(
+        ForeignKey("dbinfodatasets.id"), primary_key=True
+    )
 
-    dataset_date = Column(String)
+    dataset_date: Mapped[str]
 
-    update_frequency = Column(Integer)
+    update_frequency: Mapped[int]
 
-    review_date = Column(CustomDateTime)
+    review_date: Mapped[datetime]
 
-    last_modified = Column(CustomDateTime, nullable=False)
+    last_modified: Mapped[datetime] = mapped_column(nullable=False)
 
-    updated_by_script = Column(CustomDateTime)
+    updated_by_script: Mapped[datetime]
 
-    metadata_modified = Column(
-        CustomDateTime, nullable=False
+    metadata_modified: Mapped[datetime] = mapped_column(nullable=False
     )  # this field and above are CKAN fields
 
-    latest_of_modifieds = Column(CustomDateTime, nullable=False)
+    latest_of_modifieds: Mapped[datetime] = mapped_column(nullable=False)
 
-    what_updated = Column(String, nullable=False)
+    what_updated: Mapped[str] = mapped_column(nullable=False)
 
-    last_resource_updated = Column(
-        String, nullable=False
+    last_resource_updated: Mapped[str] = mapped_column(nullable=False
     )  # id of last resource updated
 
-    last_resource_modified = Column(
-        CustomDateTime, nullable=False
+    last_resource_modified: Mapped[datetime] = mapped_column(nullable=False
     )  # date last resource updated
 
-    fresh = Column(Integer)
+    fresh: Mapped[int]
 
-    error = Column(Boolean, nullable=False)
+    error: Mapped[bool] = mapped_column(nullable=False)
     """
 
-    run_number = Column(
-        Integer, ForeignKey(DBRun.run_number), primary_key=True
+    run_number: Mapped[int] = mapped_column(
+        ForeignKey("dbruns.run_number"), primary_key=True
     )
-    id = Column(String, ForeignKey(DBInfoDataset.id), primary_key=True)
-    dataset_date = Column(String)
-    update_frequency = Column(Integer)
-    review_date = Column(CustomDateTime)
-    last_modified = Column(CustomDateTime, nullable=False)
-    updated_by_script = Column(CustomDateTime)
-    metadata_modified = Column(
-        CustomDateTime, nullable=False
+    id: Mapped[str] = mapped_column(
+        ForeignKey("dbinfodatasets.id"), primary_key=True
+    )
+    dataset_date: Mapped[str] = mapped_column(nullable=True)
+    update_frequency: Mapped[int] = mapped_column(nullable=True)
+    review_date: Mapped[datetime] = mapped_column(nullable=True)
+    last_modified: Mapped[datetime] = mapped_column(nullable=False)
+    updated_by_script: Mapped[datetime] = mapped_column(nullable=True)
+    metadata_modified: Mapped[datetime] = mapped_column(
+        nullable=False
     )  # this field and above are CKAN fields
-    latest_of_modifieds = Column(CustomDateTime, nullable=False)
-    what_updated = Column(String, nullable=False)
-    last_resource_updated = Column(
-        String, nullable=False
+    latest_of_modifieds: Mapped[datetime] = mapped_column(nullable=False)
+    what_updated: Mapped[str] = mapped_column(nullable=False)
+    last_resource_updated: Mapped[str] = mapped_column(
+        nullable=False
     )  # id of last resource updated
-    last_resource_modified = Column(
-        CustomDateTime, nullable=False
+    last_resource_modified: Mapped[datetime] = mapped_column(
+        nullable=False
     )  # date last resource updated
-    fresh = Column(Integer)
-    error = Column(Boolean, nullable=False)
+    fresh: Mapped[int] = mapped_column(nullable=True)
+    error: Mapped[bool] = mapped_column(nullable=False)
 
     def __repr__(self) -> str:
         """String representation of DBDataset row

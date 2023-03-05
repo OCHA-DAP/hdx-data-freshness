@@ -1,17 +1,18 @@
 """SQLAlchemy class representing DBTestDate row. Holds test data for dates.
 """
-from hdx.database import Base
-from sqlalchemy import Column
+from datetime import datetime
 
-from hdx.freshness.database import CustomDateTime
+from sqlalchemy.orm import Mapped, mapped_column
+
+from hdx.database.no_timezone import Base
 
 
 class DBTestDate(Base):
     """
-    test_date = Column(CustomDateTime, primary_key=True)
+    test_date: Mapped[datetime] = mapped_column(primary_key=True)
     """
 
-    test_date = Column(CustomDateTime, primary_key=True)
+    test_date: Mapped[datetime] = mapped_column(primary_key=True)
 
     def __repr__(self) -> str:
         """String representation of DBTestDate row

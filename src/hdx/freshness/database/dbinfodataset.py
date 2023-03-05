@@ -1,33 +1,33 @@
 """SQLAlchemy class representing DBInfoDataset row. Holds static dataset metadata.
 """
-from hdx.database import Base
-from sqlalchemy import Boolean, Column, ForeignKey, String
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
 
-from .dborganization import DBOrganization
+from hdx.database.no_timezone import Base
 
 
 class DBInfoDataset(Base):
     """
-    id = Column(String, primary_key=True)
-    name = Column(String, nullable=False)
-    title = Column(String, nullable=False)
-    private = Column(Boolean, nullable=False)
-    organization_id = Column(
-        String, ForeignKey(DBOrganization.id), nullable=False
+    id: Mapped[str] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    title: Mapped[str] = mapped_column(nullable=False)
+    private: Mapped[bool] = mapped_column(nullable=False)
+    organization_id: Mapped[str] = mapped_column(
+        ForeignKey("dborganizations.id"), nullable=False
     )
-    location = Column(String)
-    maintainer = Column(String)
+    location: Mapped[str]
+    maintainer: Mapped[str]
     """
 
-    id = Column(String, primary_key=True)
-    name = Column(String, nullable=False)
-    title = Column(String, nullable=False)
-    private = Column(Boolean, nullable=False)
-    organization_id = Column(
-        String, ForeignKey(DBOrganization.id), nullable=False
+    id: Mapped[str] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    title: Mapped[str] = mapped_column(nullable=False)
+    private: Mapped[bool] = mapped_column(nullable=False)
+    organization_id: Mapped[str] = mapped_column(
+        ForeignKey("dborganizations.id"), nullable=False
     )
-    location = Column(String)
-    maintainer = Column(String)
+    location: Mapped[str] = mapped_column(nullable=False)
+    maintainer: Mapped[str] = mapped_column(nullable=True)
 
     def __repr__(self) -> str:
         """String representation of DBInfoDataset row

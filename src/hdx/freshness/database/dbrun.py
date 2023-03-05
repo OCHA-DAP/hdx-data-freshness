@@ -1,19 +1,20 @@
 """SQLAlchemy class representing DBRun row. Holds date of each run.
 """
-from hdx.database import Base
-from sqlalchemy import Column, Integer
+from datetime import datetime
 
-from hdx.freshness.database import CustomDateTime
+from sqlalchemy.orm import Mapped, mapped_column
+
+from hdx.database.no_timezone import Base
 
 
 class DBRun(Base):
     """
-    run_number = Column(Integer, primary_key=True)
-    run_date = Column(CustomDateTime)
+    run_number: Mapped[int] = mapped_column(primary_key=True)
+    run_date: Mapped[datetime]
     """
 
-    run_number = Column(Integer, primary_key=True)
-    run_date = Column(CustomDateTime)
+    run_number: Mapped[int] = mapped_column(primary_key=True)
+    run_date: Mapped[datetime] = mapped_column(nullable=False)
 
     def __repr__(self) -> str:
         """String representation of DBRun row

@@ -1,32 +1,33 @@
 """SQLAlchemy class representing DBTestResult row. Holds test data mimicking the result
 of downloading and hashing urls (second time).
 """
-from hdx.database import Base
-from sqlalchemy import Boolean, Column, String
+from datetime import datetime
 
-from hdx.freshness.database import CustomDateTime
+from sqlalchemy.orm import Mapped, mapped_column
+
+from hdx.database.no_timezone import Base
 
 
 class DBTestHashResult(Base):
     """
-    id = Column(String, primary_key=True)
-    url = Column(String, nullable=False)
-    format = Column(String, nullable=False)
-    err = Column(String)
-    http_last_modified = Column(CustomDateTime)
-    hash = Column(String)
-    xlsx_hash = Column(String)
-    force_hash = Column(Boolean, nullable=False)
+    id: Mapped[str] = mapped_column(primary_key=True)
+    url: Mapped[str] = mapped_column(nullable=False)
+    format: Mapped[str] = mapped_column(nullable=False)
+    err: Mapped[str]
+    http_last_modified: Mapped[datetime]
+    hash: Mapped[str]
+    xlsx_hash: Mapped[str]
+    force_hash: Mapped[bool] = mapped_column(nullable=False)
     """
 
-    id = Column(String, primary_key=True)
-    url = Column(String, nullable=False)
-    format = Column(String, nullable=False)
-    err = Column(String)
-    http_last_modified = Column(CustomDateTime)
-    hash = Column(String)
-    xlsx_hash = Column(String)
-    force_hash = Column(Boolean, nullable=False)
+    id: Mapped[str] = mapped_column(primary_key=True)
+    url: Mapped[str] = mapped_column(nullable=False)
+    format: Mapped[str] = mapped_column(nullable=False)
+    err: Mapped[str] = mapped_column(nullable=True)
+    http_last_modified: Mapped[datetime] = mapped_column(nullable=True)
+    hash: Mapped[str] = mapped_column(nullable=True)
+    xlsx_hash: Mapped[str] = mapped_column(nullable=True)
+    force_hash: Mapped[bool] = mapped_column(nullable=False)
 
     def __repr__(self) -> str:
         """String representation of DBTestHashresult row
