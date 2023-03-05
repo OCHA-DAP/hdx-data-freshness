@@ -1,9 +1,8 @@
 """SQLAlchemy class representing DBInfoDataset row. Holds static dataset metadata.
 """
+from hdx.database.no_timezone import Base
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
-
-from hdx.database.no_timezone import Base
 
 
 class DBInfoDataset(Base):

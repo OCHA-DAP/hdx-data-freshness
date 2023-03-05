@@ -2,9 +2,8 @@
 """
 from datetime import datetime
 
-from sqlalchemy.orm import Mapped, mapped_column
-
 from hdx.database.no_timezone import Base
+from sqlalchemy.orm import Mapped, mapped_column
 
 
 class DBTestDate(Base):

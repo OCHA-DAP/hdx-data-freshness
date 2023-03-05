@@ -1,9 +1,8 @@
 """SQLAlchemy class representing DBTestDataset row. Holds test data for datasets with
 the aim of mimicking what would come from HDX.
 """
-from sqlalchemy.orm import Mapped, mapped_column
-
 from hdx.database.no_timezone import Base
+from sqlalchemy.orm import Mapped, mapped_column
 
 
 class DBTestDataset(Base):

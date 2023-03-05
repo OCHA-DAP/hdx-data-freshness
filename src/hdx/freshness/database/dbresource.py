@@ -3,10 +3,9 @@ each run.
 """
 from datetime import datetime
 
+from hdx.database.no_timezone import Base
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
-
-from hdx.database.no_timezone import Base
 
 
 class DBResource(Base):
@@ -49,9 +48,13 @@ class DBResource(Base):
     )  # this field and above are CKAN fields
     latest_of_modifieds: Mapped[datetime] = mapped_column(nullable=False)
     what_updated: Mapped[str] = mapped_column(nullable=False)
-    http_last_modified: Mapped[datetime] = mapped_column(default=None, nullable=True)
+    http_last_modified: Mapped[datetime] = mapped_column(
+        default=None, nullable=True
+    )
     md5_hash: Mapped[str] = mapped_column(default=None, nullable=True)
-    hash_last_modified: Mapped[datetime] = mapped_column(default=None, nullable=True)
+    hash_last_modified: Mapped[datetime] = mapped_column(
+        default=None, nullable=True
+    )
     when_checked: Mapped[datetime] = mapped_column(default=None, nullable=True)
     api: Mapped[bool] = mapped_column(nullable=True)
     error: Mapped[str] = mapped_column(nullable=True)
