@@ -254,7 +254,7 @@ api=False, error=None)>"""
                 select(func.count(DBResource.id)).where(
                     DBResource.run_number == 1,
                     DBResource.what_updated == "internal-nothing",
-                    DBResource.error.isnot(None),
+                    DBResource.error.is_not(None),
                 )
             )
             assert count == 0
@@ -269,7 +269,7 @@ api=False, error=None)>"""
             count = dbsession.scalar(
                 select(func.count(DBResource.id)).where(
                     DBResource.run_number == 0,
-                    DBResource.md5_hash.isnot(None),
+                    DBResource.md5_hash.is_not(None),
                     DBResource.id.in_(hash_updated),
                 )
             )

@@ -186,7 +186,7 @@ api=False, error=None)>"""
             assert count == 4
             count = dbsession.scalar(
                 select(func.count(DBResource.id)).where(
-                    DBResource.error.isnot(None),
+                    DBResource.error.is_not(None),
                     DBResource.what_updated == "firstrun",
                 )
             )
