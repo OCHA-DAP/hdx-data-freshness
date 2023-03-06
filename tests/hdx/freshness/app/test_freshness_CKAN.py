@@ -411,7 +411,10 @@ same hash: 3
         for i, dataset in enumerate(datasets):
             dbdataset = (
                 session.execute(
-                    select(DBDataset).filter_by(run_number=1, id=dataset["id"])
+                    select(DBDataset).where(
+                        DBDataset.run_number == 1,
+                        DBDataset.id == dataset["id"],
+                    )
                 )
                 .scalar_one()
                 .__dict__

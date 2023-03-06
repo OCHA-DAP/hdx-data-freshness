@@ -247,9 +247,10 @@ class DataFreshness:
             if previous_dbdataset is not None:
                 try:
                     previous_dbresource = self.session.execute(
-                        select(DBResource).filter_by(
-                            id=resource_id,
-                            run_number=previous_dbdataset.run_number,
+                        select(DBResource).where(
+                            DBResource.run_number
+                            == previous_dbdataset.run_number,
+                            DBResource.id == resource_id,
                         )
                     ).scalar_one()
                     if last_modified > previous_dbresource.last_modified:
@@ -396,8 +397,9 @@ class DataFreshness:
                 self.session.add(dbinfodataset)
             try:
                 previous_dbdataset = self.session.execute(
-                    select(DBDataset).filter_by(
-                        run_number=self.previous_run_number, id=dataset_id
+                    select(DBDataset).where(
+                        DBDataset.run_number == self.previous_run_number,
+                        DBDataset.id == dataset_id,
                     )
                 ).scalar_one()
             except NoResultFound:
@@ -644,8 +646,9 @@ class DataFreshness:
             ) = results[resource_id]
             if hash:
                 dbresource = self.session.execute(
-                    select(DBResource).filter_by(
-                        id=resource_id, run_number=self.run_number
+                    select(DBResource).where(
+                        DBResource.run_number == self.run_number,
+                        DBResource.id == resource_id,
                     )
                 ).scalar_one()
                 if dbresource.md5_hash == hash:  # File unchanged
@@ -703,8 +706,9 @@ class DataFreshness:
                 resource_id
             ]
             dbresource = self.session.execute(
-                select(DBResource).filter_by(
-                    id=resource_id, run_number=self.run_number
+                select(DBResource).where(
+                    DBResource.run_number == self.run_number,
+                    DBResource.id == resource_id,
                 )
             ).scalar_one()
             dataset_id = dbresource.dataset_id
@@ -838,8 +842,9 @@ class DataFreshness:
                             include_microseconds=True,
                         )
                         dbdataset = self.session.execute(
-                            select(DBDataset).filter_by(
-                                id=dataset_id, run_number=self.run_number
+                            select(DBDataset).where(
+                                DBDataset.run_number == self.run_number,
+                                DBDataset.id == dataset_id,
                             )
                         ).scalar_one()
                         update_frequency = dbdataset.update_frequency
@@ -923,8 +928,9 @@ class DataFreshness:
 
         for dataset_id in datasets_resourcesinfo:
             dbdataset = self.session.execute(
-                select(DBDataset).filter_by(
-                    id=dataset_id, run_number=self.run_number
+                select(DBDataset).where(
+                    DBDataset.run_number == self.run_number,
+                    DBDataset.id == dataset_id,
                 )
             ).scalar_one()
             dataset = datasets_resourcesinfo[dataset_id]

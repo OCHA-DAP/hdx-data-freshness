@@ -17,6 +17,7 @@ from shutil import copyfile
 import pytest
 from hdx.database import Database
 from hdx.utilities.dateparse import parse_date
+from sqlalchemy import func, select
 
 from hdx.freshness.app.datafreshness import DataFreshness
 from hdx.freshness.database.dbdataset import DBDataset
@@ -68,8 +69,8 @@ class TestFreshnessDayN:
 
     @pytest.fixture(scope="function")
     def forced_hash_ids(self, serializedbsession):
-        forced_hash_ids = serializedbsession.query(DBTestResult.id).filter_by(
-            force_hash=1
+        forced_hash_ids = serializedbsession.execute(
+            select(DBTestResult.id).filter_by(force_hash=1)
         )
         return [x[0] for x in forced_hash_ids]
 
@@ -170,12 +171,14 @@ Freshness Unavailable, Updated nothing: 4
 0 datasets have update frequency of As Needed"""
             )
 
-            dbrun = dbsession.query(DBRun).filter_by(run_number=1).one()
+            dbrun = dbsession.execute(
+                select(DBRun).filter_by(run_number=1)
+            ).scalar_one()
             assert (
                 str(dbrun)
                 == "<Run number=1, Run date=2017-12-19 10:53:28.606889+00:00>"
             )
-            dbresource = dbsession.query(DBResource).first()
+            dbresource = dbsession.scalar(select(DBResource).limit(1))
             assert (
                 str(dbresource)
                 == """<Resource(run number=0, id=b21d6004-06b5-41e5-8e3e-0f28140bff64, name=Topline Numbers.csv, dataset id=a2150ad9-2b87-49f5-a6b2-c85dff366b75,
@@ -186,13 +189,13 @@ http last modified=None,
 MD5 hash=be5802368e5a6f7ad172f27732001f3a, hash last modified=None, when checked=2017-12-18 16:03:33.208327+00:00,
 api=False, error=None)>"""
             )
-            dbresource = (
-                dbsession.query(DBResource)
+            dbresource = dbsession.scalar(
+                select(DBResource)
                 .where(
                     DBResource.run_number == 1,
                     DBResource.id == "7b82976a-ae81-4cef-a76f-12ba14152086",
                 )
-                .first()
+                .limit(1)
             )
             assert (
                 str(dbresource)
@@ -204,67 +207,63 @@ http last modified=None,
 MD5 hash=789, hash last modified=2017-12-19 10:53:28.606889+00:00, when checked=2017-12-19 10:53:28.606889+00:00,
 api=False, error=None)>"""
             )
-            count = (
-                dbsession.query(DBResource)
-                .where(DBResource.url.like("%data.humdata.org%"))
-                .count()
+            count = dbsession.scalar(
+                select(func.count(DBResource.id)).where(
+                    DBResource.url.like("%data.humdata.org%")
+                )
             )
             assert count == 112
-            count = (
-                dbsession.query(DBResource)
-                .filter_by(run_number=1, what_updated="filestore", error=None)
-                .count()
+            count = dbsession.scalar(
+                select(func.count(DBResource.id)).filter_by(
+                    run_number=1, what_updated="filestore", error=None
+                )
             )
             assert count == 0
-            count = (
-                dbsession.query(DBResource)
-                .filter_by(run_number=1, what_updated="first hash", error=None)
-                .count()
+            count = dbsession.scalar(
+                select(func.count(DBResource.id)).filter_by(
+                    run_number=1, what_updated="first hash", error=None
+                )
             )
             assert count == 4
-            count = (
-                dbsession.query(DBResource)
-                .filter_by(run_number=1, what_updated="hash", error=None)
-                .count()
+            count = dbsession.scalar(
+                select(func.count(DBResource.id)).filter_by(
+                    run_number=1, what_updated="hash", error=None
+                )
             )
             assert count == 3
-            count = (
-                dbsession.query(DBResource)
-                .filter_by(
+            count = dbsession.scalar(
+                select(func.count(DBResource.id)).filter_by(
                     run_number=1, what_updated="http header", error=None
                 )
-                .count()
             )
             assert count == 0
-            count = (
-                dbsession.query(DBResource)
-                .filter_by(run_number=1, api=True)
-                .count()
+            count = dbsession.scalar(
+                select(func.count(DBResource.id)).filter_by(
+                    run_number=1, api=True
+                )
             )
             assert count == 3
-            count = (
-                dbsession.query(DBResource)
+            count = dbsession.scalar(
+                select(func.count(DBResource.id))
                 .filter_by(run_number=1, what_updated="internal-nothing")
                 .where(DBResource.error.isnot(None))
-                .count()
             )
             assert count == 0
             # select what_updated, api from dbresources where run_number=0 and md5_hash is not null and id in (select id from dbresources where run_number=1 and what_updated like '%hash%');
-            hash_updated = (
-                dbsession.query(DBResource.id)
+            hash_updated = dbsession.scalars(
+                select(DBResource.id)
                 .filter_by(run_number=1)
                 .where(DBResource.what_updated.like("%hash%"))
-            )
-            assert hash_updated.count() == 8
-            count = (
-                dbsession.query(DBResource)
+            ).all()
+            assert len(hash_updated) == 8
+            count = dbsession.scalar(
+                select(func.count(DBResource.id))
                 .filter_by(run_number=0)
                 .where(DBResource.md5_hash.isnot(None))
-                .where(DBResource.id.in_(hash_updated.as_scalar()))
-                .count()
+                .where(DBResource.id.in_(hash_updated))
             )
             assert count == 4
-            dbdataset = dbsession.query(DBDataset).first()
+            dbdataset = dbsession.scalar(select(DBDataset).limit(1))
             assert (
                 str(dbdataset)
                 == """<Dataset(run number=0, id=a2150ad9-2b87-49f5-a6b2-c85dff366b75, reference period=09/21/2017, update frequency=1,
@@ -273,110 +272,96 @@ latest of modifieds=2017-12-16 15:11:15.204215+00:00, what updated=firstrun,
 Resource b21d6004-06b5-41e5-8e3e-0f28140bff64: last modified=2017-12-16 15:11:15.202742+00:00,
 Dataset fresh=2, error=False)>"""
             )
-            count = (
-                dbsession.query(DBDataset)
-                .filter_by(run_number=1, fresh=0, what_updated="filestore")
-                .count()
+            count = dbsession.scalar(
+                select(func.count(DBDataset.id)).filter_by(
+                    run_number=1, fresh=0, what_updated="filestore"
+                )
             )
             assert count == 4
-            count = (
-                dbsession.query(DBDataset)
-                .filter_by(
+            count = dbsession.scalar(
+                select(func.count(DBDataset.id)).filter_by(
                     run_number=1, fresh=0, what_updated="nothing", error=False
                 )
-                .count()
             )
             assert count == 59
-            count = (
-                dbsession.query(DBDataset)
-                .filter_by(run_number=1, fresh=0, what_updated="review date")
-                .count()
+            count = dbsession.scalar(
+                select(func.count(DBDataset.id)).filter_by(
+                    run_number=1, fresh=0, what_updated="review date"
+                )
             )
             assert count == 1
-            count = (
-                dbsession.query(DBDataset)
-                .filter_by(run_number=1, fresh=0, what_updated="script update")
-                .count()
+            count = dbsession.scalar(
+                select(func.count(DBDataset.id)).filter_by(
+                    run_number=1, fresh=0, what_updated="script update"
+                )
             )
             assert count == 1
-            count = (
-                dbsession.query(DBDataset)
-                .filter_by(run_number=1, fresh=1, what_updated="nothing")
-                .count()
+            count = dbsession.scalar(
+                select(func.count(DBDataset.id)).filter_by(
+                    run_number=1, fresh=1, what_updated="nothing"
+                )
             )
             assert count == 1
-            count = (
-                dbsession.query(DBDataset)
-                .filter_by(
+            count = dbsession.scalar(
+                select(func.count(DBDataset.id)).filter_by(
                     run_number=1, fresh=2, what_updated="nothing", error=False
                 )
-                .count()
             )
             assert count == 1
-            count = (
-                dbsession.query(DBDataset)
-                .filter_by(
+            count = dbsession.scalar(
+                select(func.count(DBDataset.id)).filter_by(
                     run_number=1, fresh=3, what_updated="nothing", error=False
                 )
-                .count()
             )
             assert count == 23
-            count = (
-                dbsession.query(DBDataset)
-                .filter_by(
+            count = dbsession.scalar(
+                select(func.count(DBDataset.id)).filter_by(
                     run_number=1, fresh=3, what_updated="nothing", error=True
                 )
-                .count()
             )
             assert count == 4
-            count = (
-                dbsession.query(DBDataset)
-                .filter_by(
+            count = dbsession.scalar(
+                select(func.count(DBDataset.id)).filter_by(
                     run_number=1,
                     fresh=None,
                     what_updated="nothing",
                     error=False,
                 )
-                .count()
             )
             assert count == 4
-            count = (
-                dbsession.query(DBDataset)
-                .filter_by(
+            count = dbsession.scalar(
+                select(func.count(DBDataset.id)).filter_by(
                     run_number=1,
                     fresh=None,
                     what_updated="nothing",
                     error=True,
                 )
-                .count()
             )
             assert count == 0
-            count = (
-                dbsession.query(DBDataset)
-                .filter_by(
+            count = dbsession.scalar(
+                select(func.count(DBDataset.id)).filter_by(
                     run_number=1,
                     fresh=None,
                     what_updated="no resources",
                     error=True,
                 )
-                .count()
             )
             assert count == 1
-            dbinfodataset = dbsession.query(DBInfoDataset).first()
+            dbinfodataset = dbsession.scalar(select(DBInfoDataset).limit(1))
             assert (
                 str(dbinfodataset)
                 == """<InfoDataset(id=a2150ad9-2b87-49f5-a6b2-c85dff366b75, name=rohingya-displacement-topline-figures, title=Rohingya Displacement Topline Figures,
 private=False, organization id=hdx,
 maintainer=7d7f5f8d-7e3b-483a-8de1-2b122010c1eb, location=bgd)>"""
             )
-            count = dbsession.query(DBInfoDataset).count()
+            count = dbsession.scalar(select(func.count(DBInfoDataset.id)))
             assert count == 104
-            dborganization = dbsession.query(DBOrganization).first()
+            dborganization = dbsession.scalar(select(DBOrganization).limit(1))
             assert (
                 str(dborganization)
                 == """<Organization(id=hdx, name=hdx, title=HDX)>"""
             )
-            count = dbsession.query(DBOrganization).count()
+            count = dbsession.scalar(select(func.count(DBOrganization.id)))
             assert count == 40
 
             assert freshness.resource_last_modified_count == 2
