@@ -12,10 +12,10 @@ class DBTestHashResult(Base):
     id: Mapped[str] = mapped_column(primary_key=True)
     url: Mapped[str] = mapped_column(nullable=False)
     format: Mapped[str] = mapped_column(nullable=False)
-    err: Mapped[str]
-    http_last_modified: Mapped[datetime]
-    hash: Mapped[str]
-    xlsx_hash: Mapped[str]
+    err: Mapped[str] = mapped_column(nullable=True)
+    http_last_modified: Mapped[datetime] = mapped_column(nullable=True)
+    hash: Mapped[str] = mapped_column(nullable=True)
+    xlsx_hash: Mapped[str] = mapped_column(nullable=True)
     force_hash: Mapped[bool] = mapped_column(nullable=False)
     """
 

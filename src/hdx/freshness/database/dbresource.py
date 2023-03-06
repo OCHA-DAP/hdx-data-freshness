@@ -21,16 +21,21 @@ class DBResource(Base):
     url: Mapped[str] = mapped_column(nullable=False)
     last_modified: Mapped[datetime] = mapped_column(nullable=False)
     metadata_modified: Mapped[datetime] = mapped_column(
-        default=None
+        default=None, nullable=True
     )  # this field and above are CKAN fields
+
     latest_of_modifieds: Mapped[datetime] = mapped_column(nullable=False)
     what_updated: Mapped[str] = mapped_column(nullable=False)
-    http_last_modified: Mapped[datetime] = mapped_column(default=None)
-    md5_hash: Mapped[str] = mapped_column(default=None)
-    hash_last_modified: Mapped[datetime] = mapped_column(default=None)
-    when_checked: Mapped[datetime] = mapped_column(default=None)
-    api: Mapped[bool]
-    error: Mapped[str]
+    http_last_modified: Mapped[datetime] = mapped_column(
+        default=None, nullable=True
+    )
+    md5_hash: Mapped[str] = mapped_column(default=None, nullable=True)
+    hash_last_modified: Mapped[datetime] = mapped_column(
+        default=None, nullable=True
+    )
+    when_checked: Mapped[datetime] = mapped_column(default=None, nullable=True)
+    api: Mapped[bool] = mapped_column(nullable=True)
+    error: Mapped[str] = mapped_column(nullable=True)
     """
 
     run_number: Mapped[int] = mapped_column(
@@ -44,7 +49,7 @@ class DBResource(Base):
     url: Mapped[str] = mapped_column(nullable=False)
     last_modified: Mapped[datetime] = mapped_column(nullable=False)
     metadata_modified: Mapped[datetime] = mapped_column(
-        default=None
+        default=None, nullable=True
     )  # this field and above are CKAN fields
     latest_of_modifieds: Mapped[datetime] = mapped_column(nullable=False)
     what_updated: Mapped[str] = mapped_column(nullable=False)

@@ -13,36 +13,27 @@ class DBDataset(Base):
     run_number: Mapped[int] = mapped_column(
         ForeignKey("dbruns.run_number"), primary_key=True
     )
-
     id: Mapped[str] = mapped_column(
         ForeignKey("dbinfodatasets.id"), primary_key=True
     )
-
-    dataset_date: Mapped[str]
-
-    update_frequency: Mapped[int]
-
-    review_date: Mapped[datetime]
-
+    dataset_date: Mapped[str] = mapped_column(nullable=True)
+    update_frequency: Mapped[int] = mapped_column(nullable=True)
+    review_date: Mapped[datetime] = mapped_column(nullable=True)
     last_modified: Mapped[datetime] = mapped_column(nullable=False)
-
-    updated_by_script: Mapped[datetime]
-
-    metadata_modified: Mapped[datetime] = mapped_column(nullable=False
+    updated_by_script: Mapped[datetime] = mapped_column(nullable=True)
+    metadata_modified: Mapped[datetime] = mapped_column(
+        nullable=False
     )  # this field and above are CKAN fields
 
     latest_of_modifieds: Mapped[datetime] = mapped_column(nullable=False)
-
     what_updated: Mapped[str] = mapped_column(nullable=False)
-
-    last_resource_updated: Mapped[str] = mapped_column(nullable=False
+    last_resource_updated: Mapped[str] = mapped_column(
+        nullable=False
     )  # id of last resource updated
-
-    last_resource_modified: Mapped[datetime] = mapped_column(nullable=False
+    last_resource_modified: Mapped[datetime] = mapped_column(
+        nullable=False
     )  # date last resource updated
-
-    fresh: Mapped[int]
-
+    fresh: Mapped[int] = mapped_column(nullable=True)
     error: Mapped[bool] = mapped_column(nullable=False)
     """
 

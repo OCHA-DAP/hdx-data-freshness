@@ -14,8 +14,8 @@ class DBInfoDataset(Base):
     organization_id: Mapped[str] = mapped_column(
         ForeignKey("dborganizations.id"), nullable=False
     )
-    location: Mapped[str]
-    maintainer: Mapped[str]
+    location: Mapped[str] = mapped_column(nullable=True)
+    maintainer: Mapped[str] = mapped_column(nullable=True)
     """
 
     id: Mapped[str] = mapped_column(primary_key=True)
@@ -25,7 +25,7 @@ class DBInfoDataset(Base):
     organization_id: Mapped[str] = mapped_column(
         ForeignKey("dborganizations.id"), nullable=False
     )
-    location: Mapped[str] = mapped_column(nullable=False)
+    location: Mapped[str] = mapped_column(nullable=True)
     maintainer: Mapped[str] = mapped_column(nullable=True)
 
     def __repr__(self) -> str:

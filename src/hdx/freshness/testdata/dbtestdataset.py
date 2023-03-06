@@ -14,15 +14,15 @@ class DBTestDataset(Base):
     dataset_name: Mapped[str] = mapped_column(nullable=False)
     dataset_title: Mapped[str] = mapped_column(nullable=False)
     dataset_private: Mapped[bool] = mapped_column(nullable=False)
-    dataset_maintainer: Mapped[str]
-    dataset_date: Mapped[str]
-    update_frequency: Mapped[str]
-    review_date: Mapped[str]
+    dataset_maintainer: Mapped[str] = mapped_column(nullable=True)
+    dataset_date: Mapped[str] = mapped_column(nullable=True)
+    update_frequency: Mapped[str] = mapped_column(nullable=True)
+    review_date: Mapped[str] = mapped_column(nullable=True)
     last_modified: Mapped[str] = mapped_column(nullable=False)
-    updated_by_script: Mapped[str]
+    updated_by_script: Mapped[str] = mapped_column(nullable=True)
     metadata_modified: Mapped[str] = mapped_column(nullable=False)
-    is_requestdata_type: Mapped[bool]
-    dataset_location: Mapped[str]
+    is_requestdata_type: Mapped[bool] = mapped_column(nullable=True)
+    dataset_location: Mapped[str] = mapped_column(nullable=True)
     """
 
     id: Mapped[str] = mapped_column(primary_key=True)
@@ -32,15 +32,15 @@ class DBTestDataset(Base):
     dataset_name: Mapped[str] = mapped_column(nullable=False)
     dataset_title: Mapped[str] = mapped_column(nullable=False)
     dataset_private: Mapped[bool] = mapped_column(nullable=False)
-    dataset_maintainer: Mapped[str] = mapped_column(nullable=False)
-    dataset_date: Mapped[str] = mapped_column(nullable=False)
-    update_frequency: Mapped[str] = mapped_column(nullable=False)
+    dataset_maintainer: Mapped[str] = mapped_column(nullable=True)
+    dataset_date: Mapped[str] = mapped_column(nullable=True)
+    update_frequency: Mapped[str] = mapped_column(nullable=True)
     review_date: Mapped[str] = mapped_column(nullable=True)
     last_modified: Mapped[str] = mapped_column(nullable=False)
     updated_by_script: Mapped[str] = mapped_column(nullable=True)
     metadata_modified: Mapped[str] = mapped_column(nullable=False)
     is_requestdata_type: Mapped[bool] = mapped_column(nullable=True)
-    dataset_location: Mapped[str] = mapped_column(nullable=False)
+    dataset_location: Mapped[str] = mapped_column(nullable=True)
 
     def __repr__(self) -> str:
         """String representation of DBTestDataset row

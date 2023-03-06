@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 class DBRun(Base):
     """
     run_number: Mapped[int] = mapped_column(primary_key=True)
-    run_date: Mapped[datetime]
+    run_date: Mapped[datetime] = mapped_column(nullable=False)
     """
 
     run_number: Mapped[int] = mapped_column(primary_key=True)
