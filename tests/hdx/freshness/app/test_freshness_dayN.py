@@ -216,7 +216,7 @@ api=False, error=None)>"""
                 select(func.count(DBResource.id)).where(
                     DBResource.run_number == 1,
                     DBResource.what_updated == "filestore",
-                    DBResource.error == None,
+                    DBResource.error.is_(None),
                 )
             )
             assert count == 0
@@ -224,7 +224,7 @@ api=False, error=None)>"""
                 select(func.count(DBResource.id)).where(
                     DBResource.run_number == 1,
                     DBResource.what_updated == "first hash",
-                    DBResource.error == None,
+                    DBResource.error.is_(None),
                 )
             )
             assert count == 4
@@ -232,7 +232,7 @@ api=False, error=None)>"""
                 select(func.count(DBResource.id)).where(
                     DBResource.run_number == 1,
                     DBResource.what_updated == "hash",
-                    DBResource.error == None,
+                    DBResource.error.is_(None),
                 )
             )
             assert count == 3
@@ -240,13 +240,13 @@ api=False, error=None)>"""
                 select(func.count(DBResource.id)).where(
                     DBResource.run_number == 1,
                     DBResource.what_updated == "http header",
-                    DBResource.error == None,
+                    DBResource.error.is_(None),
                 )
             )
             assert count == 0
             count = dbsession.scalar(
                 select(func.count(DBResource.id)).where(
-                    DBResource.run_number == 1, DBResource.api == True
+                    DBResource.run_number == 1, DBResource.api.is_(True)
                 )
             )
             assert count == 3
@@ -296,7 +296,7 @@ Dataset fresh=2, error=False)>"""
                     DBDataset.run_number == 1,
                     DBDataset.fresh == 0,
                     DBDataset.what_updated == "nothing",
-                    DBDataset.error == False,
+                    DBDataset.error.is_(False),
                 )
             )
             assert count == 59
@@ -329,7 +329,7 @@ Dataset fresh=2, error=False)>"""
                     DBDataset.run_number == 1,
                     DBDataset.fresh == 2,
                     DBDataset.what_updated == "nothing",
-                    DBDataset.error == False,
+                    DBDataset.error.is_(False),
                 )
             )
             assert count == 1
@@ -338,7 +338,7 @@ Dataset fresh=2, error=False)>"""
                     DBDataset.run_number == 1,
                     DBDataset.fresh == 3,
                     DBDataset.what_updated == "nothing",
-                    DBDataset.error == False,
+                    DBDataset.error.is_(False),
                 )
             )
             assert count == 23
@@ -347,34 +347,34 @@ Dataset fresh=2, error=False)>"""
                     DBDataset.run_number == 1,
                     DBDataset.fresh == 3,
                     DBDataset.what_updated == "nothing",
-                    DBDataset.error == True,
+                    DBDataset.error.is_(True),
                 )
             )
             assert count == 4
             count = dbsession.scalar(
                 select(func.count(DBDataset.id)).where(
                     DBDataset.run_number == 1,
-                    DBDataset.fresh == None,
+                    DBDataset.fresh.is_(None),
                     DBDataset.what_updated == "nothing",
-                    DBDataset.error == False,
+                    DBDataset.error.is_(False),
                 )
             )
             assert count == 4
             count = dbsession.scalar(
                 select(func.count(DBDataset.id)).where(
                     DBDataset.run_number == 1,
-                    DBDataset.fresh == None,
+                    DBDataset.fresh.is_(None),
                     DBDataset.what_updated == "nothing",
-                    DBDataset.error == True,
+                    DBDataset.error.is_(True),
                 )
             )
             assert count == 0
             count = dbsession.scalar(
                 select(func.count(DBDataset.id)).where(
                     DBDataset.run_number == 1,
-                    DBDataset.fresh == None,
+                    DBDataset.fresh.is_(None),
                     DBDataset.what_updated == "no resources",
-                    DBDataset.error == True,
+                    DBDataset.error.is_(True),
                 )
             )
             assert count == 1
