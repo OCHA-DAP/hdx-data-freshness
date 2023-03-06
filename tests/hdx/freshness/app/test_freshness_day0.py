@@ -57,10 +57,9 @@ class TestFreshnessDay0:
 
     @pytest.fixture(scope="function")
     def forced_hash_ids(self, serializedbsession):
-        forced_hash_ids = serializedbsession.execute(
-            select(DBTestResult.id).filter_by(force_hash=1)
-        )
-        return [x[0] for x in forced_hash_ids]
+        return serializedbsession.scalars(
+            select(DBTestResult.id).where(DBTestResult.force_hash == 1)
+        ).all()
 
     def test_generate_dataset(
         self,
@@ -145,60 +144,74 @@ api=False, error=None)>"""
             )
             assert count == 56
             count = dbsession.scalar(
-                select(func.count(DBResource.id)).filter_by(
-                    what_updated="internal-firstrun", error=None, api=None
+                select(func.count(DBResource.id)).where(
+                    DBResource.what_updated == "internal-firstrun",
+                    DBResource.error == None,
+                    DBResource.api == None,
                 )
             )
             assert count == 56
             count = dbsession.scalar(
-                select(func.count(DBResource.id)).filter_by(
-                    what_updated="internal-firstrun,hash",
-                    error=None,
-                    api=False,
+                select(func.count(DBResource.id)).where(
+                    DBResource.what_updated == "internal-firstrun,hash",
+                    DBResource.error == None,
+                    DBResource.api == False,
                 )
             )
             assert count == 0
             count = dbsession.scalar(
-                select(func.count(DBResource.id)).filter_by(
-                    what_updated="internal-firstrun,http header,hash",
-                    error=None,
-                    api=False,
+                select(func.count(DBResource.id)).where(
+                    DBResource.what_updated
+                    == "internal-firstrun,http header,hash",
+                    DBResource.error == None,
+                    DBResource.api == False,
                 )
             )
             assert count == 0
             count = dbsession.scalar(
-                select(func.count(DBResource.id)).filter_by(
-                    what_updated="firstrun", error=None, api=None
+                select(func.count(DBResource.id)).where(
+                    DBResource.what_updated == "firstrun",
+                    DBResource.error == None,
+                    DBResource.api == None,
                 )
             )
             assert count == 564
             count = dbsession.scalar(
-                select(func.count(DBResource.id)).filter_by(
-                    what_updated="firstrun", error=None, api=True
+                select(func.count(DBResource.id)).where(
+                    DBResource.what_updated == "firstrun",
+                    DBResource.error == None,
+                    DBResource.api == True,
                 )
             )
             assert count == 4
             count = dbsession.scalar(
-                select(func.count(DBResource.id))
-                .where(DBResource.error.isnot(None))
-                .filter_by(what_updated="firstrun")
+                select(func.count(DBResource.id)).where(
+                    DBResource.error.isnot(None),
+                    DBResource.what_updated == "firstrun",
+                )
             )
             assert count == 27
             count = dbsession.scalar(
-                select(func.count(DBResource.id)).filter_by(
-                    what_updated="first hash", error=None, api=False
+                select(func.count(DBResource.id)).where(
+                    DBResource.what_updated == "first hash",
+                    DBResource.error == None,
+                    DBResource.api == False,
                 )
             )
             assert count == 9
             count = dbsession.scalar(
-                select(func.count(DBResource.id)).filter_by(
-                    what_updated="http header", error=None, api=None
+                select(func.count(DBResource.id)).where(
+                    DBResource.what_updated == "http header",
+                    DBResource.error == None,
+                    DBResource.api == None,
                 )
             )
             assert count == 0
             count = dbsession.scalar(
-                select(func.count(DBResource.id)).filter_by(
-                    what_updated="http header,hash", error=None, api=False
+                select(func.count(DBResource.id)).where(
+                    DBResource.what_updated == "http header,hash",
+                    DBResource.error == None,
+                    DBResource.api == False,
                 )
             )
             assert count == 0
@@ -212,74 +225,95 @@ Resource b21d6004-06b5-41e5-8e3e-0f28140bff64: last modified=2017-12-16 15:11:15
 Dataset fresh=2, error=False)>"""
             )
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    fresh=0, what_updated="firstrun", error=False
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.fresh == 0,
+                    DBDataset.what_updated == "firstrun",
+                    DBDataset.error == False,
                 )
             )
             assert count == 67
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    fresh=0, what_updated="firstrun", error=True
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.fresh == 0,
+                    DBDataset.what_updated == "firstrun",
+                    DBDataset.error == True,
                 )
             )
             assert count == 0
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    fresh=0, what_updated="http header", error=False
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.fresh == 0,
+                    DBDataset.what_updated == "http header",
+                    DBDataset.error == False,
                 )
             )
             assert count == 0
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    fresh=0, what_updated="http header", error=True
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.fresh == 0,
+                    DBDataset.what_updated == "http header",
+                    DBDataset.error == True,
                 )
             )
             assert count == 0
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    fresh=1, what_updated="firstrun"
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.fresh == 1, DBDataset.what_updated == "firstrun"
                 )
             )
             assert count == 1
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    fresh=2, what_updated="firstrun", error=False
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.fresh == 2,
+                    DBDataset.what_updated == "firstrun",
+                    DBDataset.error == False,
                 )
             )
             assert count == 1
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    fresh=2, what_updated="firstrun", error=True
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.fresh == 2,
+                    DBDataset.what_updated == "firstrun",
+                    DBDataset.error == True,
                 )
             )
             assert count == 0
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    fresh=3, what_updated="firstrun", error=False
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.fresh == 3,
+                    DBDataset.what_updated == "firstrun",
+                    DBDataset.error == False,
                 )
             )
             assert count == 25
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    fresh=3, what_updated="firstrun", error=True
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.fresh == 3,
+                    DBDataset.what_updated == "firstrun",
+                    DBDataset.error == True,
                 )
             )
             assert count == 5
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    fresh=3, what_updated="http header"
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.fresh == 3,
+                    DBDataset.what_updated == "http header",
                 )
             )
             assert count == 0
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    fresh=None, what_updated="firstrun", error=False
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.fresh == None,
+                    DBDataset.what_updated == "firstrun",
+                    DBDataset.error == False,
                 )
             )
             assert count == 4
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    fresh=None, what_updated="firstrun", error=True
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.fresh == None,
+                    DBDataset.what_updated == "firstrun",
+                    DBDataset.error == True,
                 )
             )
             assert count == 0

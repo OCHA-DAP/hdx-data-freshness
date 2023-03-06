@@ -69,10 +69,9 @@ class TestFreshnessDayN:
 
     @pytest.fixture(scope="function")
     def forced_hash_ids(self, serializedbsession):
-        forced_hash_ids = serializedbsession.execute(
-            select(DBTestResult.id).filter_by(force_hash=1)
-        )
-        return [x[0] for x in forced_hash_ids]
+        return serializedbsession.scalars(
+            select(DBTestResult.id).where(DBTestResult.force_hash == 1)
+        ).all()
 
     def test_generate_dataset(
         self,
@@ -172,7 +171,7 @@ Freshness Unavailable, Updated nothing: 4
             )
 
             dbrun = dbsession.execute(
-                select(DBRun).filter_by(run_number=1)
+                select(DBRun).where(DBRun.run_number == 1)
             ).scalar_one()
             assert (
                 str(dbrun)
@@ -214,53 +213,65 @@ api=False, error=None)>"""
             )
             assert count == 112
             count = dbsession.scalar(
-                select(func.count(DBResource.id)).filter_by(
-                    run_number=1, what_updated="filestore", error=None
+                select(func.count(DBResource.id)).where(
+                    DBResource.run_number == 1,
+                    DBResource.what_updated == "filestore",
+                    DBResource.error == None,
                 )
             )
             assert count == 0
             count = dbsession.scalar(
-                select(func.count(DBResource.id)).filter_by(
-                    run_number=1, what_updated="first hash", error=None
+                select(func.count(DBResource.id)).where(
+                    DBResource.run_number == 1,
+                    DBResource.what_updated == "first hash",
+                    DBResource.error == None,
                 )
             )
             assert count == 4
             count = dbsession.scalar(
-                select(func.count(DBResource.id)).filter_by(
-                    run_number=1, what_updated="hash", error=None
+                select(func.count(DBResource.id)).where(
+                    DBResource.run_number == 1,
+                    DBResource.what_updated == "hash",
+                    DBResource.error == None,
                 )
             )
             assert count == 3
             count = dbsession.scalar(
-                select(func.count(DBResource.id)).filter_by(
-                    run_number=1, what_updated="http header", error=None
+                select(func.count(DBResource.id)).where(
+                    DBResource.run_number == 1,
+                    DBResource.what_updated == "http header",
+                    DBResource.error == None,
                 )
             )
             assert count == 0
             count = dbsession.scalar(
-                select(func.count(DBResource.id)).filter_by(
-                    run_number=1, api=True
+                select(func.count(DBResource.id)).where(
+                    DBResource.run_number == 1, DBResource.api == True
                 )
             )
             assert count == 3
             count = dbsession.scalar(
-                select(func.count(DBResource.id))
-                .filter_by(run_number=1, what_updated="internal-nothing")
-                .where(DBResource.error.isnot(None))
+                select(func.count(DBResource.id)).where(
+                    DBResource.run_number == 1,
+                    DBResource.what_updated == "internal-nothing",
+                    DBResource.error.isnot(None),
+                )
             )
             assert count == 0
             # select what_updated, api from dbresources where run_number=0 and md5_hash is not null and id in (select id from dbresources where run_number=1 and what_updated like '%hash%');
             hash_updated = dbsession.scalars(
-                select(DBResource.id)
-                .filter_by(run_number=1)
-                .where(DBResource.what_updated.like("%hash%"))
+                select(DBResource.id).where(
+                    DBResource.run_number == 1,
+                    DBResource.what_updated.like("%hash%"),
+                )
             ).all()
             assert len(hash_updated) == 8
             count = dbsession.scalar(
-                select(func.count(DBResource.id))
-                .filter_by(run_number=0)
-                .where(DBResource.md5_hash.isnot(None))
-                .where(DBResource.id.in_(hash_updated))
+                select(func.count(DBResource.id)).where(
+                    DBResource.run_number == 0,
+                    DBResource.md5_hash.isnot(None),
+                    DBResource.id.in_(hash_updated),
+                )
             )
             assert count == 4
             dbdataset = dbsession.scalar(select(DBDataset).limit(1))
@@ -273,77 +284,97 @@ Resource b21d6004-06b5-41e5-8e3e-0f28140bff64: last modified=2017-12-16 15:11:15
 Dataset fresh=2, error=False)>"""
             )
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    run_number=1, fresh=0, what_updated="filestore"
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.run_number == 1,
+                    DBDataset.fresh == 0,
+                    DBDataset.what_updated == "filestore",
                 )
             )
             assert count == 4
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    run_number=1, fresh=0, what_updated="nothing", error=False
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.run_number == 1,
+                    DBDataset.fresh == 0,
+                    DBDataset.what_updated == "nothing",
+                    DBDataset.error == False,
                 )
             )
             assert count == 59
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    run_number=1, fresh=0, what_updated="review date"
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.run_number == 1,
+                    DBDataset.fresh == 0,
+                    DBDataset.what_updated == "review date",
                 )
             )
             assert count == 1
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    run_number=1, fresh=0, what_updated="script update"
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.run_number == 1,
+                    DBDataset.fresh == 0,
+                    DBDataset.what_updated == "script update",
                 )
             )
             assert count == 1
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    run_number=1, fresh=1, what_updated="nothing"
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.run_number == 1,
+                    DBDataset.fresh == 1,
+                    DBDataset.what_updated == "nothing",
                 )
             )
             assert count == 1
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    run_number=1, fresh=2, what_updated="nothing", error=False
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.run_number == 1,
+                    DBDataset.fresh == 2,
+                    DBDataset.what_updated == "nothing",
+                    DBDataset.error == False,
                 )
             )
             assert count == 1
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    run_number=1, fresh=3, what_updated="nothing", error=False
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.run_number == 1,
+                    DBDataset.fresh == 3,
+                    DBDataset.what_updated == "nothing",
+                    DBDataset.error == False,
                 )
             )
             assert count == 23
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    run_number=1, fresh=3, what_updated="nothing", error=True
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.run_number == 1,
+                    DBDataset.fresh == 3,
+                    DBDataset.what_updated == "nothing",
+                    DBDataset.error == True,
                 )
             )
             assert count == 4
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    run_number=1,
-                    fresh=None,
-                    what_updated="nothing",
-                    error=False,
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.run_number == 1,
+                    DBDataset.fresh == None,
+                    DBDataset.what_updated == "nothing",
+                    DBDataset.error == False,
                 )
             )
             assert count == 4
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    run_number=1,
-                    fresh=None,
-                    what_updated="nothing",
-                    error=True,
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.run_number == 1,
+                    DBDataset.fresh == None,
+                    DBDataset.what_updated == "nothing",
+                    DBDataset.error == True,
                 )
             )
             assert count == 0
             count = dbsession.scalar(
-                select(func.count(DBDataset.id)).filter_by(
-                    run_number=1,
-                    fresh=None,
-                    what_updated="no resources",
-                    error=True,
+                select(func.count(DBDataset.id)).where(
+                    DBDataset.run_number == 1,
+                    DBDataset.fresh == None,
+                    DBDataset.what_updated == "no resources",
+                    DBDataset.error == True,
                 )
             )
             assert count == 1
