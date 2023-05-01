@@ -55,4 +55,4 @@ one, they are executed concurrently using the asynchronous functionality
 
 # Usage
 
-    python run.py
+    python -m hdx.freshness.app
