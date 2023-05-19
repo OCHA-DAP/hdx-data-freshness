@@ -1,0 +1,106 @@
+Duty Start Date,Duty End Date,Year      ,Week      ,Full Name      ,Email                 ,First Name
+#date+start    ,#date+end    ,#date+year,#date+week,#contact+name  ,#contact+email        ,#contact+firstname
+2018-01-01     ,2018-01-07   ,2018      ,1         ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-01-08     ,2018-01-14   ,2018      ,2         ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-01-15     ,2018-01-21   ,2018      ,3         ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-01-22     ,2018-01-28   ,2018      ,4         ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-01-29     ,2018-02-04   ,2018      ,5         ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-02-05     ,2018-02-11   ,2018      ,6         ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-02-12     ,2018-02-18   ,2018      ,7         ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-02-19     ,2018-02-25   ,2018      ,8         ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-02-26     ,2018-03-04   ,2018      ,9         ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-03-05     ,2018-03-11   ,2018      ,10        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-03-12     ,2018-03-18   ,2018      ,11        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-03-19     ,2018-03-25   ,2018      ,12        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-03-26     ,2018-04-01   ,2018      ,13        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-04-02     ,2018-04-08   ,2018      ,14        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-04-09     ,2018-04-15   ,2018      ,15        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-04-16     ,2018-04-22   ,2018      ,16        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-04-23     ,2018-04-29   ,2018      ,17        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-04-30     ,2018-05-06   ,2018      ,18        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-05-07     ,2018-05-13   ,2018      ,19        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-05-14     ,2018-05-20   ,2018      ,20        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-05-21     ,2018-05-27   ,2018      ,21        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-05-28     ,2018-06-03   ,2018      ,22        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-06-04     ,2018-06-10   ,2018      ,23        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-06-11     ,2018-06-17   ,2018      ,24        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-06-18     ,2018-06-24   ,2018      ,25        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-06-25     ,2018-07-01   ,2018      ,26        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-07-02     ,2018-07-08   ,2018      ,27        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-07-09     ,2018-07-15   ,2018      ,28        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-07-16     ,2018-07-22   ,2018      ,29        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-07-23     ,2018-07-29   ,2018      ,30        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-07-30     ,2018-08-05   ,2018      ,31        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-08-06     ,2018-08-12   ,2018      ,32        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-08-13     ,2018-08-19   ,2018      ,33        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-08-20     ,2018-08-26   ,2018      ,34        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-08-27     ,2018-09-02   ,2018      ,35        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-09-03     ,2018-09-09   ,2018      ,36        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-09-10     ,2018-09-16   ,2018      ,37        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-09-17     ,2018-09-23   ,2018      ,38        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-09-24     ,2018-09-30   ,2018      ,39        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-10-01     ,2018-10-07   ,2018      ,40        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-10-08     ,2018-10-14   ,2018      ,41        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-10-15     ,2018-10-21   ,2018      ,42        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-10-22     ,2018-10-28   ,2018      ,43        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-10-29     ,2018-11-04   ,2018      ,44        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-11-05     ,2018-11-11   ,2018      ,45        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-11-12     ,2018-11-18   ,2018      ,46        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-11-19     ,2018-11-25   ,2018      ,47        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-11-26     ,2018-12-02   ,2018      ,48        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-12-03     ,2018-12-09   ,2018      ,49        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-12-10     ,2018-12-16   ,2018      ,50        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2018-12-17     ,2018-12-23   ,2018      ,51        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2018-12-24     ,2018-12-30   ,2018      ,52        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2018-12-31     ,2019-01-06   ,2019      ,1         ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2019-01-07     ,2019-01-13   ,2019      ,2         ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2019-01-14     ,2019-01-20   ,2019      ,3         ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2019-01-21     ,2019-01-27   ,2019      ,4         ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2019-01-28     ,2019-02-03   ,2019      ,5         ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2019-02-04     ,2019-02-10   ,2019      ,6         ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2019-02-11     ,2019-02-17   ,2019      ,7         ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2019-02-18     ,2019-02-24   ,2019      ,8         ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2019-02-25     ,2019-03-03   ,2019      ,9         ,Davide Mmmmmm2 ,mmmmmmm2@ab.org       ,Davide
+2019-03-04     ,2019-03-10   ,2019      ,10        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2019-03-11     ,2019-03-17   ,2019      ,11        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2019-03-18     ,2019-03-24   ,2019      ,12        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2019-03-25     ,2019-03-31   ,2019      ,13        ,Davide Mmmmmm2 ,mmmmmmm2@ab.org       ,Davide
+2019-04-01     ,2019-04-07   ,2019      ,14        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2019-04-08     ,2019-04-14   ,2019      ,15        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2019-04-15     ,2019-04-21   ,2019      ,16        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2019-04-22     ,2019-04-28   ,2019      ,17        ,Elizabeth Sssss,sssssssssssssss@ab.org,Lizy
+2019-04-29     ,2019-05-05   ,2019      ,18        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2019-05-06     ,2019-05-12   ,2019      ,19        ,Elizabeth Sssss,sssssssssssssss@ab.org,Lizy
+2019-05-13     ,2019-05-19   ,2019      ,20        ,Davide Mmmmmm2 ,mmmmmmm2@ab.org       ,Davide
+2019-05-20     ,2019-05-26   ,2019      ,21        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2019-05-27     ,2019-06-02   ,2019      ,22        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2019-06-03     ,2019-06-09   ,2019      ,23        ,Davide Mmmmmm2 ,mmmmmmm2@ab.org       ,Davide
+2019-06-10     ,2019-06-16   ,2019      ,24        ,Elizabeth Sssss,sssssssssssssss@ab.org,Lizy
+2019-06-17     ,2019-06-23   ,2019      ,25        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2019-06-24     ,2019-06-30   ,2019      ,26        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2019-07-01     ,2019-07-07   ,2019      ,27        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2019-07-08     ,2019-07-14   ,2019      ,28        ,Davide Mmmmmm2 ,mmmmmmm2@ab.org       ,Davide
+2019-07-15     ,2019-07-21   ,2019      ,29        ,Elizabeth Sssss,sssssssssssssss@ab.org,Lizy
+2019-07-22     ,2019-07-28   ,2019      ,30        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2019-07-29     ,2019-08-04   ,2019      ,31        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2019-08-05     ,2019-08-11   ,2019      ,32        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2019-08-12     ,2019-08-18   ,2019      ,33        ,Davide Mmmmmm2 ,mmmmmmm2@ab.org       ,Davide
+2019-08-19     ,2019-08-25   ,2019      ,34        ,Elizabeth Sssss,sssssssssssssss@ab.org,Lizy
+2019-08-26     ,2019-09-01   ,2019      ,35        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2019-09-02     ,2019-09-08   ,2019      ,36        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2019-09-09     ,2019-09-15   ,2019      ,37        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2019-09-30     ,2019-10-06   ,2019      ,40        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2019-10-07     ,2019-10-13   ,2019      ,41        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2019-10-14     ,2019-10-20   ,2019      ,42        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2019-10-21     ,2019-10-27   ,2019      ,43        ,Davide Mmmmmm2 ,mmmmmmm2@ab.org       ,Davide
+2019-10-28     ,2019-11-03   ,2019      ,44        ,Elizabeth Sssss,sssssssssssssss@ab.org,Lizy
+2019-11-04     ,2019-11-10   ,2019      ,45        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2019-11-11     ,2019-11-17   ,2019      ,46        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2019-11-18     ,2019-11-24   ,2019      ,47        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2019-11-25     ,2019-12-01   ,2019      ,48        ,Davide Mmmmmm2 ,mmmmmmm2@ab.org       ,Davide
+2019-12-02     ,2019-12-08   ,2019      ,49        ,Elizabeth Sssss,sssssssssssssss@ab.org,Lizy
+2019-12-09     ,2019-12-15   ,2019      ,50        ,Bill Pppppp    ,pppppp@ab.org         ,Bill
+2019-12-16     ,2019-12-22   ,2019      ,51        ,Alexaa Mmmmmmm ,mmmmmmm@ab.org        ,Alexaa
+2019-12-23     ,2019-12-29   ,2019      ,52        ,Colin Nnnnn    ,nnnnn@ab.org          ,Colin
+2019-12-30     ,2020-01-05   ,2020      ,1         ,Davide Mmmmmm2 ,mmmmmmm2@ab.org       ,Davide
+2020-01-06     ,2020-01-12   ,2020      ,2         ,Elizabeth Sssss,sssssssssssssss@ab.org,Lizy

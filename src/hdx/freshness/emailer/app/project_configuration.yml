@@ -1,0 +1,5 @@
+# Collector specific configuration
+dutyofficers_url: "https://docs.google.com/spreadsheets/d/1PLWmVbVV-WUaYM1K_bjPQDQgE_3Q2qNCf-CLM_SHdvI/edit"
+datagrids_url: "https://docs.google.com/spreadsheets/d/1YmHrIbtfum5GOUaQpEcxA-PRHjHaT3JlFs9lsBDtVok/edit"
+prod_issues_spreadsheet_url: "https://docs.google.com/spreadsheets/d/10usac8agIhH1r-ZHXNxv2eqq_Z5YzfhSlMJhJOj1hdI/edit"
+test_issues_spreadsheet_url: "https://docs.google.com/spreadsheets/d/1C_0cM6n1eICC1o-mxqF2Igu69UKzO25bmtNzqnUKIJQ/edit"

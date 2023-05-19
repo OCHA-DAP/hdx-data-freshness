@@ -1,0 +1,9 @@
+dutyofficers_url: "https://docs.google.com/spreadsheets/d/1dE2Dcl2hlefMgns1bnhz6_JZstY4m6snQDtG-U9tiVs/edit"
+datagrids_url: "https://docs.google.com/spreadsheets/d/1dYj9Ln53uecAU58LHKxD07Bfhu0VVuZ4Whu_YEHV5y0/edit"
+prod_issues_spreadsheet_url: "https://docs.google.com/spreadsheets/d/1C_0cM6n1eICC1o-mxqF2Igu69UKzO25bmtNzqnUKIJQ/edit"
+test_issues_spreadsheet_url: "https://docs.google.com/spreadsheets/d/1C_0cM6n1eICC1o-mxqF2Igu69UKzO25bmtNzqnUKIJQ/edit"
+failure_emails:
+  - "YmxhaEBibGFoLm9yZw=="
+sysadmins_to_email:
+  - "YmxhaEBibGFoLm9yZw=="
+
