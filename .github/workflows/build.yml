@@ -1,7 +1,8 @@
 name: Build Docker Image
 
 on:
-  workflow_dispatch: # add run button in github
+  release:
+    types: [published]
 
 jobs:
   build:
