@@ -1,0 +1,104 @@
+##############################################################################
+# HDX DATA FRESHNESS:
+#
+#  Database:
+#   - PostgreSQL
+#
+#  REST api:
+#   - PostgREST
+#
+#  Data Freshness
+#   - HDX Data Freshness: collects freshness statistics about HDX
+#
+#  Data Freshness Emailer
+#   - HDX Data Freshness Emailer: emails when datasets overdue/delinquent
+#
+#  Data Freshness Database Cleaner
+#   - HDX Data Database Cleaner: cleans old runs from the freshness database
+#
+##############################################################################
+
+version: "3.1"
+
+services:
+  #
+  # Database
+  #
+  olddb:
+    image: unocha/postgis:9.6
+    restart: always
+    environment:
+      - PGSQL_USER=${DB_USER}
+      - PGSQL_PASS=${DB_PASS}
+      - PGSQL_DB=${DB_NAME}
+    volumes:
+      - "$BASEDIR/olddb:/var/lib/pgsql"
+      - "$BASEDIR/backup:/backup"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100k"
+        max-file: "1"
+    ports:
+      - "10.99.0.1:5433:5432"
+
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      PGDATA: /var/lib/pgsql/data
+      POSTGRES_PASSWORD: ${DB_PASS:-freshness}
+      POSTGRES_USER: ${DB_USER:-freshness}
+      POSTGRES_DB: ${DB_NAME:-freshness}
+    volumes:
+      - "$BASEDIR/db:/var/lib/pgsql"
+      - "$BASEDIR/backup:/backup"
+      - "./postgres-init:/docker-entrypoint-initdb.d"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100k"
+        max-file: "1"
+    ports:
+      - "10.99.0.1:5432:5432"
+
+  #
+  # Data Freshness
+  #
+  fresh:
+    extends:
+      file: .common.yml
+      service: freshness
+    depends_on:
+      - "db"
+    hostname: hdx-data-freshness
+    command: sh -c "PYTHONPATH=src:$$PYTHONPATH python3 -m hdx.freshness.app"
+
+  #
+  # Data Freshness Emailer
+  #
+  email:
+    extends:
+      file: .common.yml
+      service: freshness
+    depends_on:
+      - "db"
+    hostname: hdx-data-freshness-emailer
+    environment:
+      - EMAIL_SERVER=${EMAIL_SERVER}
+      - 'GSHEET_AUTH=${GSHEET_AUTH}'
+      - FAILURE_EMAILS=${FAILURE_EMAILS}
+      - SYSADMIN_EMAILS=${SYSADMIN_EMAILS}
+    command: sh -c "PYTHONPATH=src:$$PYTHONPATH python3 -m hdx.freshness.emailer.app"
+
+  #
+  # Data Freshness Database Cleaner
+  #
+  dbclean:
+    extends:
+      file: .common.yml
+      service: freshness
+    depends_on:
+      - "db"
+    hostname: hdx-data-freshness-dbclean
+    command: sh -c "PYTHONPATH=src:$$PYTHONPATH python3 -m hdx.freshness.dbactions"

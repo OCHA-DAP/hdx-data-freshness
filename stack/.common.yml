@@ -1,0 +1,17 @@
+version: "3.1"
+
+services:
+  #
+  # Data Freshness Common denominator
+  #
+  freshness:
+    image: public.ecr.aws/unocha/hdx-data-freshness:main
+    environment:
+      - HDX_KEY=${HDX_KEY}
+      - PREPREFIX=${PREPREFIX}
+      - DB_URI=${DB_URI}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "1"

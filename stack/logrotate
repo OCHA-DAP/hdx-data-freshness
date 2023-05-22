@@ -1,0 +1,12 @@
+/data/freshness/log/crondbbackup.log
+/data/freshness/log/cronemail.log
+/data/freshness/log/cronfresh.log
+{
+	rotate 7
+	daily
+	missingok
+	dateext
+	notifempty
+	delaycompress
+	compress
+}
