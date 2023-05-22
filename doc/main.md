@@ -40,15 +40,16 @@ frequency is Never, As Needed or Live then the dataset is always fresh.
     delinquent.
 3. If the dataset is not fresh based on metadata, then the urls of the
     resources are examined. If they are internal urls (data.humdata.org
-    -the HDX filestore, manage.hdx.rwlabs.org - CPS) then there is no
-    further checking that can be done because when the files pointed to
-    by these urls update, the HDX metadata is updated.
+    -the HDX filestore) then there is no further checking that can be done 
+    because when the files pointed to by these urls update, the HDX metadata is 
+    updated.
 4. If the url is externally hosted, then we can open an
     HTTP GET request to the file and check the header returned for the
     Last-Modified field. If that field exists, then we read the date and
     time from it and check if that is more recent than the dataset or
     resource metadata modification date. If it is, we recalculate
-    freshness.
+    freshness. (This step is no longer used for freshness calculation as it was
+    found to be unreliable.)
 5. If the resource is not fresh by this measure, then we download the
     file and calculate an MD5 hash for it. In our database, we store
     previous hash values, so we can check if the hash has changed since
