@@ -85,6 +85,15 @@ the first run in 2017
 The cloning action creates a shallow clone of the database which has all the 
 runs but only one dataset and its resources per run for testing purposes.
 
+## Docker Setup
+
+The Dockerfile installs required packages and also the dependencies listed in
+`requirements.txt`. It uses the Python source files directly (rather than 
+using PyPI as was the case previously). 
+
+The `stack` folder contains the Docker Compose YAML files and run scripts that
+are on the freshness server. 
+
 # Usage
 
 In the command line usage examples below, common parameters are set as follows:
