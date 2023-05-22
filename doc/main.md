@@ -1,8 +1,10 @@
 # Summary
 
-HDX data freshness is a process that runs against the [Humanitarian Data Exchange](https://data.humdata.org/)
-portal every day. It attempts to determine the freshness of datasets on the platform (ie. how up to date they
-are) and updates the last modified field of resources held externally to HDX that have changed.
+HDX data freshness is a process that runs against the 
+[Humanitarian Data Exchange](https://data.humdata.org/)
+portal every day. It attempts to determine the freshness of datasets on the 
+platform (ie. how up to date they are) and updates the last modified field of 
+resources held externally to HDX that have changed.
 
 The freshness emailer sends emails to HDX contributors and admins depending 
 upon the freshness and integrity of datasets.
@@ -11,11 +13,14 @@ The freshness cleaner removes older freshness database runs.
 
 # Information
 
-This library is part of the [Humanitarian Data Exchange](https://data.humdata.org/) (HDX) project. If you have 
-humanitarian related data, please upload your datasets to HDX.
+This library is part of the 
+[Humanitarian Data Exchange](https://data.humdata.org/) (HDX) project. If you 
+have humanitarian related data, please upload your datasets to HDX.
 
-The code for the library is [here](https://github.com/OCHA-DAP/hdx-data-freshness).
-The library has detailed API documentation which can be found in the menu at the top. 
+The code for the library is 
+[here](https://github.com/OCHA-DAP/hdx-data-freshness). The library has 
+detailed API documentation which can be found in the menu at the top. 
+
 
 # Description
 
@@ -62,11 +67,12 @@ one, they are executed concurrently using the asynchronous functionality
 
 ## Emailer
 
-The HDX freshness emailer reads the HDX data freshness database and finds datasets whose status has changed. 
-It sends emails to system administrators if the change is from overdue to delinquent or to maintainers if 
-from due to overdue. It also alerts when there are new candidates for the data grid and reports datasets that 
-are broken or which have invalid maintainers. An email is also sent for organisations with invalid 
-administrators. 
+The HDX freshness emailer reads the HDX data freshness database and finds 
+datasets whose status has changed. It sends emails to system administrators if 
+the change is from overdue to delinquent or to maintainers if from due to 
+overdue. It also alerts when there are new candidates for the data grid and 
+reports datasets that are broken or which have invalid maintainers. An email is 
+also sent for organisations with invalid administrators. 
 
 ## DBActions
 
