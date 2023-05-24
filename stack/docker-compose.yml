@@ -72,7 +72,7 @@ services:
     depends_on:
       - "db"
     hostname: hdx-data-freshness
-    command: sh -c "PYTHONPATH=src:$$PYTHONPATH python3 -m hdx.freshness.app"
+    command: python3 -m hdx.freshness.app
 
   #
   # Data Freshness Emailer
@@ -89,7 +89,7 @@ services:
       - 'GSHEET_AUTH=${GSHEET_AUTH}'
       - FAILURE_EMAILS=${FAILURE_EMAILS}
       - SYSADMIN_EMAILS=${SYSADMIN_EMAILS}
-    command: sh -c "PYTHONPATH=src:$$PYTHONPATH python3 -m hdx.freshness.emailer.app"
+    command: python3 -m hdx.freshness.emailer.app
 
   #
   # Data Freshness Database Cleaner
@@ -101,4 +101,4 @@ services:
     depends_on:
       - "db"
     hostname: hdx-data-freshness-dbclean
-    command: sh -c "PYTHONPATH=src:$$PYTHONPATH python3 -m hdx.freshness.dbactions"
+    command: python3 -m hdx.freshness.dbactions
