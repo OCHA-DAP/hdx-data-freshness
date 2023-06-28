@@ -3,13 +3,14 @@ from collections import UserDict
 from os.path import join
 
 import pytest
+
 from hdx.api.configuration import Configuration
 
 
 @pytest.fixture(scope="session")
 def configuration():
     project_config_yaml = join(
-        "src", "hdx", "freshness", "app", "project_configuration.yml"
+        "src", "hdx", "freshness", "app", "project_configuration.yaml"
     )
     Configuration._create(
         hdx_site="prod",

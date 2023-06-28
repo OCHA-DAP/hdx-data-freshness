@@ -5,6 +5,12 @@ import logging
 from os import getenv
 from typing import Optional
 
+from ... import __version__
+from ..utils.databasequeries import DatabaseQueries
+from ..utils.freshnessemail import Email
+from ..utils.hdxhelper import HDXHelper
+from ..utils.sheet import Sheet
+from .datafreshnessstatus import DataFreshnessStatus
 from hdx.api.configuration import Configuration
 from hdx.database import Database
 from hdx.database.dburi import get_params_from_connection_uri
@@ -13,13 +19,6 @@ from hdx.utilities.dateparse import now_utc
 from hdx.utilities.dictandlist import args_to_dict
 from hdx.utilities.easy_logging import setup_logging
 from hdx.utilities.path import script_dir_plus_file
-
-from ... import __version__
-from ..utils.databasequeries import DatabaseQueries
-from ..utils.freshnessemail import Email
-from ..utils.hdxhelper import HDXHelper
-from ..utils.sheet import Sheet
-from .datafreshnessstatus import DataFreshnessStatus
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -271,7 +270,7 @@ if __name__ == "__main__":
     if sysadmin_emails is None:
         sysadmin_emails = getenv("SYSADMIN_EMAILS")
     project_config_yaml = script_dir_plus_file(
-        "project_configuration.yml", main
+        "project_configuration.yaml", main
     )
     facade(
         main,

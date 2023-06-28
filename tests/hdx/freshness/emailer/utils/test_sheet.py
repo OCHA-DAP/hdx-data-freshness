@@ -6,17 +6,17 @@ from os import getenv
 from os.path import join
 
 import pytest
-from hdx.api.configuration import Configuration
-from hdx.utilities.dateparse import parse_date
 
+from hdx.api.configuration import Configuration
 from hdx.freshness.emailer.utils.sheet import Sheet
+from hdx.utilities.dateparse import parse_date
 
 
 class TestSheet:
     @pytest.fixture(scope="function")
     def configuration(self):
         project_config_yaml = join(
-            "tests", "fixtures", "emailer", "project_configuration.yml"
+            "tests", "fixtures", "emailer", "project_configuration.yaml"
         )
         return Configuration(
             hdx_site="prod",
@@ -31,7 +31,7 @@ class TestSheet:
             "tests",
             "fixtures",
             "emailer",
-            "project_configuration_multiple.yml",
+            "project_configuration_multiple.yaml",
         )
         return Configuration(
             hdx_site="prod",

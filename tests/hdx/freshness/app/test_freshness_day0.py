@@ -6,9 +6,9 @@ from os import remove
 from os.path import join
 
 import pytest
-from hdx.database import Database
 from sqlalchemy import func, select
 
+from hdx.database import Database
 from hdx.freshness.app.datafreshness import DataFreshness
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.database.dbinfodataset import DBInfoDataset

@@ -6,7 +6,7 @@
 .travis.yml
 
 # Docker
-stack/docker-compose.yml
+stack/docker-compose.yaml
 .docker
 
 # Byte-compiled / optimized / DLL files

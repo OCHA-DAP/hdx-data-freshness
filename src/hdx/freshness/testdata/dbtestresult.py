@@ -3,8 +3,9 @@ of downloading and hashing urls (first time).
 """
 from datetime import datetime
 
-from hdx.database.no_timezone import Base
 from sqlalchemy.orm import Mapped, mapped_column
+
+from hdx.database.no_timezone import Base
 
 
 class DBTestResult(Base):

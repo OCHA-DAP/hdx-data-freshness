@@ -3,12 +3,12 @@ from os.path import join
 from shutil import copyfile
 
 import pytest
+
 from hdx.database import Database
+from hdx.freshness.dbactions.dbclean import DBClean
 from hdx.utilities.compare import assert_files_same
 from hdx.utilities.dateparse import parse_date
 from hdx.utilities.path import temp_dir
-
-from hdx.freshness.dbactions.dbclean import DBClean
 
 
 class TestDBClean:

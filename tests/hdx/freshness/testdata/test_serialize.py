@@ -8,9 +8,8 @@ from datetime import datetime, timezone
 from os.path import join
 
 import pytest
-from hdx.database import Database
-from hdx.utilities.dateparse import now_utc
 
+from hdx.database import Database
 from hdx.freshness.testdata.serialize import (
     deserialize_datasets,
     deserialize_hashresults,
@@ -21,6 +20,7 @@ from hdx.freshness.testdata.serialize import (
     serialize_now,
     serialize_results,
 )
+from hdx.utilities.dateparse import now_utc
 
 
 class TestSerialize:

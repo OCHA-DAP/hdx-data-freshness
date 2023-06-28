@@ -5,6 +5,8 @@ import logging
 from os import getenv
 from typing import Optional
 
+from .. import __version__
+from .datafreshness import DataFreshness
 from hdx.database import Database
 from hdx.database.dburi import get_params_from_connection_uri
 from hdx.facades.keyword_arguments import facade
@@ -12,9 +14,6 @@ from hdx.utilities.dictandlist import args_to_dict
 from hdx.utilities.easy_logging import setup_logging
 from hdx.utilities.path import script_dir_plus_file
 from hdx.utilities.useragent import UserAgent
-
-from .. import __version__
-from .datafreshness import DataFreshness
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -137,7 +136,7 @@ if __name__ == "__main__":
     if db_uri and "://" not in db_uri:
         db_uri = f"postgresql://{db_uri}"
     project_config_yaml = script_dir_plus_file(
-        "project_configuration.yml", main
+        "project_configuration.yaml", main
     )
     facade(
         main,

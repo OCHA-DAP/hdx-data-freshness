@@ -15,10 +15,9 @@ from os.path import join
 from shutil import copyfile
 
 import pytest
-from hdx.database import Database
-from hdx.utilities.dateparse import parse_date
 from sqlalchemy import func, select
 
+from hdx.database import Database
 from hdx.freshness.app.datafreshness import DataFreshness
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.database.dbinfodataset import DBInfoDataset
@@ -32,6 +31,7 @@ from hdx.freshness.testdata.serialize import (
     deserialize_now,
     deserialize_results,
 )
+from hdx.utilities.dateparse import parse_date
 
 
 class TestFreshnessDayN:

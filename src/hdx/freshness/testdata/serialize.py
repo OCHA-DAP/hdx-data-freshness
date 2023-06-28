@@ -3,7 +3,6 @@
 from datetime import datetime
 from typing import Dict, Iterable, List, Tuple
 
-from hdx.data.dataset import Dataset
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -12,6 +11,7 @@ from .dbtestdate import DBTestDate
 from .dbtesthashresult import DBTestHashResult
 from .dbtestresource import DBTestResource
 from .dbtestresult import DBTestResult
+from hdx.data.dataset import Dataset
 
 
 def serialize_datasets(session: Session, datasets: List[Dataset]) -> None:

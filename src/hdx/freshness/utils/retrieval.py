@@ -16,11 +16,11 @@ from typing import Dict, List, Optional, Tuple, Union
 import aiohttp
 import tqdm
 import uvloop
-from hdx.utilities.dateparse import parse_date
 from openpyxl import load_workbook
 
 from . import retry
 from .ratelimiter import RateLimiter
+from hdx.utilities.dateparse import parse_date
 
 logger = logging.getLogger(__name__)
 

@@ -17,4 +17,4 @@ RUN --mount=source=.git,target=.git,type=bind \
     apk add --no-cache libpq && \
     rm -rf /var/lib/apk/*
 
-CMD sh -c "PYTHONPATH=src:\$PYTHONPATH python3 -m hdx.freshness.app"
+CMD "python3 -m hdx.freshness.app"

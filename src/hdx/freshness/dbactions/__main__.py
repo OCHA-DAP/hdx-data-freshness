@@ -5,15 +5,14 @@ import logging
 from os import getenv
 from typing import Optional
 
+from .. import __version__
+from .dbclean import DBClean
+from .dbclone import DBClone
 from hdx.database import Database
 from hdx.database.dburi import get_params_from_connection_uri
 from hdx.utilities.dateparse import now_utc
 from hdx.utilities.dictandlist import args_to_dict
 from hdx.utilities.easy_logging import setup_logging
-
-from .. import __version__
-from .dbclean import DBClean
-from .dbclone import DBClone
 
 setup_logging()
 logger = logging.getLogger(__name__)
