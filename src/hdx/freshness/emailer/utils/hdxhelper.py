@@ -3,13 +3,12 @@
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
+from .freshnessemail import Email
 from hdx.data.dataset import Dataset
 from hdx.data.date_helper import DateHelper
 from hdx.data.organization import Organization
 from hdx.data.user import User
 from hdx.utilities.dictandlist import dict_of_lists_add
-
-from .freshnessemail import Email
 
 
 class HDXHelper:

@@ -13,14 +13,14 @@ from time import sleep
 import gspread
 import pytest
 from gspread.urls import DRIVE_FILES_API_V3_URL
+from sqlalchemy import select
+
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.database import Database
-from hdx.utilities.dateparse import now_utc
-from sqlalchemy import select
-
 from hdx.freshness.app.datafreshness import DataFreshness
 from hdx.freshness.database.dbdataset import DBDataset
+from hdx.utilities.dateparse import now_utc
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class TestFreshnessCKAN:
     @pytest.fixture(scope="class")
     def configuration(self):
         project_config_yaml = join(
-            "src", "hdx", "freshness", "app", "project_configuration.yml"
+            "src", "hdx", "freshness", "app", "project_configuration.yaml"
         )
         hdx_key = getenv("HDX_KEY")
         Configuration._create(
@@ -41,7 +41,7 @@ class TestFreshnessCKAN:
 
     @pytest.fixture(scope="function")
     def datasetmetadata(self):
-        return join("tests", "fixtures", "CKAN", "hdx_dataset_static.yml")
+        return join("tests", "fixtures", "CKAN", "hdx_dataset_static.yaml")
 
     @pytest.fixture(scope="function")
     def nodatabase(self):

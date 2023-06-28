@@ -4,12 +4,12 @@ from datetime import timedelta
 
 from dateutil.relativedelta import relativedelta
 from dateutil.rrule import MONTHLY, WE, WEEKLY, rrule
-from hdx.utilities.dictandlist import write_list_to_csv
 from sqlalchemy import delete, select
 
 from ..database.dbdataset import DBDataset
 from ..database.dbresource import DBResource
 from ..database.dbrun import DBRun
+from hdx.utilities.dictandlist import write_list_to_csv
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,10 @@
 """SQLAlchemy class representing DBTestResource row. Holds test data for resources with
 the aim of mimicking what would come from HDX.
 """
-from hdx.database.no_timezone import Base
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
+
+from hdx.database.no_timezone import Base
 
 
 class DBTestResource(Base):

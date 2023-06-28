@@ -7,10 +7,10 @@ from os import remove
 from os.path import join
 
 import pytest
-from hdx.database import Database
-from hdx.utilities.dateparse import now_utc
 
+from hdx.database import Database
 from hdx.freshness.app.datafreshness import DataFreshness
+from hdx.utilities.dateparse import now_utc
 
 
 class TestFreshnessByFrequency:

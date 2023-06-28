@@ -8,10 +8,9 @@ from os.path import join
 from shutil import copyfile
 
 import pytest
+
 from hdx.data.dataset import Dataset
 from hdx.database import Database
-from hdx.utilities.dateparse import parse_date
-
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.database.dbrun import DBRun
 from hdx.freshness.emailer.app.datafreshnessstatus import DataFreshnessStatus
@@ -19,6 +18,7 @@ from hdx.freshness.emailer.utils.databasequeries import DatabaseQueries
 from hdx.freshness.emailer.utils.freshnessemail import Email
 from hdx.freshness.emailer.utils.hdxhelper import HDXHelper
 from hdx.freshness.emailer.utils.sheet import Sheet
+from hdx.utilities.dateparse import parse_date
 
 
 class TestDataFreshnessStatus:

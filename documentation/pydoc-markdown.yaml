@@ -1,0 +1,38 @@
+loaders:
+  - type: python
+    search_path:
+      - ../src
+    packages:
+      - hdx.freshness.app
+      - hdx.freshness.database
+      - hdx.freshness.testdata
+      - hdx.freshness.utils
+renderer:
+  type: mkdocs
+  output_directory: docs
+  mkdocs_config:
+    site_name: HDX Data Freshness
+    theme: readthedocs
+    repo_url: "https://github.com/OCHA-DAP/hdx-data-freshness"
+  markdown:
+    source_linker:
+      type: github
+      repo: OCHA-DAP/hdx-data-freshness
+  pages:
+    - title: Home
+      name: index
+      source: main.md
+    - title: API Documentation
+      children:
+        - title: Data Freshness
+          contents:
+            - hdx.freshness.app.datafreshness.*
+        - title: Database Mappings
+          contents:
+            - hdx.freshness.database.*
+        - title: Database Mappings for Tests
+          contents:
+            - hdx.freshness.testdata.*
+        - title: Utilities
+          contents:
+            - hdx.freshness.utils.*

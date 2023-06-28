@@ -6,10 +6,10 @@ from datetime import datetime, timezone
 from unittest.mock import Mock
 
 import pytest
-from hdx.data.dataset import Dataset
-from hdx.utilities.dateparse import parse_date
 
+from hdx.data.dataset import Dataset
 from hdx.freshness.app.datafreshness import DataFreshness
+from hdx.utilities.dateparse import parse_date
 
 
 class TestProcessResults:

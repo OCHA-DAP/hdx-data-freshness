@@ -7,15 +7,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 from dateutil.parser import ParserError
-from hdx.api.configuration import Configuration
-from hdx.data.dataset import Dataset
-from hdx.data.hdxobject import HDXError
-from hdx.data.resource import Resource
-from hdx.utilities.dateparse import now_utc, parse_date
-from hdx.utilities.dictandlist import (
-    dict_of_lists_add,
-    list_distribute_contents,
-)
 from sqlalchemy import exists, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
@@ -32,6 +23,15 @@ from ..testdata.serialize import (
     serialize_results,
 )
 from ..utils.retrieval import Retrieval
+from hdx.api.configuration import Configuration
+from hdx.data.dataset import Dataset
+from hdx.data.hdxobject import HDXError
+from hdx.data.resource import Resource
+from hdx.utilities.dateparse import now_utc, parse_date
+from hdx.utilities.dictandlist import (
+    dict_of_lists_add,
+    list_distribute_contents,
+)
 
 logger = logging.getLogger(__name__)
 

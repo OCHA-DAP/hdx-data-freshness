@@ -4,13 +4,14 @@ import shutil
 from os.path import join
 
 import pytest
+
 from hdx.api.configuration import Configuration
 
 
 @pytest.fixture(scope="function")
 def configuration():
     project_config_yaml = join(
-        "tests", "fixtures", "emailer", "project_configuration.yml"
+        "tests", "fixtures", "emailer", "project_configuration.yaml"
     )
     Configuration._create(
         hdx_site="prod",

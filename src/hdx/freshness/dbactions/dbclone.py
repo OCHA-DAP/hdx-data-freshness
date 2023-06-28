@@ -1,10 +1,9 @@
 import logging
 
-from hdx.database import Database
-
 from ..database.dbdataset import DBDataset
 from ..database.dbresource import DBResource
 from ..database.dbrun import DBRun
+from hdx.database import Database
 
 logger = logging.getLogger(__name__)
 

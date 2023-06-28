@@ -67,7 +67,7 @@ services:
   #
   fresh:
     extends:
-      file: .common.yml
+      file: .common.yaml
       service: freshness
     depends_on:
       - "db"
@@ -79,7 +79,7 @@ services:
   #
   email:
     extends:
-      file: .common.yml
+      file: .common.yaml
       service: freshness
     depends_on:
       - "db"
@@ -96,7 +96,7 @@ services:
   #
   dbclean:
     extends:
-      file: .common.yml
+      file: .common.yaml
       service: freshness
     depends_on:
       - "db"

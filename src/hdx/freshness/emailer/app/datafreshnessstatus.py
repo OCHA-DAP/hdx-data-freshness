@@ -7,12 +7,11 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Type
 
-from hdx.data.dataset import Dataset
-from hdx.utilities.dictandlist import dict_of_lists_add
-
 from ..utils.databasequeries import DatabaseQueries
 from ..utils.freshnessemail import Email
 from ..utils.sheet import Sheet
+from hdx.data.dataset import Dataset
+from hdx.utilities.dictandlist import dict_of_lists_add
 
 logger = logging.getLogger(__name__)
 

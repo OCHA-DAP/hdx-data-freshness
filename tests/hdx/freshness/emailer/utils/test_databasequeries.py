@@ -3,10 +3,9 @@ Unit tests for database queries code.
 
 """
 from hdx.database import Database
-from hdx.utilities.dateparse import parse_date
-
 from hdx.freshness.emailer.utils.databasequeries import DatabaseQueries
 from hdx.freshness.emailer.utils.hdxhelper import HDXHelper
+from hdx.utilities.dateparse import parse_date
 
 
 class TestDatabaseQueries:
