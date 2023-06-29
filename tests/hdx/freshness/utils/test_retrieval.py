@@ -10,7 +10,7 @@ from hdx.freshness.utils.retrieval import Retrieval
 
 class TestRetrieve:
     def test_retrieve(self):
-        url1 = "https://www.rfc-editor.org/rfc/rfc7235.txt"
+        url1 = "http://info.cern.ch/hypertext/WWW/TheProject.html"
         url2 = "https://github.com/mcarans/hdx-data-freshness/raw/d1616d76c3b6b8ef5029eb6964b93cde688efd53/tests/fixtures/day0/notfound"
         url3 = "file://lala:10"
         url4 = "https://ocha-dap.github.io/hdx-data-freshness/tests/fixtures/retrieve/COD_MOZ_Admin0.geojson"
@@ -39,8 +39,8 @@ class TestRetrieve:
             url1,
             "html",
             None,
-            datetime(2014, 6, 7, 0, 53, 56, tzinfo=timezone.utc),
-            "c9ef27e27f0bb5a772e12af426102804",
+            datetime(1992, 12, 3, 8, 37, 20, tzinfo=timezone.utc),
+            "87cf701e7488a34c70371617ef947bd3",
             None,
         )
         assert result["2"] == (
