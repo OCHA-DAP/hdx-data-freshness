@@ -37,8 +37,8 @@ dependencies = [
     "aiodns",
     "aiohttp",
     "gspread",
-    "hdx-python-api >= 6.0.4",
-    "hdx-python-database[postgresql]>= 1.2.4",
+    "hdx-python-api >= 6.0.8",
+    "hdx-python-database[postgresql]>= 1.2.5",
     "tqdm",
     "uvloop",
 ]

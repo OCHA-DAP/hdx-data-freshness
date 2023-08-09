@@ -12,7 +12,7 @@ renderer:
   output_directory: docs
   mkdocs_config:
     site_name: HDX Data Freshness
-    theme: readthedocs
+    theme: mkdocs
     repo_url: "https://github.com/OCHA-DAP/hdx-data-freshness"
   markdown:
     source_linker:
