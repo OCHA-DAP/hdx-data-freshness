@@ -34,7 +34,7 @@ class TestFreshnessCKAN:
         )
         hdx_key = getenv("HDX_KEY")
         Configuration._create(
-            hdx_site="stage",
+            hdx_site="demo",
             user_agent="test",
             hdx_key=hdx_key,
             project_config_yaml=project_config_yaml,
