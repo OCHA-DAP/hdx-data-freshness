@@ -58,7 +58,7 @@ class TestRetrieve:
         assert result["3"][4] is None
         assert result["4"][0] == url4
         assert result["4"][1] == "geojson"
-        assert result["4"][4] == "c69a7ea486af00be2c409ef3b7894514"
+        assert result["4"][4] == "31b5b87bc6b528e94370a3e0e16d46ac"
         assert result["5"][0] == url5
         assert result["5"][1] == "shp"
         assert result["5"][4] == "681ac397411c62c3aba4c630a2fd27da"
@@ -74,18 +74,18 @@ class TestRetrieve:
         assert result["8"][5] == "c3d51c5b077a48221e77797f7e771d1f"
         assert result["9"][0] == url9
         assert result["9"][1] == "html"
-        assert result["9"][4] == "9070c22e0c8c41204c6d4e509929246e"
+        assert result["9"][4] == "d2d5b1e36183d44fb6c4dfc375350d1b"
         assert result["10"][0] == url9
         assert result["10"][1] == "csv"
         assert (
             result["10"][2]
             == "File mimetype text/html; charset=utf-8 does not match HDX format csv!"
         )
-        assert result["10"][4] == "9070c22e0c8c41204c6d4e509929246e"
+        assert result["10"][4] == "d2d5b1e36183d44fb6c4dfc375350d1b"
         assert result["11"][0] == url9
         assert result["11"][1] == "xls"
         assert (
             result["11"][2]
             == "File mimetype text/html; charset=utf-8 does not match HDX format xls! File signature b'<htm' does not match HDX format xls!"
         )
-        assert result["11"][4] == "9070c22e0c8c41204c6d4e509929246e"
+        assert result["11"][4] == "d2d5b1e36183d44fb6c4dfc375350d1b"
