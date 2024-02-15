@@ -115,7 +115,7 @@ class TestFreshnessCKAN:
             spreadsheetid = r.json()["id"]
             gsheet = gclient.open_by_key(spreadsheetid)
             wks = gsheet.sheet1
-            wks.update("A1", update)
+            wks.update(update, "A1")
             gsheet.share("", role="reader", perm_type="anyone")
             return wks, f"{gsheet.url}/export?format=xlsx"
 
@@ -218,12 +218,12 @@ class TestFreshnessCKAN:
 
                 # change something
                 changing_wks1.update(
-                    "A1",
                     [[random.random() for i in range(5)] for j in range(2)],
+                    "A1",
                 )
                 changing_wks2.update(
-                    "A1",
                     [[random.random() for i in range(3)] for j in range(6)],
+                    "A1",
                 )
 
             sleep(60)
