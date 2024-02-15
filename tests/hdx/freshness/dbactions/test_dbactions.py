@@ -5,6 +5,7 @@ from shutil import copyfile
 import pytest
 
 from hdx.database import Database
+from hdx.freshness.database import Base
 from hdx.freshness.dbactions.dbclean import DBClean
 from hdx.utilities.compare import assert_files_same
 from hdx.utilities.dateparse import parse_date
@@ -73,7 +74,7 @@ class TestDBClean:
             delete_on_success=True,
             delete_on_failure=False,
         ) as folder:
-            with Database(**database) as session:
+            with Database(**database, table_base=Base) as session:
                 cleaner = DBClean(session)
 
                 self.check_results(
@@ -127,7 +128,9 @@ class TestDBClean:
             delete_on_success=True,
             delete_on_failure=False,
         ) as folder:
-            with Database(**database_brokenrun1351) as session:
+            with Database(
+                **database_brokenrun1351, table_base=Base
+            ) as session:
                 cleaner = DBClean(session)
 
                 self.check_results(

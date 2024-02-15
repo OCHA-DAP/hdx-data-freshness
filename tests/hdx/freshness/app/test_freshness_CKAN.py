@@ -19,6 +19,7 @@ from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.database import Database
 from hdx.freshness.app.datafreshness import DataFreshness
+from hdx.freshness.database import Base
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.utilities.dateparse import now_utc
 
@@ -81,7 +82,7 @@ class TestFreshnessCKAN:
             "mimeType": "application/vnd.google-apps.folder",
             "parents": ["1M8_Hv3myw9RpLq86kBL7QkMAYxcHjvb6"],
         }
-        r = gclient.request(
+        r = gclient.http_client.request(
             "post", DRIVE_FILES_API_V3_URL, json=payload, params=params
         )
         folderid = r.json()["id"]
@@ -89,7 +90,7 @@ class TestFreshnessCKAN:
 
         payload = {"trashed": True}
         url = f"{DRIVE_FILES_API_V3_URL}/{folderid}"
-        gclient.request("patch", url, json=payload, params=params)
+        gclient.http_client.request("patch", url, json=payload, params=params)
 
     def test_generate_dataset(
         self,
@@ -108,7 +109,7 @@ class TestFreshnessCKAN:
                 "mimeType": "application/vnd.google-apps.spreadsheet",
                 "parents": [folderid],
             }
-            r = gclient.request(
+            r = gclient.http_client.request(
                 "post", DRIVE_FILES_API_V3_URL, json=payload, params=params
             )
             spreadsheetid = r.json()["id"]
@@ -186,7 +187,7 @@ class TestFreshnessCKAN:
             marked_broken.append(False)
         updated_by_script_dt = None
         try:
-            with Database(**nodatabase) as session:
+            with Database(**nodatabase, table_base=Base) as session:
                 # first run
                 freshness = DataFreshness(
                     session=session, datasets=datasets, do_touch=True

@@ -6,6 +6,7 @@ from os import getenv
 from typing import Optional
 
 from .. import __version__
+from ..database import Base
 from .dbclean import DBClean
 from .dbclone import DBClone
 from hdx.database import Database
@@ -45,7 +46,7 @@ def main(
     else:
         params = {"dialect": "sqlite", "database": "freshness.db"}
     logger.info(f"> Database parameters: {params}")
-    with Database(**params) as session:
+    with Database(**params, table_base=Base) as session:
         now = now_utc()
         if action == "clean":
             cleaner = DBClean(session)

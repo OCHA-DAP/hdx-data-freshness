@@ -6,6 +6,7 @@ from os import getenv
 from typing import Optional
 
 from .. import __version__
+from ..database import Base
 from .datafreshness import DataFreshness
 from hdx.database import Database
 from hdx.database.dburi import get_params_from_connection_uri
@@ -47,7 +48,7 @@ def main(
     else:
         params = {"dialect": "sqlite", "database": "freshness.db"}
     logger.info(f"> Database parameters: {params}")
-    with Database(**params) as session:
+    with Database(**params, table_base=Base) as session:
         testsession = None
         if save:
             testsession = Database.get_session("sqlite:///test_serialize.db")

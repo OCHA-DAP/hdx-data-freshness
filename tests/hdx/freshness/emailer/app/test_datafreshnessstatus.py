@@ -11,6 +11,7 @@ import pytest
 
 from hdx.data.dataset import Dataset
 from hdx.database import Database
+from hdx.freshness.database import Base
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.database.dbrun import DBRun
 from hdx.freshness.emailer.app.datafreshnessstatus import DataFreshnessStatus
@@ -708,7 +709,7 @@ class TestDataFreshnessStatus:
             sysadmin_emails=sysadmin_emails,
             send_emails=self.email_users,
         )
-        with Database(**database_broken) as session:
+        with Database(**database_broken, table_base=Base) as session:
             hdxhelper = HDXHelper(
                 site_url=site_url, users=users, organizations=organizations
             )
@@ -1230,7 +1231,7 @@ class TestDataFreshnessStatus:
             sysadmin_emails=sysadmin_emails,
             send_emails=self.email_users,
         )
-        with Database(**database_status) as session:
+        with Database(**database_status, table_base=Base) as session:
             hdxhelper = HDXHelper(
                 site_url=site_url, users=users, organizations=organizations
             )
@@ -1471,7 +1472,7 @@ class TestDataFreshnessStatus:
             sysadmin_emails=sysadmin_emails,
             send_emails=self.email_users,
         )
-        with Database(**database_maintainer) as session:
+        with Database(**database_maintainer, table_base=Base) as session:
             hdxhelper = HDXHelper(
                 site_url=site_url, users=users, organizations=organizations
             )
@@ -1735,7 +1736,7 @@ class TestDataFreshnessStatus:
             now,
             send_emails=self.email_users,
         )
-        with Database(**database_failure) as session:
+        with Database(**database_failure, table_base=Base) as session:
             hdxhelper = HDXHelper(
                 site_url=site_url, users=users, organizations=organizations
             )
@@ -1877,7 +1878,7 @@ class TestDataFreshnessStatus:
             sysadmin_emails=sysadmin_emails,
             send_emails=self.email_users,
         )
-        with Database(**database_noresources) as session:
+        with Database(**database_noresources, table_base=Base) as session:
             hdxhelper = HDXHelper(
                 site_url=site_url, users=users, organizations=organizations
             )
@@ -2036,7 +2037,9 @@ class TestDataFreshnessStatus:
             sysadmin_emails=sysadmin_emails,
             send_emails=self.email_users,
         )
-        with Database(**database_datasets_modified_yesterday) as session:
+        with Database(
+            **database_datasets_modified_yesterday, table_base=Base
+        ) as session:
             hdxhelper = HDXHelper(
                 site_url=site_url, users=users, organizations=organizations
             )

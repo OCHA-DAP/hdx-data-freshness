@@ -19,6 +19,7 @@ from sqlalchemy import func, select
 
 from hdx.database import Database
 from hdx.freshness.app.datafreshness import DataFreshness
+from hdx.freshness.database import Base
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.database.dbinfodataset import DBInfoDataset
 from hdx.freshness.database.dborganization import DBOrganization
@@ -84,7 +85,7 @@ class TestFreshnessDayN:
         forced_hash_ids,
         resourcecls,
     ):
-        with Database(**database) as session:
+        with Database(**database, table_base=Base) as session:
             freshness = DataFreshness(
                 session=session, datasets=datasets, now=now, do_touch=True
             )

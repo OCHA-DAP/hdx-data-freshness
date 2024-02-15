@@ -1,5 +1,6 @@
 import logging
 
+from ..database import Base
 from ..database.dbdataset import DBDataset
 from ..database.dbresource import DBResource
 from ..database.dbrun import DBRun
@@ -16,7 +17,7 @@ class DBClone:
     def run(
         self, params={"dialect": "sqlite", "database": "test_freshness.db"}
     ):
-        with Database(**params) as clone_session:
+        with Database(**params, table_base=Base) as clone_session:
             run_numbers = self.session.query(DBRun).all()
             for run_number in run_numbers:
                 clone_session.merge(run_number)

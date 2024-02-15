@@ -5,7 +5,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Mapped, mapped_column
 
-from hdx.database.no_timezone import Base
+from ..database import Base
 
 
 class DBTestResult(Base):
