@@ -10,6 +10,7 @@ import pytest
 
 from hdx.database import Database
 from hdx.freshness.app.datafreshness import DataFreshness
+from hdx.freshness.database import Base
 from hdx.utilities.dateparse import now_utc
 
 
@@ -87,7 +88,7 @@ class TestFreshnessByFrequency:
         update_frequency,
         expected_status,
     ):
-        with Database(**nodatabase) as session:
+        with Database(**nodatabase, table_base=Base) as session:
             freshness = DataFreshness(
                 session=session, datasets=datasets, now=now
             )

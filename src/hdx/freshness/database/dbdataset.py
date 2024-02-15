@@ -6,7 +6,7 @@ from datetime import datetime
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
-from hdx.database.no_timezone import Base
+from . import Base
 
 
 class DBDataset(Base):

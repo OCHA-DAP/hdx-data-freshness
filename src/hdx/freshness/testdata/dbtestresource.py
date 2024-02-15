@@ -4,7 +4,7 @@ the aim of mimicking what would come from HDX.
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
-from hdx.database.no_timezone import Base
+from ..database import Base
 
 
 class DBTestResource(Base):

@@ -6,6 +6,7 @@ from os import getenv
 from typing import Optional
 
 from ... import __version__
+from ...database import Base
 from ..utils.databasequeries import DatabaseQueries
 from ..utils.freshnessemail import Email
 from ..utils.hdxhelper import HDXHelper
@@ -96,7 +97,7 @@ def main(
     if sysadmin_emails:
         sysadmin_emails = sysadmin_emails.split(",")
     logger.info(f"> Database parameters: {params}")
-    with Database(**params) as session:
+    with Database(**params, table_base=Base) as session:
         now = now_utc()
         email = Email(
             now,

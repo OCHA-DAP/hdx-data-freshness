@@ -1,25 +1,25 @@
 # Summary
 
-HDX data freshness is a process that runs against the 
+HDX data freshness is a process that runs against the
 [Humanitarian Data Exchange](https://data.humdata.org/)
-portal every day. It attempts to determine the freshness of datasets on the 
-platform (ie. how up to date they are) and updates the last modified field of 
+portal every day. It attempts to determine the freshness of datasets on the
+platform (ie. how up to date they are) and updates the last modified field of
 resources held externally to HDX that have changed.
 
-The freshness emailer sends emails to HDX contributors and admins depending 
+The freshness emailer sends emails to HDX contributors and admins depending
 upon the freshness and integrity of datasets.
 
 The freshness cleaner removes older freshness database runs.
 
 # Information
 
-This library is part of the 
-[Humanitarian Data Exchange](https://data.humdata.org/) (HDX) project. If you 
+This library is part of the
+[Humanitarian Data Exchange](https://data.humdata.org/) (HDX) project. If you
 have humanitarian related data, please upload your datasets to HDX.
 
-The code for the library is 
-[here](https://github.com/OCHA-DAP/hdx-data-freshness). The library has 
-detailed API documentation which can be found in the menu at the top. 
+The code for the library is
+[here](https://github.com/OCHA-DAP/hdx-data-freshness). The library has
+detailed API documentation which can be found in the menu at the top.
 
 
 # Description
@@ -40,8 +40,8 @@ frequency is Never, As Needed or Live then the dataset is always fresh.
     delinquent.
 3. If the dataset is not fresh based on metadata, then the urls of the
     resources are examined. If they are internal urls (data.humdata.org
-    -the HDX filestore) then there is no further checking that can be done 
-    because when the files pointed to by these urls update, the HDX metadata is 
+    -the HDX filestore) then there is no further checking that can be done
+    because when the files pointed to by these urls update, the HDX metadata is
     updated.
 4. If the url is externally hosted, then we can open an
     HTTP GET request to the file and check the header returned for the
@@ -53,7 +53,7 @@ frequency is Never, As Needed or Live then the dataset is always fresh.
 5. If the resource is not fresh by this measure, then we download the
     file and calculate an MD5 hash for it. In our database, we store
     previous hash values, so we can check if the hash has changed since
-    the last time we took the hash. For xlsx, if the hash is constantly 
+    the last time we took the hash. For xlsx, if the hash is constantly
     changing, we hash the individual sheets in the workbook.
 6. There are some resources where the hash changes constantly because
     they connect to an api which generates a file on the fly. To
@@ -68,12 +68,12 @@ one, they are executed concurrently using the asynchronous functionality
 
 ## Emailer
 
-The HDX freshness emailer reads the HDX data freshness database and finds 
-datasets whose status has changed. It sends emails to system administrators if 
-the change is from overdue to delinquent or to maintainers if from due to 
-overdue. It also alerts when there are new candidates for the data grid and 
-reports datasets that are broken or which have invalid maintainers. An email is 
-also sent for organisations with invalid administrators. 
+The HDX freshness emailer reads the HDX data freshness database and finds
+datasets whose status has changed. It sends emails to system administrators if
+the change is from overdue to delinquent or to maintainers if from due to
+overdue. It also alerts when there are new candidates for the data grid and
+reports datasets that are broken or which have invalid maintainers. An email is
+also sent for organisations with invalid administrators.
 
 ## DBActions
 
@@ -81,32 +81,32 @@ Utilities to:
 1. Clean the freshness database
 2. Make a shallow clone of the freshness database
 
-The cleaning action reduces the size of the database by removing runs 
+The cleaning action reduces the size of the database by removing runs
 according to these rules:
-1. Keep a handful of runs around the end of each quarter all the way back to 
+1. Keep a handful of runs around the end of each quarter all the way back to
 the first run in 2017
 2. Keep daily runs going back 2 years
 3. Keep weekly runs from 2 to 4 years back
 4. Keep monthly runs for 4 years back and earlier
 
-The cloning action creates a shallow clone of the database which has all the 
+The cloning action creates a shallow clone of the database which has all the
 runs but only one dataset and its resources per run for testing purposes.
 
 ## Docker Setup
 
 The Dockerfile installs required packages and also the dependencies listed in
-`requirements.txt`. It uses the Python source files directly (rather than 
-using PyPI as was the case previously). 
+`requirements.txt`. It uses the Python source files directly (rather than
+using PyPI as was the case previously).
 
 The `stack` folder contains the Docker Compose YAML files and run scripts that
-are on the freshness server. 
+are on the freshness server.
 
 # Usage
 
 In the command line usage examples below, common parameters are set as follows:
 
 Either db_uri or db_params must be provided or the environment variable DB_URI
-must be set. db_uri or DB_URI are of form: 
+must be set. db_uri or DB_URI are of form:
 `postgresql+psycopg://user:password@host:port/database`
 
 db_params is of form:
@@ -130,9 +130,9 @@ The PARAMETERS are:
                         Database connection string
     -dp DB_PARAMS, --db_params DB_PARAMS
                         Database connection parameters. Overrides --db_uri.
-    -dt, --donttouch      
+    -dt, --donttouch
                         Don't touch datasets
-    -s, --save            
+    -s, --save
                         Save state for testing
 
 
@@ -179,4 +179,3 @@ The PARAMETERS are:
                         Database connection parameters. Overrides --db_uri.
     -a ACTION, --action ACTION
                         Action to perform: `clone` or `clean` (the default).
-

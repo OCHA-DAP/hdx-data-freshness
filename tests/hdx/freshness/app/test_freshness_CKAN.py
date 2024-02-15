@@ -19,6 +19,7 @@ from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.database import Database
 from hdx.freshness.app.datafreshness import DataFreshness
+from hdx.freshness.database import Base
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.utilities.dateparse import now_utc
 
@@ -33,7 +34,7 @@ class TestFreshnessCKAN:
         )
         hdx_key = getenv("HDX_KEY")
         Configuration._create(
-            hdx_site="stage",
+            hdx_site="demo",
             user_agent="test",
             hdx_key=hdx_key,
             project_config_yaml=project_config_yaml,
@@ -81,7 +82,7 @@ class TestFreshnessCKAN:
             "mimeType": "application/vnd.google-apps.folder",
             "parents": ["1M8_Hv3myw9RpLq86kBL7QkMAYxcHjvb6"],
         }
-        r = gclient.request(
+        r = gclient.http_client.request(
             "post", DRIVE_FILES_API_V3_URL, json=payload, params=params
         )
         folderid = r.json()["id"]
@@ -89,7 +90,7 @@ class TestFreshnessCKAN:
 
         payload = {"trashed": True}
         url = f"{DRIVE_FILES_API_V3_URL}/{folderid}"
-        gclient.request("patch", url, json=payload, params=params)
+        gclient.http_client.request("patch", url, json=payload, params=params)
 
     def test_generate_dataset(
         self,
@@ -108,13 +109,13 @@ class TestFreshnessCKAN:
                 "mimeType": "application/vnd.google-apps.spreadsheet",
                 "parents": [folderid],
             }
-            r = gclient.request(
+            r = gclient.http_client.request(
                 "post", DRIVE_FILES_API_V3_URL, json=payload, params=params
             )
             spreadsheetid = r.json()["id"]
             gsheet = gclient.open_by_key(spreadsheetid)
             wks = gsheet.sheet1
-            wks.update("A1", update)
+            wks.update(update, "A1")
             gsheet.share("", role="reader", perm_type="anyone")
             return wks, f"{gsheet.url}/export?format=xlsx"
 
@@ -186,7 +187,7 @@ class TestFreshnessCKAN:
             marked_broken.append(False)
         updated_by_script_dt = None
         try:
-            with Database(**nodatabase) as session:
+            with Database(**nodatabase, table_base=Base) as session:
                 # first run
                 freshness = DataFreshness(
                     session=session, datasets=datasets, do_touch=True
@@ -217,12 +218,12 @@ class TestFreshnessCKAN:
 
                 # change something
                 changing_wks1.update(
-                    "A1",
                     [[random.random() for i in range(5)] for j in range(2)],
+                    "A1",
                 )
                 changing_wks2.update(
-                    "A1",
                     [[random.random() for i in range(3)] for j in range(6)],
+                    "A1",
                 )
 
             sleep(60)

@@ -10,6 +10,7 @@ from os.path import join
 import pytest
 
 from hdx.database import Database
+from hdx.freshness.database import Base
 from hdx.freshness.testdata.serialize import (
     deserialize_datasets,
     deserialize_hashresults,
@@ -31,7 +32,7 @@ class TestSerialize:
             os.remove(dbpath)
         except FileNotFoundError:
             pass
-        return Database.get_session(f"sqlite:///{dbpath}")
+        return Database.get_session(f"sqlite:///{dbpath}", table_base=Base)
 
     @pytest.fixture(scope="function")
     def datasets(self):

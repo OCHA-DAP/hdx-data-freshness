@@ -3,6 +3,7 @@ Unit tests for database queries code.
 
 """
 from hdx.database import Database
+from hdx.freshness.database import Base
 from hdx.freshness.emailer.utils.databasequeries import DatabaseQueries
 from hdx.freshness.emailer.utils.hdxhelper import HDXHelper
 from hdx.utilities.dateparse import parse_date
@@ -13,7 +14,7 @@ class TestDatabaseQueries:
         now = parse_date(
             "2017-02-01 19:07:30.333492", include_microseconds=True
         )
-        with Database(**database_failure) as session:
+        with Database(**database_failure, table_base=Base) as session:
             hdxhelper = HDXHelper(
                 site_url="", users=list(), organizations=list()
             )

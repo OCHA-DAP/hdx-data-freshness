@@ -7,7 +7,7 @@ HDX data freshness is a process that runs against the [Humanitarian Data Exchang
 portal every day. It attempts to determine the freshness of datasets on the platform (ie. how up to date they
 are) and updates the last modified field of resources held externally to HDX that have changed.
 
-For more information, please read the [documentation](https://hdx-data-freshness.readthedocs.io/en/latest/). 
+For more information, please read the [documentation](https://hdx-data-freshness.readthedocs.io/en/latest/).
 
-This library is part of the [Humanitarian Data Exchange](https://data.humdata.org/) (HDX) project. If you have 
+This library is part of the [Humanitarian Data Exchange](https://data.humdata.org/) (HDX) project. If you have
 humanitarian related data, please upload your datasets to HDX.
