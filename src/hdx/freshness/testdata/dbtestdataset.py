@@ -51,7 +51,7 @@ class DBTestDataset(Base):
         """
         output = f"<Dataset(id={self.id}, name={self.dataset_name}"
         output += f"organisation name={self.organization_name},n"
-        output += f"reference period={self.dataset_date}, update frequency={self.update_frequency}, "
+        output += f"time period={self.dataset_date}, update frequency={self.update_frequency}, "
         output += f"review_date={str(self.review_date)}, last_modified={str(self.last_modified)},"
         output += f"updated_by_script={str(self.updated_by_script)}, metadata_modified={str(self.metadata_modified)})>"
         return output

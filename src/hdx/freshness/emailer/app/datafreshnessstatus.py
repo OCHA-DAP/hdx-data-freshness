@@ -423,17 +423,17 @@ class DataFreshnessStatus:
             None
         """
         logger.info(
-            "\n\n*** Checking for datasets where reference period has not been updated ***"
+            "\n\n*** Checking for datasets where time period has not been updated ***"
         )
         datasets = self.databasequeries.get_datasets_time_period()
         nodatasetsmsg = (
-            "No datasets with reference period needing update found."
+            "No datasets with time period needing update found."
         )
-        startmsg = "Dear {},\n\nThe dataset(s) listed below have a reference period that has not been updated for a while. Log into the HDX platform now to check and if necessary update each dataset.\n\n"
+        startmsg = "Dear {},\n\nThe dataset(s) listed below have a time period that has not been updated for a while. Log into the HDX platform now to check and if necessary update each dataset.\n\n"
         endmsg = ""
-        subject = "Check reference period for your datasets on HDX"
-        summary_subject = "All reference period emails"
-        summary_startmsg = "Dear {},\n\nBelow are the emails which have been sent today to maintainers whose datasets have a reference period that has not been updated. You may wish to follow up with them.\n\n"
+        subject = "Check time period for your datasets on HDX"
+        summary_subject = "All time period emails"
+        summary_startmsg = "Dear {},\n\nBelow are the emails which have been sent today to maintainers whose datasets have a time period that has not been updated. You may wish to follow up with them.\n\n"
         sheetname = "DateofDatasets"
         self.email.email_users_send_summary(
             self.hdxhelper,

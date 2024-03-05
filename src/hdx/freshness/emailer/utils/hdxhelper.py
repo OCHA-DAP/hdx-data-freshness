@@ -271,8 +271,8 @@ class HDXHelper:
             htmlmsg.append(f" and freshness: {fresh}")
         if include_time_period:
             time_period = dataset["dataset_date"]
-            msg.append(f" and reference period: {time_period}")
-            htmlmsg.append(f" and reference period: {time_period}")
+            msg.append(f" and time period: {time_period}")
+            htmlmsg.append(f" and time period: {time_period}")
         Email.output_newline(msg, htmlmsg)
 
         return "".join(msg), "".join(htmlmsg)

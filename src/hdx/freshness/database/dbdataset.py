@@ -70,7 +70,7 @@ class DBDataset(Base):
             str: String representation of DBDataset row
         """
         output = f"<Dataset(run number={self.run_number}, id={self.id}, "
-        output += f"reference period={str(self.dataset_date)}, update frequency={self.update_frequency},\n"
+        output += f"time period={str(self.dataset_date)}, update frequency={self.update_frequency},\n"
         output += f"review date={str(self.review_date)}, last modified={str(self.last_modified)}, "
         output += f"metadata modified={str(self.metadata_modified)}, updated by script={str(self.updated_by_script)},\n"
         output += f"latest of modifieds={str(self.latest_of_modifieds)}, what updated={str(self.what_updated)},\n"
