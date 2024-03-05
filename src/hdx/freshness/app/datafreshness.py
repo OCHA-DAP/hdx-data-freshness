@@ -1,5 +1,5 @@
-"""Determine freshness for all datasets in HDX
-"""
+"""Determine freshness for all datasets in HDX"""
+
 import logging
 import re
 from datetime import datetime, timedelta, timezone

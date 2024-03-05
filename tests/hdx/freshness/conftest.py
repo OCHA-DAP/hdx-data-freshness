@@ -1,4 +1,5 @@
 """Global fixtures"""
+
 from collections import UserDict
 from os.path import join
 

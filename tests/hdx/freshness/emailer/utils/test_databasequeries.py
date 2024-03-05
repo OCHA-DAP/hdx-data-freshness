@@ -2,6 +2,7 @@
 Unit tests for database queries code.
 
 """
+
 from hdx.database import Database
 from hdx.freshness.database import Base
 from hdx.freshness.emailer.utils.databasequeries import DatabaseQueries

@@ -2,6 +2,7 @@
 Unit tests for the freshness class.
 
 """
+
 from os import remove
 from os.path import join
 

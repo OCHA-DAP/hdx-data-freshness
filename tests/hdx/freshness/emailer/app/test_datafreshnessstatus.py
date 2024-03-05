@@ -2,6 +2,7 @@
 Unit tests for the data freshness status code.
 
 """
+
 import copy
 from os import getenv, remove
 from os.path import join

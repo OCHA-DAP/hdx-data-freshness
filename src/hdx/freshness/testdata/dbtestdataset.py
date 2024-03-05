@@ -1,6 +1,7 @@
 """SQLAlchemy class representing DBTestDataset row. Holds test data for datasets with
 the aim of mimicking what would come from HDX.
 """
+
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..database import Base

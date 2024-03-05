@@ -1,6 +1,7 @@
 """SQLAlchemy class representing DBTestResult row. Holds test data mimicking the result
 of downloading and hashing urls (first time).
 """
+
 from datetime import datetime
 
 from sqlalchemy.orm import Mapped, mapped_column

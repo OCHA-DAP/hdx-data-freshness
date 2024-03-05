@@ -1,5 +1,5 @@
-"""SQLAlchemy class representing DBOrganization row. Holds static organisation metadata.
-"""
+"""SQLAlchemy class representing DBOrganization row. Holds static organisation metadata."""
+
 from sqlalchemy.orm import Mapped, mapped_column
 
 from . import Base

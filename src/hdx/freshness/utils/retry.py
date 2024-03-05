@@ -1,5 +1,5 @@
-"""Utility to retry HTTP requests with exponential backoff interval
-"""
+"""Utility to retry HTTP requests with exponential backoff interval"""
+
 import asyncio
 import logging
 from typing import Any, Callable, List

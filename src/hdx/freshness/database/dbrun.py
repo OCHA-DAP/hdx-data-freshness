@@ -1,5 +1,5 @@
-"""SQLAlchemy class representing DBRun row. Holds date of each run.
-"""
+"""SQLAlchemy class representing DBRun row. Holds date of each run."""
+
 from datetime import datetime
 
 from sqlalchemy.orm import Mapped, mapped_column

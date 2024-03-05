@@ -2,6 +2,7 @@
 Unit tests for process_results.
 
 """
+
 from datetime import datetime, timezone
 from unittest.mock import Mock
 

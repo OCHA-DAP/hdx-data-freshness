@@ -1,5 +1,5 @@
-"""Utilities to handle creating and sending emails
-"""
+"""Utilities to handle creating and sending emails"""
+
 from __future__ import annotations
 
 import logging

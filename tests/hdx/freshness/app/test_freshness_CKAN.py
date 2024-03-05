@@ -2,6 +2,7 @@
 Unit tests for the freshness class.
 
 """
+
 import json
 import logging
 import random
@@ -240,9 +241,9 @@ class TestFreshnessCKAN:
                         updated_by_script = updated_by_script_dt.replace(
                             tzinfo=None
                         ).isoformat()
-                        dataset[
-                            "updated_by_script"
-                        ] = f"freshness ({updated_by_script})"
+                        dataset["updated_by_script"] = (
+                            f"freshness ({updated_by_script})"
+                        )
                     datasets[i] = dataset
                 freshness = DataFreshness(
                     session=session, datasets=datasets, do_touch=True

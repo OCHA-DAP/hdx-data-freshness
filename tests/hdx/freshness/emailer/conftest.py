@@ -1,4 +1,5 @@
 """Global fixtures"""
+
 import os
 import shutil
 from os.path import join

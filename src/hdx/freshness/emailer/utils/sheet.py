@@ -1,5 +1,5 @@
-"""Utilities to handle interaction with Google sheets
-"""
+"""Utilities to handle interaction with Google sheets"""
+
 import json
 import logging
 from datetime import datetime
@@ -353,9 +353,9 @@ class Sheet:
         if update_frequency_ind is not None:
             for gsheet_row in gsheet_rows:
                 update_freq = gsheet_row[update_frequency_ind]
-                gsheet_row[
-                    update_frequency_ind
-                ] = HDXHelper.get_update_frequency(update_freq)
+                gsheet_row[update_frequency_ind] = (
+                    HDXHelper.get_update_frequency(update_freq)
+                )
                 del gsheet_row[sort_ind]
             del headers[sort_ind]
         sheet.clear()

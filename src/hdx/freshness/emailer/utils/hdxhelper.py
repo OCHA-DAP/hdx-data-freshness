@@ -1,5 +1,5 @@
-"""Helper functions for HDX datasets, users and organisations
-"""
+"""Helper functions for HDX datasets, users and organisations"""
+
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 

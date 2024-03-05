@@ -2,6 +2,7 @@
 Unit tests for the retrieval class.
 
 """
+
 import re
 from datetime import datetime, timezone
 

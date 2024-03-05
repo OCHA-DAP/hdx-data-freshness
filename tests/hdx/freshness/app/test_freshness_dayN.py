@@ -10,6 +10,7 @@ When adding new test data, remember that self.now (run date) is 2017-12-19 10:53
 Set force_hash in dbtestresults and dbtesthashresults if dataset is fresh or you'll get duplicates
 (number of resources won't sum to total)!
 """
+
 from os import remove
 from os.path import join
 from shutil import copyfile

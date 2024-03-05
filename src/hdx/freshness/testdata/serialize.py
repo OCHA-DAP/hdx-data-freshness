@@ -1,5 +1,5 @@
-"""Functions to serialise and deserialise test data, for example for datasets
-"""
+"""Functions to serialise and deserialise test data, for example for datasets"""
+
 from datetime import datetime
 from typing import Dict, Iterable, List, Tuple
 

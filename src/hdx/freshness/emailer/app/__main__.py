@@ -1,5 +1,5 @@
-"""Entry point to start data freshness emailer
-"""
+"""Entry point to start data freshness emailer"""
+
 import argparse
 import logging
 from os import getenv

@@ -1,6 +1,7 @@
 """SQLAlchemy class representing DBResource row. Holds dynamic resource metadata for
 each run.
 """
+
 from datetime import datetime
 
 from sqlalchemy import ForeignKey

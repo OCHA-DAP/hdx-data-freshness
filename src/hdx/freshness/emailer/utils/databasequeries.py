@@ -1,5 +1,5 @@
-"""Functions that perform queries of the freshness database
-"""
+"""Functions that perform queries of the freshness database"""
+
 import logging
 import re
 from collections import OrderedDict

@@ -1,5 +1,5 @@
-"""SQLAlchemy class representing DBTestDate row. Holds test data for dates.
-"""
+"""SQLAlchemy class representing DBTestDate row. Holds test data for dates."""
+
 from datetime import datetime
 
 from sqlalchemy.orm import Mapped, mapped_column

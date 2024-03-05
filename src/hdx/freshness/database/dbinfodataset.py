@@ -1,5 +1,5 @@
-"""SQLAlchemy class representing DBInfoDataset row. Holds static dataset metadata.
-"""
+"""SQLAlchemy class representing DBInfoDataset row. Holds static dataset metadata."""
+
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 

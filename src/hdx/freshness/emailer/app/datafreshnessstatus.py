@@ -3,6 +3,7 @@ overdue and delinquent datasets. Also reports datasets with broken or no resourc
 and/or invalid maintainers, organisations with invalid administrators and candidates for
 the data grid.
 """
+
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Type
@@ -426,9 +427,7 @@ class DataFreshnessStatus:
             "\n\n*** Checking for datasets where time period has not been updated ***"
         )
         datasets = self.databasequeries.get_datasets_time_period()
-        nodatasetsmsg = (
-            "No datasets with time period needing update found."
-        )
+        nodatasetsmsg = "No datasets with time period needing update found."
         startmsg = "Dear {},\n\nThe dataset(s) listed below have a time period that has not been updated for a while. Log into the HDX platform now to check and if necessary update each dataset.\n\n"
         endmsg = ""
         subject = "Check time period for your datasets on HDX"

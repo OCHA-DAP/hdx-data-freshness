@@ -1,6 +1,7 @@
 """aiohttp rate limiting: limit connections per timeframe to host
 (from https://quentin.pradet.me/blog/how-do-you-rate-limit-calls-with-aiohttp.html)
 """
+
 import asyncio
 import time
 from typing import Any
