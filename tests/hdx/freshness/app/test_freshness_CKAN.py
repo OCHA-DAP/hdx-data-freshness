@@ -182,7 +182,9 @@ class TestFreshnessCKAN:
             resource["url"], resource["last_modified"] = switcher.get(i)
             dataset.add_update_resource(resource)
             # add resources
-            dataset.create_in_hdx(updated_by_script="freshness_ignore")
+            dataset.create_in_hdx(
+                updated_by_script="freshness_ignore", hxl_update=False
+            )
             datasets.append(dataset)
             last_modifieds.append({"start": dataset["last_modified"]})
             marked_broken.append(False)
@@ -227,7 +229,7 @@ class TestFreshnessCKAN:
                     "A1",
                 )
 
-            sleep(90)
+            sleep(30)
 
             with Database(**nodatabase) as session:
                 # second run
