@@ -1960,7 +1960,7 @@ class TestDataFreshnessStatus:
                 ],
             ]
 
-    # def test_reference_period(self, configuration, database_datasets_modified_yesterday, users, organizations):
+    # def test_time_period(self, configuration, database_datasets_modified_yesterday, users, organizations):
     #     site_url = 'http://lala'
     #     sysadmin_emails = ['blah3@blah.com']
     #     now = parse_date('2017-02-02 19:07:30.333492', include_microseconds=True)
@@ -1976,7 +1976,7 @@ class TestDataFreshnessStatus:
     #
     #         TestDataFreshnessStatus.email_users_result = list()
     #         TestDataFreshnessStatus.cells_result = None
-    #         freshness.process_datasets_reference_period()
+    #         freshness.process_datasets_time_period()
     #         expected_result = \
     #             [(['blah4@blah.com'],
     #               'Check reference period for your datasets on HDX (02/02/2017)',
@@ -2004,7 +2004,7 @@ class TestDataFreshnessStatus:
     #         assert TestDataFreshnessStatus.cells_result == expected_cells_result
     #         TestDataFreshnessStatus.email_users_result = list()
     #         TestDataFreshnessStatus.cells_result = None
-    #         freshness.process_datasets_reference_period(sysadmins=['mike@lala.org'])
+    #         freshness.process_datasets_time_period(sysadmins=['mike@lala.org'])
     #         restuple = expected_result[2]
     #         expected_result[2] = (['mike@lala.org'], restuple[1], restuple[2].replace('Sharon', 'system administrator'),
     #                               restuple[3].replace('Sharon', 'system administrator'), None, restuple[5])

@@ -406,12 +406,12 @@ class DataFreshnessStatus:
             recipients,
         )
 
-    def process_datasets_reference_period(
+    def process_datasets_time_period(
         self,
         recipients: Optional[List[str]] = None,
         sysadmins: Optional[List[str]] = None,
     ) -> None:
-        """Check for datasets that have a reference period field that needs updating,
+        """Check for datasets that have a time period field that needs updating,
         update Google spreadsheet and email maintainers, sending a summary of emails
         sent to HDX system administrators.
 
@@ -425,7 +425,7 @@ class DataFreshnessStatus:
         logger.info(
             "\n\n*** Checking for datasets where reference period has not been updated ***"
         )
-        datasets = self.databasequeries.get_datasets_reference_period()
+        datasets = self.databasequeries.get_datasets_time_period()
         nodatasetsmsg = (
             "No datasets with reference period needing update found."
         )

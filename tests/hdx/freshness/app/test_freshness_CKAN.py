@@ -152,7 +152,7 @@ class TestFreshnessCKAN:
             dataset.update_from_yaml(datasetmetadata)
             dataset.set_maintainer("196196be-6037-4488-8b71-d786adf4c081")
             dataset.set_organization("5a63012e-6c41-420c-8c33-e84b277fdc90")
-            dataset.set_reference_period(today)
+            dataset.set_time_period(today)
             if i == 6:
                 dataset.set_expected_update_frequency("Never")
             else:

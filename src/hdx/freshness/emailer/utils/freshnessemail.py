@@ -461,7 +461,7 @@ class Email:
     @staticmethod
     def prepare_user_emails(
         hdxhelper: HDXHelper,
-        include_reference_period: bool,
+        include_time_period: bool,
         datasets: List[Dict],
         sheet: Sheet,
         sheetname: str,
@@ -470,7 +470,7 @@ class Email:
 
         Args:
             hdxhelper (HDXHelper): HDX helper object
-            include_reference_period (bool): Whether to include reference period in output
+            include_time_period (bool): Whether to include time period in output
             datasets (List[Dict]): List of datasets
             sheet (Sheet): Sheet object
             sheetname (str): Name of sheet
@@ -496,7 +496,7 @@ class Email:
                 dataset,
                 maintainer,
                 orgadmins,
-                include_reference_period=include_reference_period,
+                include_time_period=include_time_period,
             )
             for user in users_to_email:
                 id = user["id"]
@@ -508,8 +508,8 @@ class Email:
             row = sheet.construct_row(
                 hdxhelper, dataset, maintainer, orgadmins
             )
-            if include_reference_period:
-                start_date, end_date = hdxhelper.get_reference_period(dataset)
+            if include_time_period:
+                start_date, end_date = hdxhelper.get_time_period(dataset)
                 row["Dataset Start Date"] = start_date.isoformat()
                 row["Dataset End Date"] = end_date.isoformat()
             datasets_flat.append(row)
@@ -520,7 +520,7 @@ class Email:
     def email_users_send_summary(
         self,
         hdxhelper: HDXHelper,
-        include_reference_period: bool,
+        include_time_period: bool,
         datasets: List[Dict],
         nodatasetsmsg: str,
         startmsg: str,
@@ -537,7 +537,7 @@ class Email:
 
         Args:
             hdxhelper (HDXHelper): HDX helper object
-            include_reference_period (bool): Whether to include reference period in output
+            include_time_period (bool): Whether to include time period in output
             datasets (List[Dict]): List of datasets
             nodatasetsmsg (str): Message for log when there are no datasets
             startmsg (str): Text for start of email to users
@@ -558,7 +558,7 @@ class Email:
             logger.info(nodatasetsmsg)
             return
         all_users_to_email = self.prepare_user_emails(
-            hdxhelper, include_reference_period, datasets, sheet, sheetname
+            hdxhelper, include_time_period, datasets, sheet, sheetname
         )
         starthtmlmsg = self.html_start(self.newline_to_br(startmsg))
         if "$dashboard" in startmsg:

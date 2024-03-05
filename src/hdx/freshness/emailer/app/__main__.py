@@ -154,7 +154,7 @@ def main(
                         freshness.process_datasets_noresources(
                             recipients=test_users
                         )
-                        # freshness.process_datasets_reference_period(
+                        # freshness.process_datasets_time_period(
                         #     recipients=test_users,
                         #     sysadmins=test_users
                         # )
@@ -170,8 +170,8 @@ def main(
                         freshness.process_maintainer_orgadmins()
                         # Check for datasets with no resources
                         freshness.process_datasets_noresources()
-                        # Check for datasets where the reference period may need updating
-                        # freshness.process_datasets_reference_period(
+                        # Check for datasets where the time period may need updating
+                        # freshness.process_datasets_time_period(
                         #     sysadmins=test_users
                         # )
                         # Check for candidates for the data grid

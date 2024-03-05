@@ -403,11 +403,11 @@ class DatabaseQueries:
         self.datasets_modified_yesterday = datasets
         return datasets
 
-    def get_datasets_reference_period(self) -> List[Dict]:
-        """Get datasets with a reference period that could be due for update
+    def get_datasets_time_period(self) -> List[Dict]:
+        """Get datasets with a time period that could be due for update
 
         Returns:
-            List[Dict]: Datasets with a reference period that could be due for update
+            List[Dict]: Datasets with a time period that could be due for update
         """
         datasets = self.get_datasets_modified_yesterday()
         dataset_ids = list()
