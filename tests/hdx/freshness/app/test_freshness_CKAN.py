@@ -227,7 +227,7 @@ class TestFreshnessCKAN:
                     "A1",
                 )
 
-            sleep(60)
+            sleep(90)
 
             with Database(**nodatabase) as session:
                 # second run
