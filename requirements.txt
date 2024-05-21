@@ -217,7 +217,7 @@ quantulum3==0.9.0
     # via hdx-python-api
 ratelimit==2.2.1
     # via hdx-python-utilities
-requests==2.31.0
+requests==2.32.0
     # via
     #   ckanapi
     #   frictionless
