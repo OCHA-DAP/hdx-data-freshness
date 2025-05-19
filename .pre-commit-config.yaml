@@ -1,8 +1,8 @@
 default_language_version:
-    python: python3.11
+    python: python3.13
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
         exclude: test_loader.py
@@ -10,18 +10,24 @@ repos:
         exclude: (test_csv_processing_blanks.csv|test.txt)
       - id: check-ast
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.2
+    rev: v0.9.10
     hooks:
       # Run the linter.
       - id: ruff
-        args: [--config, .config/ruff.toml, --fix]
+        args: [ --fix ]
       # Run the formatter.
       - id: ruff-format
-        args: [--config, .config/ruff.toml]
-  - repo: https://github.com/jazzband/pip-tools
-    rev: 7.4.1
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.6.5
     hooks:
+      # Run the pip compile
       - id: pip-compile
         name: pip-compile requirements.txt
         files: pyproject.toml
-        args: [pyproject.toml, --resolver=backtracking, --all-extras, --upgrade, -q, -o, requirements.txt]
+        args: [ pyproject.toml, --resolver=backtracking, --upgrade, -q,
+                -o, requirements.txt ]
+      - id: pip-compile
+        name: pip-compile requirements-test.txt
+        files: pyproject.toml
+        args: [ pyproject.toml, --resolver=backtracking, --upgrade, -q,
+                --extra, test, -c, requirements.txt, -o, requirements-test.txt ]

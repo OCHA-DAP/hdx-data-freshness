@@ -19,10 +19,12 @@ from sqlalchemy import select
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.database import Database
+from hdx.freshness.app.__main__ import main
 from hdx.freshness.app.datafreshness import DataFreshness
 from hdx.freshness.database import Base
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.utilities.dateparse import now_utc
+from hdx.utilities.path import script_dir_plus_file
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +32,7 @@ logger = logging.getLogger(__name__)
 class TestFreshnessCKAN:
     @pytest.fixture(scope="class")
     def configuration(self):
-        project_config_yaml = join(
-            "src", "hdx", "freshness", "app", "project_configuration.yaml"
-        )
+        project_config_yaml = script_dir_plus_file("project_configuration.yaml", main)
         hdx_key = getenv("HDX_KEY")
         Configuration._create(
             hdx_site="demo",
@@ -40,6 +40,7 @@ class TestFreshnessCKAN:
             hdx_key=hdx_key,
             project_config_yaml=project_config_yaml,
         )
+        return Configuration.read()
 
     @pytest.fixture(scope="function")
     def datasetmetadata(self):
@@ -134,9 +135,9 @@ class TestFreshnessCKAN:
         )
         broken_url = "file://lala:10"
 
-        datasets = list()
-        last_modifieds = list()
-        marked_broken = list()
+        datasets = []
+        last_modifieds = []
+        marked_broken = []
         fresh_dt = now_utc() - timedelta(days=1)
         due_dt = fresh_dt - timedelta(days=8)
         days7 = timedelta(days=7)
@@ -190,10 +191,14 @@ class TestFreshnessCKAN:
             marked_broken.append(False)
         updated_by_script_dt = None
         try:
-            with Database(**nodatabase, table_base=Base) as session:
+            with Database(**nodatabase, table_base=Base) as database:
                 # first run
+                session = database.get_session()
                 freshness = DataFreshness(
-                    session=session, datasets=datasets, do_touch=True
+                    configuration=configuration,
+                    session=session,
+                    datasets=datasets,
+                    do_touch=True,
                 )
                 freshness.spread_datasets()
                 freshness.add_new_run()
@@ -207,12 +212,8 @@ class TestFreshnessCKAN:
                     datasets_to_check,
                     resources_to_check,
                 ) = freshness.process_datasets(hash_ids=hash_ids)
-                results, hash_results = freshness.check_urls(
-                    resources_to_check, "test"
-                )
-                datasets_lastmodified = freshness.process_results(
-                    results, hash_results
-                )
+                results, hash_results = freshness.check_urls(resources_to_check, "test")
+                datasets_lastmodified = freshness.process_results(results, hash_results)
                 freshness.update_dataset_latest_of_modifieds(
                     datasets_to_check, datasets_lastmodified
                 )
@@ -231,8 +232,9 @@ class TestFreshnessCKAN:
 
             sleep(30)
 
-            with Database(**nodatabase) as session:
+            with Database(**nodatabase) as database:
                 # second run
+                session = database.get_session()
                 for i, dataset in enumerate(datasets):
                     dataset = Dataset.read_from_hdx(dataset["id"])
                     last_modifieds[i]["run1"] = dataset["last_modified"]
@@ -248,7 +250,10 @@ class TestFreshnessCKAN:
                         )
                     datasets[i] = dataset
                 freshness = DataFreshness(
-                    session=session, datasets=datasets, do_touch=True
+                    configuration=configuration,
+                    session=session,
+                    datasets=datasets,
+                    do_touch=True,
                 )
                 freshness.spread_datasets()
                 freshness.add_new_run()
@@ -256,12 +261,8 @@ class TestFreshnessCKAN:
                     datasets_to_check,
                     resources_to_check,
                 ) = freshness.process_datasets(hash_ids=hash_ids)
-                results, hash_results = freshness.check_urls(
-                    resources_to_check, "test"
-                )
-                datasets_lastmodified = freshness.process_results(
-                    results, hash_results
-                )
+                results, hash_results = freshness.check_urls(resources_to_check, "test")
+                datasets_lastmodified = freshness.process_results(results, hash_results)
                 freshness.update_dataset_latest_of_modifieds(
                     datasets_to_check, datasets_lastmodified
                 )
@@ -411,7 +412,7 @@ same hash: 3
                 "fresh": 0,
             },
         ]
-        nonmatching = list()
+        nonmatching = []
         for i, dataset in enumerate(datasets):
             dbdataset = (
                 session.execute(

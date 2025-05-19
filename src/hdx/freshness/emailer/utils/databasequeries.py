@@ -68,8 +68,8 @@ class DatabaseQueries:
             .distinct()
             .order_by(DBRun.run_number.desc())
         ).all()
-        run_number_to_run_date = dict()
-        run_numbers = list()
+        run_number_to_run_date = {}
+        run_numbers = []
         last_ind = len(list_run_numbers) - 1
         for i, run_number_date in enumerate(list_run_numbers):
             run_no = run_number_date[0]
@@ -106,7 +106,7 @@ class DatabaseQueries:
         Returns:
              Dict[str, Dict]: Dataset information categorised by error message
         """
-        datasets = dict()
+        datasets = {}
         if len(self.run_numbers) == 0:
             return datasets
         columns = [
@@ -136,7 +136,7 @@ class DatabaseQueries:
         results = self.session.execute(select(*columns).where(*filters))
         norows = 0
         for norows, result in enumerate(results):
-            row = dict()
+            row = {}
             for i, column in enumerate(columns):
                 row[column.key] = result[i]
             error = row["error"]
@@ -189,7 +189,7 @@ class DatabaseQueries:
         Returns:
             List[Dict]: List of datasets for a given freshness status
         """
-        datasets = list()
+        datasets = []
         no_runs = len(self.run_numbers)
         if no_runs == 0:
             return datasets
@@ -225,7 +225,7 @@ class DatabaseQueries:
         results = self.session.execute(select(*columns).where(*filters))
         norows = 0
         for norows, result in enumerate(results):
-            dataset = dict()
+            dataset = {}
             for i, column in enumerate(columns):
                 dataset[column.key] = result[i]
             if dataset["what_updated"] == "nothing":
@@ -246,8 +246,8 @@ class DatabaseQueries:
             Tuple[List[Dict], Dict[str, Dict]]: (Datasets with invalid maintainer,
             organisations with invalid administrators)
         """
-        invalid_maintainers = list()
-        invalid_orgadmins = dict()
+        invalid_maintainers = []
+        invalid_orgadmins = {}
         no_runs = len(self.run_numbers)
         if no_runs == 0:
             return invalid_maintainers, invalid_orgadmins
@@ -271,7 +271,7 @@ class DatabaseQueries:
         results = self.session.execute(select(*columns).where(*filters))
         norows = 0
         for norows, result in enumerate(results):
-            dataset = dict()
+            dataset = {}
             for i, column in enumerate(columns):
                 dataset[column.key] = result[i]
             maintainer_id = dataset["maintainer"]
@@ -290,7 +290,7 @@ class DatabaseQueries:
 
             if admins:
                 all_sysadmins = True
-                nonexistantids = list()
+                nonexistantids = []
                 for adminid in admins:
                     admin = self.hdxhelper.users.get(adminid)
                     if not admin:
@@ -328,7 +328,7 @@ class DatabaseQueries:
         Returns:
             List[Dict]: Datasets with no resources
         """
-        datasets_noresources = list()
+        datasets_noresources = []
         no_runs = len(self.run_numbers)
         if no_runs == 0:
             return datasets_noresources
@@ -353,7 +353,7 @@ class DatabaseQueries:
         results = self.session.execute(select(*columns).where(*filters))
         norows = 0
         for norows, result in enumerate(results):
-            dataset = dict()
+            dataset = {}
             for i, column in enumerate(columns):
                 dataset[column.key] = result[i]
             datasets_noresources.append(dataset)
@@ -395,7 +395,7 @@ class DatabaseQueries:
         results = self.session.execute(select(*columns).where(*filters))
         norows = 0
         for norows, result in enumerate(results):
-            dataset = dict()
+            dataset = {}
             for i, column in enumerate(columns):
                 dataset[column.key] = result[i]
             datasets[dataset["id"]] = dataset
@@ -410,7 +410,7 @@ class DatabaseQueries:
             List[Dict]: Datasets with a time period that could be due for update
         """
         datasets = self.get_datasets_modified_yesterday()
-        dataset_ids = list()
+        dataset_ids = []
         for dataset_id, dataset in datasets.items():
             if "*" in dataset["dataset_date"]:
                 continue
@@ -424,14 +424,14 @@ class DatabaseQueries:
         ]
         results = self.session.execute(select(*columns).where(*filters))
         norows = 0
-        unchanged_dsdates_datasets = list()
+        unchanged_dsdates_datasets = []
         for norows, result in enumerate(results):
             dataset_id = result.id
             if result.dataset_date == datasets[dataset_id]["dataset_date"]:
                 unchanged_dsdates_datasets.append(dataset_id)
         logger.info(f"SQL query returned {norows} rows.")
         DBDataset2 = aliased(DBDataset)
-        dsdates_not_changed_within_uf = list()
+        dsdates_not_changed_within_uf = []
         for dataset_id in unchanged_dsdates_datasets:
             filters = [
                 DBDataset.id == dataset_id,
@@ -446,11 +446,9 @@ class DatabaseQueries:
                 .limit(1)
             )
             delta = self.now - self.run_number_to_run_date[result.run_number]
-            if delta > timedelta(
-                days=datasets[dataset_id]["update_frequency"]
-            ):
+            if delta > timedelta(days=datasets[dataset_id]["update_frequency"]):
                 dsdates_not_changed_within_uf.append(dataset_id)
-        datasets_dataset_date = list()
+        datasets_dataset_date = []
         for dataset_id in dsdates_not_changed_within_uf:
             columns = [DBDataset.run_number, DBDataset.update_frequency]
             filters = [

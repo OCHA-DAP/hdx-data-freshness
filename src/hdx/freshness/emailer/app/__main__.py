@@ -39,20 +39,23 @@ def main(
 ) -> None:
     """Run freshness emailer. Either a database connection string (db_uri) or database
     connection parameters (db_params) can be supplied. If neither is supplied, a local
-    SQLite database with filename "freshness.db" is assumed. An optional email server
-    can be supplied in the form:
-    connection type (eg. ssl),host,port,username,password,sender email
+    SQLite database with filename "freshness.db" is assumed.
 
-    If not supplied, no emails will be sent. An optional authorisation string for
-    Google Sheets can be supplied of the form:
+    An optional authorisation string for Google Sheets can be supplied of the
+    form:
     {"type": "service_account", "project_id": "hdx-bot", "private_key_id": ...
     "token_uri": "https://oauth2.googleapis.com/token",
     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",...}
 
-    failure_emails is a list of email addresses for the people who should be emailed in
-    the event of a freshness failure. sysadmin_emails is a list of email addresses of
-    HDX system administrators who are emailed with summaries of maintainers contacted,
-    datasets that have become delinquent, invalid maintainers and org admins etc.
+    An optional email server can be supplied in the form:
+    connection type (eg. ssl),host,port,username,password,sender email
+    If not supplied, no emails will be sent.
+
+    failure_emails is a list of email addresses of the people who should be
+    emailed in the event of a freshness failure. sysadmin_emails is a list of
+    email addresses of HDX system administrators who are emailed with summaries
+    of maintainers contacted, datasets that have become delinquent, invalid
+    maintainers and org admins etc.
 
     Args:
         db_uri (Optional[str]): Database connection URI. Defaults to None.
@@ -109,14 +112,12 @@ def main(
         if failure_emails:
             failure_emails = failure_emails.split(",")
         else:
-            failure_emails = list()
+            failure_emails = []
         error = sheet.setup_gsheet(
             configuration, gsheet_auth, spreadsheet_test, no_spreadsheet
         )
         if error:
-            email.htmlify_send(
-                failure_emails, "Error opening Google sheets!", error
-            )
+            email.htmlify_send(failure_emails, "Error opening Google sheets!", error)
         else:
             error = sheet.setup_input()
             if error:
@@ -126,9 +127,7 @@ def main(
                     error,
                 )
             else:
-                hdxhelper = HDXHelper(
-                    site_url=configuration.get_hdx_site_url()
-                )
+                hdxhelper = HDXHelper(site_url=configuration.get_hdx_site_url())
                 databasequeries = DatabaseQueries(
                     session=session, now=now, hdxhelper=hdxhelper
                 )
@@ -148,19 +147,13 @@ def main(
                             recipients=test_users, sysadmins=test_users
                         )
                         freshness.process_delinquent(recipients=test_users)
-                        freshness.process_maintainer_orgadmins(
-                            recipients=test_users
-                        )
-                        freshness.process_datasets_noresources(
-                            recipients=test_users
-                        )
+                        freshness.process_maintainer_orgadmins(recipients=test_users)
+                        freshness.process_datasets_noresources(recipients=test_users)
                         # freshness.process_datasets_time_period(
                         #     recipients=test_users,
                         #     sysadmins=test_users
                         # )
-                        freshness.process_datasets_datagrid(
-                            recipients=test_users
-                        )
+                        freshness.process_datasets_datagrid(recipients=test_users)
                     else:
                         # freshness.process_broken()  # Check for broken resources
                         freshness.process_overdue()  # Check for overdue datasets
@@ -185,9 +178,7 @@ if __name__ == "__main__":
     parser.add_argument("-hk", "--hdx_key", default=None, help="HDX api key")
     parser.add_argument("-ua", "--user_agent", default=None, help="user agent")
     parser.add_argument("-pp", "--preprefix", default=None, help="preprefix")
-    parser.add_argument(
-        "-hs", "--hdx_site", default=None, help="HDX site to use"
-    )
+    parser.add_argument("-hs", "--hdx_site", default=None, help="HDX site to use")
     parser.add_argument(
         "-db", "--db_uri", default=None, help="Database connection string"
     )
@@ -270,9 +261,7 @@ if __name__ == "__main__":
     sysadmin_emails = args.sysadmin_emails
     if sysadmin_emails is None:
         sysadmin_emails = getenv("SYSADMIN_EMAILS")
-    project_config_yaml = script_dir_plus_file(
-        "project_configuration.yaml", main
-    )
+    project_config_yaml = script_dir_plus_file("project_configuration.yaml", main)
     facade(
         main,
         hdx_key=hdx_key,

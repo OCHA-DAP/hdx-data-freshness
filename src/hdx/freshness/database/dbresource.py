@@ -55,13 +55,9 @@ class DBResource(Base):
     )  # this field and above are CKAN fields
     latest_of_modifieds: Mapped[datetime] = mapped_column(nullable=False)
     what_updated: Mapped[str] = mapped_column(nullable=False)
-    http_last_modified: Mapped[datetime] = mapped_column(
-        default=None, nullable=True
-    )
+    http_last_modified: Mapped[datetime] = mapped_column(default=None, nullable=True)
     md5_hash: Mapped[str] = mapped_column(default=None, nullable=True)
-    hash_last_modified: Mapped[datetime] = mapped_column(
-        default=None, nullable=True
-    )
+    hash_last_modified: Mapped[datetime] = mapped_column(default=None, nullable=True)
     when_checked: Mapped[datetime] = mapped_column(default=None, nullable=True)
     api: Mapped[bool] = mapped_column(nullable=True)
     error: Mapped[str] = mapped_column(nullable=True)
@@ -72,7 +68,9 @@ class DBResource(Base):
         Returns:
             str: String representation of DBResource row
         """
-        output = f"<Resource(run number={self.run_number}, id={self.id}, name={self.name}, "
+        output = (
+            f"<Resource(run number={self.run_number}, id={self.id}, name={self.name}, "
+        )
         output += f"dataset id={self.dataset_id},\nurl={self.url},\n"
         output += f"last modified={str(self.last_modified)}, metadata modified={str(self.metadata_modified)},\n"
         output += f"latest of modifieds={str(self.latest_of_modifieds)}, what updated={str(self.what_updated)},\n"

@@ -33,7 +33,10 @@ class TestSerialize:
             os.remove(dbpath)
         except FileNotFoundError:
             pass
-        return Database.get_session(f"sqlite:///{dbpath}", table_base=Base)
+        database = Database(
+            database=dbpath, port=None, dialect="sqlite", table_base=Base
+        )
+        return database.get_session()
 
     @pytest.fixture(scope="function")
     def datasets(self):
@@ -52,17 +55,9 @@ class TestSerialize:
         serialize_datasets(session, datasets)
         for i, result in enumerate(deserialize_datasets(session)):
             dataset = datasets[i]
-            assert (
-                result["organization"]["id"] == dataset["organization"]["id"]
-            )
-            assert (
-                result["organization"]["name"]
-                == dataset["organization"]["name"]
-            )
-            assert (
-                result["organization"]["title"]
-                == dataset["organization"]["title"]
-            )
+            assert result["organization"]["id"] == dataset["organization"]["id"]
+            assert result["organization"]["name"] == dataset["organization"]["name"]
+            assert result["organization"]["title"] == dataset["organization"]["title"]
             assert result["name"] == dataset["name"]
             assert result["title"] == dataset["title"]
             assert result["private"] == dataset["private"]
@@ -74,9 +69,7 @@ class TestSerialize:
             assert result["data_update_frequency"] == dataset.get(
                 "data_update_frequency"
             )
-            assert result["is_requestdata_type"] == dataset.get(
-                "is_requestdata_type"
-            )
+            assert result["is_requestdata_type"] == dataset.get("is_requestdata_type")
             assert result["groups"] == [
                 {"name": x["name"]} for x in dataset.get("groups")
             ]
@@ -91,10 +84,7 @@ class TestSerialize:
                     result_resource["metadata_modified"]
                     == resource["metadata_modified"]
                 )
-                assert (
-                    result_resource["last_modified"]
-                    == resource["last_modified"]
-                )
+                assert result_resource["last_modified"] == resource["last_modified"]
 
     def test_serialize_now(self, session):
         now = now_utc()

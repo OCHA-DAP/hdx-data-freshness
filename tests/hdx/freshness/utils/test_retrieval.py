@@ -3,7 +3,6 @@ Unit tests for the retrieval class.
 
 """
 
-import re
 from datetime import datetime, timezone
 
 from hdx.freshness.utils.retrieval import Retrieval
@@ -33,9 +32,7 @@ class TestRetrieve:
             (url9, "10", "csv"),
             (url9, "11", "xls"),
         ]
-        result = Retrieval("test", url_ignore="data.humdata.org").retrieve(
-            urls
-        )
+        result = Retrieval("test", url_ignore="data.humdata.org").retrieve(urls)
         assert result["1"] == (
             url1,
             "html",
@@ -53,8 +50,10 @@ class TestRetrieve:
             None,
         )
         assert result["3"][0] == url3
-        regexp = r"^code= message=Cannot connect to host lala:10 ssl:default \[.*\] raised=aiohttp\.client_exceptions\.ClientConnectorError url=file:\/\/lala:10$"
-        assert re.search(regexp, result["3"][2]) is not None
+        assert (
+            result["3"][2]
+            == "code= message=file://lala:10 raised=aiohttp.client_exceptions.NonHttpUrlClientError url=file://lala:10"
+        )
         assert result["3"][3] is None
         assert result["3"][4] is None
         assert result["4"][0] == url4

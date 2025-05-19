@@ -16,7 +16,6 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import aiohttp
 import tqdm
-import uvloop
 from openpyxl import load_workbook
 
 from . import retry
@@ -44,9 +43,7 @@ class Retrieval:
         "shp": ["application/zip", "application/x-zip-compressed"],
         "csv": ["text/csv", "application/zip", "application/x-zip-compressed"],
         "xls": ["application/vnd.ms-excel"],
-        "xlsx": [
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ],
+        "xlsx": ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
     }
     signatures = {
         "json": [b"[", b" [", b"{", b" {"],
@@ -56,9 +53,7 @@ class Retrieval:
         "xlsx": [b"PK\x03\x04"],
     }
 
-    def __init__(
-        self, user_agent: str, url_ignore: Optional[str] = None
-    ) -> None:
+    def __init__(self, user_agent: str, url_ignore: Optional[str] = None) -> None:
         self.user_agent = user_agent
         self.url_ignore: Optional[str] = url_ignore
 
@@ -117,9 +112,7 @@ class Retrieval:
                     resource_format == "xlsx"
                     and mimetype == self.mimetypes["xlsx"][0]
                     and signature == self.signatures["xlsx"][0]
-                    and (
-                        self.url_ignore not in url if self.url_ignore else True
-                    )
+                    and (self.url_ignore not in url if self.url_ignore else True)
                 ):
                     xlsxbuffer = bytearray(first_chunk)
                 else:
@@ -153,10 +146,7 @@ class Retrieval:
                 if expected_signatures is not None:
                     found = False
                     for expected_signature in expected_signatures:
-                        if (
-                            signature[: len(expected_signature)]
-                            == expected_signature
-                        ):
+                        if signature[: len(expected_signature)] == expected_signature:
                             found = True
                             break
                     if not found:
@@ -194,9 +184,7 @@ class Retrieval:
         except Exception as e:
             return resource_id, url, resource_format, str(e), None, None, None
 
-    async def check_urls(
-        self, resources_to_check: List[Tuple], loop: uvloop.Loop
-    ) -> Dict[str, Tuple]:
+    async def check_urls(self, resources_to_check: List[Tuple]) -> Dict[str, Tuple]:
         """Asynchronous code to download resources and hash them. Return dictionary with
         resources information including hashes.
 
@@ -207,25 +195,20 @@ class Retrieval:
         Returns:
             Dict[str, Tuple]: Resources information including hashes
         """
-        tasks = list()
+        tasks = []
 
-        conn = aiohttp.TCPConnector(limit=100, limit_per_host=1, loop=loop)
-        timeout = aiohttp.ClientTimeout(
-            total=60 * 60, sock_connect=30, sock_read=30
-        )
+        conn = aiohttp.TCPConnector(limit=100, limit_per_host=1)
+        timeout = aiohttp.ClientTimeout(total=60 * 60, sock_connect=30, sock_read=30)
         async with aiohttp.ClientSession(
             connector=conn,
             timeout=timeout,
-            loop=loop,
             headers={"User-Agent": self.user_agent},
         ) as session:
-            session = RateLimiter(
-                session
-            )  # Limit connections per timeframe to host
+            session = RateLimiter(session)  # Limit connections per timeframe to host
             for metadata in resources_to_check:
                 task = self.fetch(metadata, session)
                 tasks.append(task)
-            responses = dict()
+            responses = {}
             for f in tqdm.tqdm(asyncio.as_completed(tasks), total=len(tasks)):
                 (
                     resource_id,
@@ -258,13 +241,7 @@ class Retrieval:
         """
 
         start_time = timer()
-        loop = uvloop.new_event_loop()
-        asyncio.set_event_loop(loop)
-        future = asyncio.ensure_future(
-            self.check_urls(resources_to_check, loop)
-        )
-        results = loop.run_until_complete(future)
+        results = asyncio.run(self.check_urls(resources_to_check))
         logger.info(f"Execution time: {timer() - start_time} seconds")
-        loop.run_until_complete(asyncio.sleep(0.250))
-        loop.close()
+        asyncio.run(asyncio.sleep(0.250))
         return results

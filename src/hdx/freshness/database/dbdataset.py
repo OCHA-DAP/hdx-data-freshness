@@ -42,9 +42,7 @@ class DBDataset(Base):
     run_number: Mapped[int] = mapped_column(
         ForeignKey("dbruns.run_number"), primary_key=True
     )
-    id: Mapped[str] = mapped_column(
-        ForeignKey("dbinfodatasets.id"), primary_key=True
-    )
+    id: Mapped[str] = mapped_column(ForeignKey("dbinfodatasets.id"), primary_key=True)
     dataset_date: Mapped[str] = mapped_column(nullable=True)
     update_frequency: Mapped[int] = mapped_column(nullable=True)
     review_date: Mapped[datetime] = mapped_column(nullable=True)

@@ -54,9 +54,7 @@ class TestProcessResults:
 
     @pytest.fixture(scope="function")
     def now(self):
-        return parse_date(
-            "2019-11-03 23:01:31.438713", include_microseconds=True
-        )
+        return parse_date("2019-11-03 23:01:31.438713", include_microseconds=True)
 
     @pytest.fixture(scope="function")
     def datasets(self):
@@ -245,7 +243,11 @@ class TestProcessResults:
         self, configuration, session, now, datasets, results, resourcecls
     ):
         freshness = DataFreshness(
-            session=session, datasets=datasets, now=now, do_touch=True
+            configuration=configuration,
+            session=session,
+            datasets=datasets,
+            now=now,
+            do_touch=True,
         )
         resourcecls.populate_resourcedict(datasets)
         resourcecls.touched = False
@@ -256,9 +258,7 @@ class TestProcessResults:
             "c1c85ecb-5e84-48c6-8ba9-15689a6c2fc4": {
                 "3adb573a-f056-41b7-8ee5-ec245676a7ce": (
                     "",
-                    datetime(
-                        2019, 11, 3, 23, 1, 31, 438713, tzinfo=timezone.utc
-                    ),
+                    datetime(2019, 11, 3, 23, 1, 31, 438713, tzinfo=timezone.utc),
                     ",hash",
                 )
             }
@@ -276,7 +276,11 @@ class TestProcessResults:
         resourcecls,
     ):
         freshness = DataFreshness(
-            session=session, datasets=datasets, now=now, do_touch=True
+            configuration=configuration,
+            session=session,
+            datasets=datasets,
+            now=now,
+            do_touch=True,
         )
         resourcecls.populate_resourcedict(datasets)
         resourcecls.broken = False
@@ -305,7 +309,11 @@ class TestProcessResults:
         resourcecls,
     ):
         freshness = DataFreshness(
-            session=session, datasets=datasets, now=now, do_touch=True
+            configuration=configuration,
+            session=session,
+            datasets=datasets,
+            now=now,
+            do_touch=True,
         )
         resourcecls.populate_resourcedict(datasets)
         resourcecls.broken = False
@@ -334,7 +342,11 @@ class TestProcessResults:
         resourcecls,
     ):
         freshness = DataFreshness(
-            session=session, datasets=datasets, now=now, do_touch=True
+            configuration=configuration,
+            session=session,
+            datasets=datasets,
+            now=now,
+            do_touch=True,
         )
         resourcecls.populate_resourcedict(datasets)
         resourcecls.broken = False
@@ -363,7 +375,11 @@ class TestProcessResults:
         resourcecls,
     ):
         freshness = DataFreshness(
-            session=session, datasets=datasets, now=now, do_touch=True
+            configuration=configuration,
+            session=session,
+            datasets=datasets,
+            now=now,
+            do_touch=True,
         )
         resourcecls.populate_resourcedict(datasets)
         resourcecls.broken = False

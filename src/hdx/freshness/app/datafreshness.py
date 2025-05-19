@@ -53,6 +53,7 @@ class DataFreshness:
 
     def __init__(
         self,
+        configuration: Configuration,
         session: Session,
         testsession: Optional[Session] = None,
         datasets: Optional[List[Dataset]] = None,
@@ -66,18 +67,18 @@ class DataFreshness:
         self.never_update = 0
         self.live_update = 0
         self.asneeded_update = 0
-        self.dataset_what_updated = dict()
-        self.resource_what_updated = dict()
+        self.dataset_what_updated = {}
+        self.resource_what_updated = {}
         self.resource_last_modified_count = 0
         self.resource_broken_count = 0
         self.do_touch = do_touch
 
         self.url_internal = "data.humdata.org"
 
-        self.freshness_by_frequency = dict()
-        for key, value in Configuration.read()["aging"].items():
+        self.freshness_by_frequency = {}
+        for key, value in configuration["aging"].items():
             update_frequency = int(key)
-            freshness_frequency = dict()
+            freshness_frequency = {}
             for status in value:
                 nodays = value[status]
                 freshness_frequency[status] = timedelta(days=nodays)
@@ -214,7 +215,7 @@ class DataFreshness:
         """
         last_resource_updated = None
         last_resource_modified = None
-        dataset_resources = list()
+        dataset_resources = []
         for resource in resources:
             resource_id = resource["id"]
             dict_of_lists_add(self.resource_what_updated, "total", resource_id)
@@ -248,22 +249,16 @@ class DataFreshness:
                 try:
                     previous_dbresource = self.session.execute(
                         select(DBResource).where(
-                            DBResource.run_number
-                            == previous_dbdataset.run_number,
+                            DBResource.run_number == previous_dbdataset.run_number,
                             DBResource.id == resource_id,
                         )
                     ).scalar_one()
                     if last_modified > previous_dbresource.last_modified:
                         dbresource.what_updated = "filestore"
                     else:
-                        dbresource.last_modified = (
-                            previous_dbresource.last_modified
-                        )
+                        dbresource.last_modified = previous_dbresource.last_modified
                         dbresource.what_updated = "nothing"
-                    if (
-                        last_modified
-                        <= previous_dbresource.latest_of_modifieds
-                    ):
+                    if last_modified <= previous_dbresource.latest_of_modifieds:
                         dbresource.latest_of_modifieds = (
                             previous_dbresource.latest_of_modifieds
                         )
@@ -304,13 +299,9 @@ class DataFreshness:
             if hash_ids:
                 should_hash = resource_id in hash_ids
             elif not should_hash:
-                should_hash = (
-                    self.urls_to_check_count < self.no_urls_to_check
-                    and (
-                        dbresource.when_checked is None
-                        or self.now - dbresource.when_checked
-                        > timedelta(days=30)
-                    )
+                should_hash = self.urls_to_check_count < self.no_urls_to_check and (
+                    dbresource.when_checked is None
+                    or self.now - dbresource.when_checked > timedelta(days=30)
                 )
             resource_format = resource["format"].lower()
             dataset_resources.append(
@@ -342,8 +333,8 @@ class DataFreshness:
         Returns:
             Tuple[Dict[str, str], List[Tuple]]: (datasets to check, resources to check)
         """
-        resources_to_check = list()
-        datasets_to_check = dict()
+        resources_to_check = []
+        datasets_to_check = {}
         logger.info("Processing datasets")
         for dataset in self.datasets:
             resources = dataset.get_resources()
@@ -356,9 +347,7 @@ class DataFreshness:
             organization_title = dataset["organization"]["title"]
             try:
                 dborganization = self.session.execute(
-                    select(DBOrganization).where(
-                        DBOrganization.id == organization_id
-                    )
+                    select(DBOrganization).where(DBOrganization.id == organization_id)
                 ).scalar_one()
                 dborganization.name = organization_name
                 dborganization.title = organization_title
@@ -447,9 +436,7 @@ class DataFreshness:
                 last_modified = datetime(1970, 1, 1, 0, 0, tzinfo=timezone.utc)
             if len(resources) == 0 and last_resource_updated is None:
                 last_resource_updated = "NO RESOURCES"
-                last_resource_modified = datetime(
-                    1970, 1, 1, 0, 0, tzinfo=timezone.utc
-                )
+                last_resource_modified = datetime(1970, 1, 1, 0, 0, tzinfo=timezone.utc)
                 error = True
                 what_updated = "no resources"
             else:
@@ -459,9 +446,7 @@ class DataFreshness:
             if review_date is None:
                 latest_of_modifieds = last_modified
             else:
-                review_date = parse_date(
-                    review_date, include_microseconds=True
-                )
+                review_date = parse_date(review_date, include_microseconds=True)
                 if review_date > last_modified:
                     latest_of_modifieds = review_date
                 else:
@@ -536,13 +521,8 @@ class DataFreshness:
                         dbdataset.what_updated, "script update"
                     )
                 else:
-                    dbdataset.updated_by_script = (
-                        previous_dbdataset.updated_by_script
-                    )
-                if (
-                    last_resource_modified
-                    <= previous_dbdataset.last_resource_modified
-                ):
+                    dbdataset.updated_by_script = previous_dbdataset.updated_by_script
+                if last_resource_modified <= previous_dbdataset.last_resource_modified:
                     # we keep this so that although we don't normally use it,
                     # we retain the ability to run without touching CKAN
                     dbdataset.last_resource_updated = (
@@ -551,10 +531,7 @@ class DataFreshness:
                     dbdataset.last_resource_modified = (
                         previous_dbdataset.last_resource_modified
                     )
-                if (
-                    latest_of_modifieds
-                    < previous_dbdataset.latest_of_modifieds
-                ):
+                if latest_of_modifieds < previous_dbdataset.latest_of_modifieds:
                     dbdataset.latest_of_modifieds = (
                         previous_dbdataset.latest_of_modifieds
                     )
@@ -566,7 +543,9 @@ class DataFreshness:
                         dbdataset.fresh = fresh
             self.session.add(dbdataset)
 
-            update_string = f"{self.freshness_statuses[fresh]}, Updated {dbdataset.what_updated}"
+            update_string = (
+                f"{self.freshness_statuses[fresh]}, Updated {dbdataset.what_updated}"
+            )
             anyresourcestohash = False
             for (
                 url,
@@ -593,9 +572,7 @@ class DataFreshness:
             if anyresourcestohash:
                 datasets_to_check[dataset_id] = update_string
             else:
-                dict_of_lists_add(
-                    self.dataset_what_updated, update_string, dataset_id
-                )
+                dict_of_lists_add(self.dataset_what_updated, update_string, dataset_id)
         self.session.commit()
         return datasets_to_check, resources_to_check
 
@@ -634,7 +611,7 @@ class DataFreshness:
             if self.testsession:
                 serialize_results(self.testsession, results)
 
-        hash_check = list()
+        hash_check = []
         for resource_id in results:
             (
                 url,
@@ -653,9 +630,7 @@ class DataFreshness:
                 ).scalar_one()
                 if dbresource.md5_hash == hash:  # File unchanged
                     continue
-                if (
-                    xlsx_hash and dbresource.md5_hash == xlsx_hash
-                ):  # File unchanged
+                if xlsx_hash and dbresource.md5_hash == xlsx_hash:  # File unchanged
                     continue
                 hash_check.append((url, resource_id, resource_format))
 
@@ -700,11 +675,9 @@ class DataFreshness:
                 return True
             return False
 
-        datasets_resourcesinfo = dict()
+        datasets_resourcesinfo = {}
         for resource_id in sorted(results):
-            url, _, err, http_last_modified, hash, xlsx_hash = results[
-                resource_id
-            ]
+            url, _, err, http_last_modified, hash, xlsx_hash = results[resource_id]
             dbresource = self.session.execute(
                 select(DBResource).where(
                     DBResource.run_number == self.run_number,
@@ -725,15 +698,9 @@ class DataFreshness:
             if hash:
                 dbresource.when_checked = self.now
                 if dbresource.md5_hash == hash:  # File unchanged
-                    what_updated = self.add_what_updated(
-                        what_updated, "same hash"
-                    )
-                elif (
-                    xlsx_hash and dbresource.md5_hash == xlsx_hash
-                ):  # File unchanged
-                    what_updated = self.add_what_updated(
-                        what_updated, "same hash"
-                    )
+                    what_updated = self.add_what_updated(what_updated, "same hash")
+                elif xlsx_hash and dbresource.md5_hash == xlsx_hash:  # File unchanged
+                    what_updated = self.add_what_updated(what_updated, "same hash")
                 else:  # File updated
                     hash_to_set = hash
                     (
@@ -747,12 +714,9 @@ class DataFreshness:
                     if hash_http_last_modified:
                         if (
                             dbresource.http_last_modified is None
-                            or hash_http_last_modified
-                            > dbresource.http_last_modified
+                            or hash_http_last_modified > dbresource.http_last_modified
                         ):
-                            dbresource.http_last_modified = (
-                                hash_http_last_modified
-                            )
+                            dbresource.http_last_modified = hash_http_last_modified
                     if hash_hash:
                         if hash_hash != hash:
                             if (  # Check if this is an xlsx file that has been hashed
@@ -766,10 +730,8 @@ class DataFreshness:
                                 dbresource.md5_hash is None
                             ):  # First occurrence of resource eg. first run - don't use hash
                                 # for last modified field (and hence freshness calculation)
-                                dbresource.what_updated = (
-                                    self.add_what_updated(
-                                        what_updated, "first hash"
-                                    )
+                                dbresource.what_updated = self.add_what_updated(
+                                    what_updated, "first hash"
                                 )
                                 what_updated = dbresource.what_updated
                             else:
@@ -783,10 +745,8 @@ class DataFreshness:
                                         )
                                     )
                                 ):
-                                    dbresource.what_updated = (
-                                        self.add_what_updated(
-                                            what_updated, "repeat hash"
-                                        )
+                                    dbresource.what_updated = self.add_what_updated(
+                                        what_updated, "repeat hash"
                                     )
                                     what_updated = dbresource.what_updated
                                 else:
@@ -801,14 +761,10 @@ class DataFreshness:
                             dbresource.api = False
                         else:
                             hash_to_set = hash_hash
-                            what_updated = self.add_what_updated(
-                                what_updated, "api"
-                            )
+                            what_updated = self.add_what_updated(what_updated, "api")
                             dbresource.api = True
                     if hash_err:
-                        what_updated = self.add_what_updated(
-                            what_updated, "error"
-                        )
+                        what_updated = self.add_what_updated(what_updated, "error")
                         dbresource.error = hash_err
                         if check_broken(hash_err):
                             is_broken = True
@@ -825,16 +781,10 @@ class DataFreshness:
                 dbresource.what_updated,
             )
             datasets_resourcesinfo[dataset_id] = resourcesinfo
-            dict_of_lists_add(
-                self.resource_what_updated, what_updated, resource_id
-            )
-            if (
-                update_last_modified and self.do_touch
-            ):  # Touch resource if needed
+            dict_of_lists_add(self.resource_what_updated, what_updated, resource_id)
+            if update_last_modified and self.do_touch:  # Touch resource if needed
                 try:
-                    logger.info(
-                        f"Updating last modified for resource {resource_id}"
-                    )
+                    logger.info(f"Updating last modified for resource {resource_id}")
                     resource = resourcecls.read_from_hdx(resource_id)
                     if resource:
                         last_modified = parse_date(
@@ -902,9 +852,7 @@ class DataFreshness:
                             f"Mark broken failed for id {resource_id}! Resource does not exist."
                         )
                 except HDXError:
-                    logger.exception(
-                        f"Mark broken failed for id {resource_id}!"
-                    )
+                    logger.exception(f"Mark broken failed for id {resource_id}!")
         self.session.commit()
         return datasets_resourcesinfo
 
@@ -951,13 +899,8 @@ class DataFreshness:
                     if new_last_resource_modified > last_resource_modified:
                         last_resource_updated = resource_id
                         last_resource_modified = new_last_resource_modified
-                    if (
-                        new_last_resource_modified
-                        > dataset_latest_of_modifieds
-                    ):
-                        dataset_latest_of_modifieds = (
-                            new_last_resource_modified
-                        )
+                    if new_last_resource_modified > dataset_latest_of_modifieds:
+                        dataset_latest_of_modifieds = new_last_resource_modified
                         dataset_what_updated = new_last_resource_what_updated
             dbdataset.last_resource_updated = last_resource_updated
             dbdataset.last_resource_modified = last_resource_modified
@@ -993,24 +936,22 @@ class DataFreshness:
 
         def add_what_updated_str(hdxobject_what_updated):
             nonlocal output_str
-            output_str += (
-                f'\n* total: {len(hdxobject_what_updated["total"])} *'
-            )
+            output_str += f"\n* total: {len(hdxobject_what_updated['total'])} *"
             for countstr in sorted(hdxobject_what_updated):
                 if countstr != "total":
-                    output_str += f",\n{countstr}: {len(hdxobject_what_updated[countstr])}"
+                    output_str += (
+                        f",\n{countstr}: {len(hdxobject_what_updated[countstr])}"
+                    )
 
         output_str = "\n*** Resources ***"
         add_what_updated_str(self.resource_what_updated)
         output_str += "\n\n*** Datasets ***"
         add_what_updated_str(self.dataset_what_updated)
+        output_str += f"\n\n{self.live_update} datasets have update frequency of Live"
+        output_str += f"\n{self.never_update} datasets have update frequency of Never"
         output_str += (
-            f"\n\n{self.live_update} datasets have update frequency of Live"
+            f"\n{self.asneeded_update} datasets have update frequency of As Needed"
         )
-        output_str += (
-            f"\n{self.never_update} datasets have update frequency of Never"
-        )
-        output_str += f"\n{self.asneeded_update} datasets have update frequency of As Needed"
 
         logger.info(output_str)
         return output_str
@@ -1077,10 +1018,7 @@ class DataFreshness:
             int: 0 for fresh, 1 for due, 2 for overdue and 3 for delinquent
         """
         delta = self.now - last_modified
-        if (
-            delta
-            >= self.freshness_by_frequency[update_frequency]["Delinquent"]
-        ):
+        if delta >= self.freshness_by_frequency[update_frequency]["Delinquent"]:
             return 3
         elif delta >= self.freshness_by_frequency[update_frequency]["Overdue"]:
             return 2

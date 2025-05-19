@@ -1,4 +1,3 @@
-line-length = 79
 exclude = ["_version.py"]
 
 [lint]
@@ -11,7 +10,6 @@ select = [
 ignore = [
     "E501" # Line too long
 ]
-
 
 [lint.isort]
 known-local-folder = ["hdx"]

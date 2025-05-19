@@ -28,9 +28,7 @@ class DataFreshnessStatus:
 
     object_output_limit = 2
 
-    def __init__(
-        self, databasequeries: DatabaseQueries, email: Email, sheet: Sheet
-    ):
+    def __init__(self, databasequeries: DatabaseQueries, email: Email, sheet: Sheet):
         self.databasequeries = databasequeries
         self.hdxhelper = databasequeries.hdxhelper
         self.email = email
@@ -91,7 +89,9 @@ class DataFreshnessStatus:
                     to = send_failures
                 else:
                     subject = "WARNING: Fall in datasets on HDX today!"
-                    startmsg = f"Dear {Email.get_addressee(self.sheet.dutyofficer)},\n\n"
+                    startmsg = (
+                        f"Dear {Email.get_addressee(self.sheet.dutyofficer)},\n\n"
+                    )
                     msg = f"{startmsg}There are {diff_datasets} ({percentage_diff * 100:.0f}%) fewer datasets today than yesterday on HDX which may indicate a serious problem so should be investigated!\n"
                     to, cc = self.email.get_to_cc(self.sheet.dutyofficer)
                     stop = False
@@ -116,9 +116,7 @@ class DataFreshnessStatus:
         if len(datasets) == 0:
             logger.info("No broken datasets found.")
             return
-        startmsg = (
-            "Dear {},\n\nThe following datasets have broken resources:\n\n"
-        )
+        startmsg = "Dear {},\n\nThe following datasets have broken resources:\n\n"
         msg = [startmsg]
         htmlmsg = [Email.html_start(Email.newline_to_br(startmsg))]
 
@@ -163,11 +161,11 @@ class DataFreshnessStatus:
                 url = self.hdxhelper.get_dataset_url(ds)
                 Email.output_tabs(msg, htmlmsg, 1)
                 msg.append(f"{ds['title']} ({url})")
-                htmlmsg.append(f"<a href=\"{url}\">{ds['title']}</a>")
+                htmlmsg.append(f'<a href="{url}">{ds["title"]}</a>')
                 return True
             return False
 
-        datasets_flat = list()
+        datasets_flat = []
         for error_type in sorted(datasets):
             Email.output_error(msg, htmlmsg, error_type)
             datasets_error = datasets[error_type]
@@ -182,22 +180,18 @@ class DataFreshnessStatus:
                         orgadmins,
                         _,
                     ) = self.hdxhelper.get_maintainer_orgadmins(dataset)
-                    cut_down = create_cut_down_broken_dataset_string(
-                        i, dataset
-                    )
+                    cut_down = create_cut_down_broken_dataset_string(i, dataset)
                     if cut_down:
                         newline = True
                     else:
-                        create_broken_dataset_string(
-                            dataset, maintainer, orgadmins
-                        )
+                        create_broken_dataset_string(dataset, maintainer, orgadmins)
                     row = self.sheet.construct_row(
                         self.hdxhelper, dataset, maintainer, orgadmins
                     )
                     row["Freshness"] = self.hdxhelper.freshness_status.get(
                         dataset["fresh"], "None"
                     )
-                    error = list()
+                    error = []
                     for resource in sorted(
                         dataset["resources"], key=lambda d: d["name"]
                     ):
@@ -214,9 +208,7 @@ class DataFreshnessStatus:
         )
         self.sheet.update("Broken", datasets_flat)
 
-    def process_delinquent(
-        self, recipients: Optional[List[str]] = None
-    ) -> None:
+    def process_delinquent(self, recipients: Optional[List[str]] = None) -> None:
         """Check for datasets that have become delinquent, update Google spreadsheet
         and email HDX administrators.
 
@@ -327,7 +319,7 @@ class DataFreshnessStatus:
         Returns:
             None
         """
-        organizations_flat = list()
+        organizations_flat = []
         if len(invalid_orgadmins) == 0:
             logger.info("No invalid organisation administrators found.")
             return
@@ -476,9 +468,9 @@ class DataFreshnessStatus:
         datasets_modified_yesterday = (
             self.databasequeries.get_datasets_modified_yesterday()
         )
-        emails = dict()
+        emails = {}
         for datagridname in self.sheet.datagrids:
-            datasets = list()
+            datasets = []
             datagrid = self.sheet.datagrids[datagridname]
             for category in datagrid:
                 if category in ["datagrid", "owner"]:
@@ -489,13 +481,11 @@ class DataFreshnessStatus:
                 runtoday = self.databasequeries.run_numbers[0][1]
                 runtoday = runtoday.replace(tzinfo=None)
                 runtoday = runtoday.isoformat()
-                query = f'metadata_created:[{runyesterday}Z TO {runtoday}Z] AND {datagrid["datagrid"]} AND ({datagrid[category]})'
+                query = f"metadata_created:[{runyesterday}Z TO {runtoday}Z] AND {datagrid['datagrid']} AND ({datagrid[category]})"
                 datasetinfos = datasetclass.search_in_hdx(fq=query)
                 for datasetinfo in datasetinfos:
                     dataset_id = datasetinfo["id"]
-                    if dataset_id not in [
-                        dataset["id"] for dataset in datasets
-                    ]:
+                    if dataset_id not in [dataset["id"] for dataset in datasets]:
                         dataset = datasets_modified_yesterday.get(dataset_id)
                         if dataset is not None:
                             datasets.append(dataset)

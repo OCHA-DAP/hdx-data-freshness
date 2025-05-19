@@ -1,24 +1,24 @@
 """Global fixtures"""
 
 from collections import UserDict
-from os.path import join
 
 import pytest
 
 from hdx.api.configuration import Configuration
+from hdx.freshness.app.__main__ import main
+from hdx.utilities.path import script_dir_plus_file
 
 
 @pytest.fixture(scope="session")
 def configuration():
-    project_config_yaml = join(
-        "src", "hdx", "freshness", "app", "project_configuration.yaml"
-    )
+    project_config_yaml = script_dir_plus_file("project_configuration.yaml", main)
     Configuration._create(
         hdx_site="prod",
         user_agent="test",
         hdx_read_only=True,
         project_config_yaml=project_config_yaml,
     )
+    return Configuration.read()
 
 
 @pytest.fixture(scope="session")
@@ -33,7 +33,7 @@ def resourcecls():
 
         @classmethod
         def populate_resourcedict(cls, datasets):
-            cls.resourcedict = dict()
+            cls.resourcedict = {}
             for dataset in datasets:
                 for resource in dataset.get_resources():
                     cls.resourcedict[resource["id"]] = resource
@@ -43,9 +43,7 @@ def resourcecls():
             return MyResource(id)
 
         @classmethod
-        def update_in_hdx(
-            cls, operation, batch_mode, skip_validation, ignore_check
-        ):
+        def update_in_hdx(cls, operation, batch_mode, skip_validation, ignore_check):
             cls.touched = True
 
         @classmethod
