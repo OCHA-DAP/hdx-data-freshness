@@ -53,6 +53,7 @@ class DataFreshness:
 
     def __init__(
         self,
+        configuration: Configuration,
         session: Session,
         testsession: Optional[Session] = None,
         datasets: Optional[List[Dataset]] = None,
@@ -75,7 +76,7 @@ class DataFreshness:
         self.url_internal = "data.humdata.org"
 
         self.freshness_by_frequency = dict()
-        for key, value in Configuration.read()["aging"].items():
+        for key, value in configuration["aging"].items():
             update_frequency = int(key)
             freshness_frequency = dict()
             for status in value:

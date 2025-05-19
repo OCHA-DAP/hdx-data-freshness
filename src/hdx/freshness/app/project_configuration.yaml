@@ -4,6 +4,10 @@ aging:
     Due: 1
     Overdue: 2
     Delinquent: 3
+  2:
+    Due: 2
+    Overdue: 4
+    Delinquent: 6
   7:
     Due: 7
     Overdue: 14
@@ -16,15 +20,31 @@ aging:
     Due: 30
     Overdue: 44
     Delinquent: 60
+  60:
+    Due: 60
+    Overdue: 84
+    Delinquent: 108
   90:
     Due: 90
     Overdue: 120
     Delinquent: 150
+  120:
+    Due: 120
+    Overdue: 147
+    Delinquent: 174
   180:
     Due: 180
     Overdue: 210
     Delinquent: 240
+  300:
+    Due: 300
+    Overdue: 342
+    Delinquent: 384
   365:
     Due: 365
     Overdue: 425
     Delinquent: 455
+  730:
+    Due: 730
+    Overdue: 785
+    Delinquent: 840

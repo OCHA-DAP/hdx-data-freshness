@@ -8,6 +8,7 @@ from typing import Optional
 from .. import __version__
 from ..database import Base
 from .datafreshness import DataFreshness
+from hdx.api.configuration import Configuration
 from hdx.database import Database
 from hdx.database.dburi import get_params_from_connection_uri
 from hdx.facades.keyword_arguments import facade
@@ -41,6 +42,7 @@ def main(
         None
     """
     logger.info(f"> Data freshness {__version__}")
+    configuration = Configuration.read()
     if db_params:
         params = args_to_dict(db_params)
     elif db_uri:
@@ -55,7 +57,10 @@ def main(
         # Setup including reading all datasets from HDX and setting threshold for how
         # many resources to force hash
         freshness = DataFreshness(
-            session=database.get_session(), testsession=testsession, do_touch=do_touch
+            configuration=configuration,
+            session=database.get_session(),
+            testsession=testsession,
+            do_touch=do_touch,
         )
         # Arrange order of list of datasets so that datasets from the same organisation
         # are moved away from each other

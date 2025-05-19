@@ -91,7 +91,9 @@ class TestFreshnessByFrequency:
     ):
         with Database(**nodatabase, table_base=Base) as database:
             session = database.get_session()
-            freshness = DataFreshness(session=session, datasets=datasets, now=now)
+            freshness = DataFreshness(
+                configuration=configuration, session=session, datasets=datasets, now=now
+            )
             last_modified = now - timedelta(days=days_last_modified)
             status = freshness.calculate_freshness(last_modified, update_frequency)
             assert status == expected_status

@@ -194,7 +194,10 @@ class TestFreshnessCKAN:
                 # first run
                 session = database.get_session()
                 freshness = DataFreshness(
-                    session=session, datasets=datasets, do_touch=True
+                    configuration=configuration,
+                    session=session,
+                    datasets=datasets,
+                    do_touch=True,
                 )
                 freshness.spread_datasets()
                 freshness.add_new_run()
@@ -246,7 +249,10 @@ class TestFreshnessCKAN:
                         )
                     datasets[i] = dataset
                 freshness = DataFreshness(
-                    session=session, datasets=datasets, do_touch=True
+                    configuration=configuration,
+                    session=session,
+                    datasets=datasets,
+                    do_touch=True,
                 )
                 freshness.spread_datasets()
                 freshness.add_new_run()

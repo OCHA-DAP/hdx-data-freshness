@@ -92,7 +92,11 @@ class TestFreshnessDayN:
         with Database(**database, table_base=Base) as database:
             session = database.get_session()
             freshness = DataFreshness(
-                session=session, datasets=datasets, now=now, do_touch=True
+                configuration=configuration,
+                session=session,
+                datasets=datasets,
+                now=now,
+                do_touch=True,
             )
             freshness.spread_datasets()
             freshness.add_new_run()

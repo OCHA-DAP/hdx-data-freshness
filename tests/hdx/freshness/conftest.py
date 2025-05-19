@@ -1,24 +1,24 @@
 """Global fixtures"""
 
 from collections import UserDict
-from os.path import join
 
 import pytest
 
 from hdx.api.configuration import Configuration
+from hdx.freshness.app.__main__ import main
+from hdx.utilities.path import script_dir_plus_file
 
 
 @pytest.fixture(scope="session")
 def configuration():
-    project_config_yaml = join(
-        "src", "hdx", "freshness", "app", "project_configuration.yaml"
-    )
+    project_config_yaml = script_dir_plus_file("project_configuration.yaml", main)
     Configuration._create(
         hdx_site="prod",
         user_agent="test",
         hdx_read_only=True,
         project_config_yaml=project_config_yaml,
     )
+    return Configuration.read()
 
 
 @pytest.fixture(scope="session")

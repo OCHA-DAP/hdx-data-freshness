@@ -243,7 +243,11 @@ class TestProcessResults:
         self, configuration, session, now, datasets, results, resourcecls
     ):
         freshness = DataFreshness(
-            session=session, datasets=datasets, now=now, do_touch=True
+            configuration=configuration,
+            session=session,
+            datasets=datasets,
+            now=now,
+            do_touch=True,
         )
         resourcecls.populate_resourcedict(datasets)
         resourcecls.touched = False
@@ -272,7 +276,11 @@ class TestProcessResults:
         resourcecls,
     ):
         freshness = DataFreshness(
-            session=session, datasets=datasets, now=now, do_touch=True
+            configuration=configuration,
+            session=session,
+            datasets=datasets,
+            now=now,
+            do_touch=True,
         )
         resourcecls.populate_resourcedict(datasets)
         resourcecls.broken = False
@@ -301,7 +309,11 @@ class TestProcessResults:
         resourcecls,
     ):
         freshness = DataFreshness(
-            session=session, datasets=datasets, now=now, do_touch=True
+            configuration=configuration,
+            session=session,
+            datasets=datasets,
+            now=now,
+            do_touch=True,
         )
         resourcecls.populate_resourcedict(datasets)
         resourcecls.broken = False
@@ -330,7 +342,11 @@ class TestProcessResults:
         resourcecls,
     ):
         freshness = DataFreshness(
-            session=session, datasets=datasets, now=now, do_touch=True
+            configuration=configuration,
+            session=session,
+            datasets=datasets,
+            now=now,
+            do_touch=True,
         )
         resourcecls.populate_resourcedict(datasets)
         resourcecls.broken = False
@@ -359,7 +375,11 @@ class TestProcessResults:
         resourcecls,
     ):
         freshness = DataFreshness(
-            session=session, datasets=datasets, now=now, do_touch=True
+            configuration=configuration,
+            session=session,
+            datasets=datasets,
+            now=now,
+            do_touch=True,
         )
         resourcecls.populate_resourcedict(datasets)
         resourcecls.broken = False

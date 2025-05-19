@@ -12,8 +12,6 @@ import pytest
 
 from hdx.data.dataset import Dataset
 from hdx.database import Database
-from requests import session
-
 from hdx.freshness.database import Base
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.database.dbrun import DBRun
