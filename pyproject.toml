@@ -34,13 +34,13 @@ classifiers = [
 requires-python = ">=3.8"
 
 dependencies = [
-    "aiodns",
-    "aiohttp",
+    "aiohttp[speedups]",
     "gspread",
-    "hdx-python-api >= 6.2.2",
-    "hdx-python-database[postgresql]>= 1.3.0",
+    "hdx-python-api>= 6.3.9",
+    "hdx-python-country>= 3.9.4",
+    "hdx-python-utilities>= 3.8.7",
+    "hdx-python-database[postgresql]>= 1.3.6",
     "tqdm",
-    "uvloop",
 ]
 dynamic = ["version"]
 
@@ -54,50 +54,3 @@ Homepage = "https://github.com/OCHA-DAP/hdx-data-freshness"
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov"]
 dev = ["pre-commit"]
-
-
-#########
-# Hatch #
-#########
-
-# Build
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/hdx"]
-
-[tool.hatch.build.hooks.vcs]
-version-file = "src/hdx/freshness/_version.py"
-
-# Versioning
-
-[tool.hatch.version]
-source = "vcs"
-
-[tool.hatch.version.raw-options]
-local_scheme = "no-local-version"
-version_scheme = "python-simplified-semver"
-
-# Tests
-
-[tool.hatch.envs.test]
-features = ["test"]
-
-[tool.hatch.envs.test.scripts]
-test = """
-       pytest -c .config/pytest.ini --rootdir=. --junitxml=test-results.xml \
-       --cov --cov-config=.config/coveragerc --no-cov-on-fail \
-       --cov-report=lcov --cov-report=term-missing
-       """
-
-[[tool.hatch.envs.test.matrix]]
-python = ["3.12"]
-
-[tool.hatch.envs.lint]
-detached = true
-dependencies = ["ruff"]
-
-[tool.hatch.envs.lint.scripts]
-style = [
-  "ruff check --config .config/ruff.toml --diff {args:.}",
-  "ruff format --config .config/ruff.toml --diff {args:.}",
-]

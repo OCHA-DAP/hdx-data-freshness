@@ -59,9 +59,7 @@ def main(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Data Freshness Database Clean"
-    )
+    parser = argparse.ArgumentParser(description="Data Freshness Database Clean")
     parser.add_argument(
         "-db", "--db_uri", default=None, help="Database connection string"
     )

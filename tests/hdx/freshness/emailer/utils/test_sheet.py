@@ -42,9 +42,7 @@ class TestSheet:
         )
 
     def test_setup_input(self, configuration):
-        now = parse_date(
-            "2019-10-24 19:07:30.333492", include_microseconds=True
-        )
+        now = parse_date("2019-10-24 19:07:30.333492", include_microseconds=True)
         sheet = Sheet(now)
         sheet.setup_gsheet(configuration, getenv("GSHEET_AUTH"), True, False)
         result = sheet.setup_input()
@@ -149,12 +147,8 @@ class TestSheet:
         }
 
     def test_setup_input_multiple(self, configuration_multiple):
-        now = parse_date(
-            "2019-10-24 19:07:30.333492", include_microseconds=True
-        )
+        now = parse_date("2019-10-24 19:07:30.333492", include_microseconds=True)
         sheet = Sheet(now)
-        sheet.setup_gsheet(
-            configuration_multiple, getenv("GSHEET_AUTH"), True, False
-        )
+        sheet.setup_gsheet(configuration_multiple, getenv("GSHEET_AUTH"), True, False)
         error = sheet.setup_input()
         assert error == "There is more than one owner of datagrid sdn!"

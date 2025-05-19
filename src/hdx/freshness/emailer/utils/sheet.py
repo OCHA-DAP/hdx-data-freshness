@@ -140,21 +140,15 @@ class Sheet:
             scopes = ["https://www.googleapis.com/auth/spreadsheets"]
             gc = gspread.service_account_from_dict(info, scopes=scopes)
             if spreadsheet_test:  # use test not prod spreadsheet
-                issues_spreadsheet = configuration[
-                    "test_issues_spreadsheet_url"
-                ]
+                issues_spreadsheet = configuration["test_issues_spreadsheet_url"]
             else:
-                issues_spreadsheet = configuration[
-                    "prod_issues_spreadsheet_url"
-                ]
+                issues_spreadsheet = configuration["prod_issues_spreadsheet_url"]
             logger.info("Opening duty officers gsheet")
             self.dutyofficers_spreadsheet = gc.open_by_url(
                 configuration["dutyofficers_url"]
             )
             logger.info("Opening datagrids gsheet")
-            self.datagrids_spreadsheet = gc.open_by_url(
-                configuration["datagrids_url"]
-            )
+            self.datagrids_spreadsheet = gc.open_by_url(configuration["datagrids_url"])
             if not no_spreadsheet:
                 logger.info("Opening issues gsheet")
                 self.issues_spreadsheet = gc.open_by_url(issues_spreadsheet)
@@ -206,9 +200,7 @@ class Sheet:
 
             sheet = self.datagrids_spreadsheet.worksheet("Curators")
             current_values = sheet.get_values()
-            curators_hxltags = {
-                tag: i for i, tag in enumerate(current_values[1])
-            }
+            curators_hxltags = {tag: i for i, tag in enumerate(current_values[1])}
             curators = current_values[2:]
             for row in curators:
                 curatoremail = row[curators_hxltags["#contact+email"]].strip()
@@ -237,9 +229,7 @@ class Sheet:
                         }
             for datagridname in self.datagrids:
                 if "owner" not in self.datagrids[datagridname]:
-                    raise ValueError(
-                        f"Datagrid {datagridname} does not have an owner!"
-                    )
+                    raise ValueError(f"Datagrid {datagridname} does not have an owner!")
         except Exception as ex:
             return str(ex)
 
@@ -353,8 +343,8 @@ class Sheet:
         if update_frequency_ind is not None:
             for gsheet_row in gsheet_rows:
                 update_freq = gsheet_row[update_frequency_ind]
-                gsheet_row[update_frequency_ind] = (
-                    HDXHelper.get_update_frequency(update_freq)
+                gsheet_row[update_frequency_ind] = HDXHelper.get_update_frequency(
+                    update_freq
                 )
                 del gsheet_row[sort_ind]
             del headers[sort_ind]

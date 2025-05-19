@@ -48,14 +48,14 @@ def main(
     else:
         params = {"dialect": "sqlite", "database": "freshness.db"}
     logger.info(f"> Database parameters: {params}")
-    with Database(**params, table_base=Base) as session:
+    with Database(**params, table_base=Base) as database:
         testsession = None
         if save:
             testsession = Database.get_session("sqlite:///test_serialize.db")
         # Setup including reading all datasets from HDX and setting threshold for how
         # many resources to force hash
         freshness = DataFreshness(
-            session=session, testsession=testsession, do_touch=do_touch
+            session=database.get_session(), testsession=testsession, do_touch=do_touch
         )
         # Arrange order of list of datasets so that datasets from the same organisation
         # are moved away from each other
@@ -71,9 +71,7 @@ def main(
         )
         # Work out if hashed files have changed and if so, touch resources.
         # Determine latest of modifieds and freshness for all datasets
-        datasets_resourcesinfo = freshness.process_results(
-            results, hash_results
-        )
+        datasets_resourcesinfo = freshness.process_results(results, hash_results)
         # Work out latest_of_modifieds for datasets and calculate freshness
         freshness.update_dataset_latest_of_modifieds(
             datasets_to_check, datasets_resourcesinfo
@@ -90,9 +88,7 @@ if __name__ == "__main__":
     parser.add_argument("-hk", "--hdx_key", default=None, help="HDX api key")
     parser.add_argument("-ua", "--user_agent", default=None, help="user agent")
     parser.add_argument("-pp", "--preprefix", default=None, help="preprefix")
-    parser.add_argument(
-        "-hs", "--hdx_site", default=None, help="HDX site to use"
-    )
+    parser.add_argument("-hs", "--hdx_site", default=None, help="HDX site to use")
     parser.add_argument(
         "-db", "--db_uri", default=None, help="Database connection string"
     )
@@ -136,9 +132,7 @@ if __name__ == "__main__":
         db_uri = getenv("DB_URI")
     if db_uri and "://" not in db_uri:
         db_uri = f"postgresql://{db_uri}"
-    project_config_yaml = script_dir_plus_file(
-        "project_configuration.yaml", main
-    )
+    project_config_yaml = script_dir_plus_file("project_configuration.yaml", main)
     facade(
         main,
         hdx_key=hdx_key,

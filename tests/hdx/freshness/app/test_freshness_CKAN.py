@@ -190,8 +190,9 @@ class TestFreshnessCKAN:
             marked_broken.append(False)
         updated_by_script_dt = None
         try:
-            with Database(**nodatabase, table_base=Base) as session:
+            with Database(**nodatabase, table_base=Base) as database:
                 # first run
+                session = database.get_session()
                 freshness = DataFreshness(
                     session=session, datasets=datasets, do_touch=True
                 )
@@ -207,12 +208,8 @@ class TestFreshnessCKAN:
                     datasets_to_check,
                     resources_to_check,
                 ) = freshness.process_datasets(hash_ids=hash_ids)
-                results, hash_results = freshness.check_urls(
-                    resources_to_check, "test"
-                )
-                datasets_lastmodified = freshness.process_results(
-                    results, hash_results
-                )
+                results, hash_results = freshness.check_urls(resources_to_check, "test")
+                datasets_lastmodified = freshness.process_results(results, hash_results)
                 freshness.update_dataset_latest_of_modifieds(
                     datasets_to_check, datasets_lastmodified
                 )
@@ -231,8 +228,9 @@ class TestFreshnessCKAN:
 
             sleep(30)
 
-            with Database(**nodatabase) as session:
+            with Database(**nodatabase) as database:
                 # second run
+                session = database.get_session()
                 for i, dataset in enumerate(datasets):
                     dataset = Dataset.read_from_hdx(dataset["id"])
                     last_modifieds[i]["run1"] = dataset["last_modified"]
@@ -256,12 +254,8 @@ class TestFreshnessCKAN:
                     datasets_to_check,
                     resources_to_check,
                 ) = freshness.process_datasets(hash_ids=hash_ids)
-                results, hash_results = freshness.check_urls(
-                    resources_to_check, "test"
-                )
-                datasets_lastmodified = freshness.process_results(
-                    results, hash_results
-                )
+                results, hash_results = freshness.check_urls(resources_to_check, "test")
+                datasets_lastmodified = freshness.process_results(results, hash_results)
                 freshness.update_dataset_latest_of_modifieds(
                     datasets_to_check, datasets_lastmodified
                 )

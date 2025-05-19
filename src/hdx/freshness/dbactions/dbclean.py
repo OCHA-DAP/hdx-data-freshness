@@ -56,10 +56,7 @@ class DBClean:
             return False
         dataset_run_numbers = self.get_dataset_runs()
         resource_run_numbers = self.get_resource_runs()
-        if (
-            fail_on_run_difference
-            and dataset_run_numbers != resource_run_numbers
-        ):
+        if fail_on_run_difference and dataset_run_numbers != resource_run_numbers:
             s = set(resource_run_numbers)
             diff = [x for x in dataset_run_numbers if x not in s]
             logger.error(
@@ -76,10 +73,7 @@ class DBClean:
         overaday = timedelta(days=1, hours=12)
         for run_number in list_run_numbers:
             run_no = run_number.run_number
-            if (
-                run_no not in dataset_run_numbers
-                or run_no not in resource_run_numbers
-            ):
+            if run_no not in dataset_run_numbers or run_no not in resource_run_numbers:
                 logger.warning(
                     f"Run number {run_number} with date {run_date} is probably broken!"
                 )
@@ -100,16 +94,10 @@ class DBClean:
         )
         start_date = list_run_numbers[-1].run_date
         month_dates = list(
-            rrule(
-                MONTHLY, dtstart=start_date, until=two_years_ago, bymonthday=-1
-            )
+            rrule(MONTHLY, dtstart=start_date, until=two_years_ago, bymonthday=-1)
         )
-        end_quarter_dates = [
-            d for d in month_dates if d.month in (3, 6, 9, 12)
-        ]
-        start_quarter_dates = [
-            d + timedelta(days=1) for d in end_quarter_dates
-        ]
+        end_quarter_dates = [d for d in month_dates if d.month in (3, 6, 9, 12)]
+        start_quarter_dates = [d + timedelta(days=1) for d in end_quarter_dates]
 
         def get_dayoffsets(n):
             day_offsets = [0]
@@ -172,16 +160,12 @@ class DBClean:
             else:
                 row.append("Y")
             rows.append(row)
-        write_list_to_csv(
-            filepath, rows, headers=("Run Number", "Run Date", "Delete")
-        )
+        write_list_to_csv(filepath, rows, headers=("Run Number", "Run Date", "Delete"))
 
         for run_number, run_date in run_number_to_run_date.items():
             if run_number not in runs_to_keep:
                 self.session.execute(
-                    delete(DBResource).where(
-                        DBResource.run_number == run_number
-                    )
+                    delete(DBResource).where(DBResource.run_number == run_number)
                 )
                 self.session.execute(
                     delete(DBDataset).where(DBDataset.run_number == run_number)

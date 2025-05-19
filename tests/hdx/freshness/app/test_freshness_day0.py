@@ -39,7 +39,10 @@ class TestFreshnessDay0:
     @pytest.fixture(scope="class")
     def serializedbsession(self):
         dbpath = join("tests", "fixtures", "day0", "test_serialize.db")
-        return Database.get_session(f"sqlite:///{dbpath}")
+        database = Database(
+            database=dbpath, port=None, dialect="sqlite", table_base=Base
+        )
+        return database.get_session()
 
     @pytest.fixture(scope="function")
     def now(self, serializedbsession):
@@ -74,10 +77,9 @@ class TestFreshnessDay0:
         forced_hash_ids,
         resourcecls,
     ):
-        with Database(**nodatabase, table_base=Base) as session:
-            freshness = DataFreshness(
-                session=session, datasets=datasets, now=now
-            )
+        with Database(**nodatabase, table_base=Base) as database:
+            session = database.get_session()
+            freshness = DataFreshness(session=session, datasets=datasets, now=now)
             freshness.spread_datasets()
             freshness.add_new_run()
             datasets_to_check, resources_to_check = freshness.process_datasets(
@@ -163,8 +165,7 @@ api=False, error=None)>"""
             assert count == 0
             count = dbsession.scalar(
                 select(func.count(DBResource.id)).where(
-                    DBResource.what_updated
-                    == "internal-firstrun,http header,hash",
+                    DBResource.what_updated == "internal-firstrun,http header,hash",
                     DBResource.error.is_(None),
                     DBResource.api.is_(False),
                 )
@@ -330,8 +331,7 @@ maintainer=7d7f5f8d-7e3b-483a-8de1-2b122010c1eb, location=bgd)>"""
             assert count == 103
             dborganization = dbsession.scalar(select(DBOrganization).limit(1))
             assert (
-                str(dborganization)
-                == """<Organization(id=hdx, name=hdx, title=HDX)>"""
+                str(dborganization) == """<Organization(id=hdx, name=hdx, title=HDX)>"""
             )
             count = dbsession.scalar(select(func.count(DBOrganization.id)))
             assert count == 40

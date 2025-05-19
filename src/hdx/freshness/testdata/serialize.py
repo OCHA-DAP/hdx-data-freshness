@@ -109,9 +109,7 @@ def serialize_results(session: Session, results: Dict[str, Tuple]) -> None:
     session.commit()
 
 
-def serialize_hashresults(
-    session: Session, hash_results: Dict[str, Tuple]
-) -> None:
+def serialize_hashresults(session: Session, hash_results: Dict[str, Tuple]) -> None:
     """Serialise results of downloading and hashing urls (second time) to database
     objects
 
@@ -178,8 +176,7 @@ def deserialize_datasets(session: Session) -> Iterable[Dataset]:
                 "updated_by_script": dbtestdataset.updated_by_script,
                 "metadata_modified": dbtestdataset.metadata_modified,
                 "groups": [
-                    {"name": x}
-                    for x in dbtestdataset.dataset_location.split(",")
+                    {"name": x} for x in dbtestdataset.dataset_location.split(",")
                 ],
             }
         )

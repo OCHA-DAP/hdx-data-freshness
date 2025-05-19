@@ -12,6 +12,8 @@ import pytest
 
 from hdx.data.dataset import Dataset
 from hdx.database import Database
+from requests import session
+
 from hdx.freshness.database import Base
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.freshness.database.dbrun import DBRun
@@ -700,9 +702,7 @@ class TestDataFreshnessStatus:
         self, configuration, database_broken, users, organizations
     ):
         site_url = "http://lala"
-        now = parse_date(
-            "2017-02-03 19:07:30.333492", include_microseconds=True
-        )
+        now = parse_date("2017-02-03 19:07:30.333492", include_microseconds=True)
         sheet = Sheet(now)
         sysadmin_emails = ["blah3@blah.com", "blah4@blah.com"]
         email = Email(
@@ -710,7 +710,8 @@ class TestDataFreshnessStatus:
             sysadmin_emails=sysadmin_emails,
             send_emails=self.email_users,
         )
-        with Database(**database_broken, table_base=Base) as session:
+        with Database(**database_broken, table_base=Base) as database:
+            session = database.get_session()
             hdxhelper = HDXHelper(
                 site_url=site_url, users=users, organizations=organizations
             )
@@ -723,9 +724,7 @@ class TestDataFreshnessStatus:
                 sheet=sheet,
             )
 
-            sheet.issues_spreadsheet = (
-                TestDataFreshnessStatus.TestSpreadsheet_Broken1
-            )
+            sheet.issues_spreadsheet = TestDataFreshnessStatus.TestSpreadsheet_Broken1
             sheet.dutyofficer = {"name": "Peter", "email": "peter@lala.org"}
             TestDataFreshnessStatus.email_users_result = list()
             TestDataFreshnessStatus.cells_result = None
@@ -840,15 +839,11 @@ class TestDataFreshnessStatus:
                 ],
             ]
 
-            sheet.issues_spreadsheet = (
-                TestDataFreshnessStatus.TestSpreadsheet_Broken2
-            )
+            sheet.issues_spreadsheet = TestDataFreshnessStatus.TestSpreadsheet_Broken2
             sheet.dutyofficer = {"name": "John", "email": "john@lala.org"}
             TestDataFreshnessStatus.email_users_result = list()
             TestDataFreshnessStatus.cells_result = None
-            freshness.process_broken(
-                recipients=["alex@lala.org", "jenny@lala.org"]
-            )
+            freshness.process_broken(recipients=["alex@lala.org", "jenny@lala.org"])
             assert TestDataFreshnessStatus.email_users_result == [
                 (
                     ["alex@lala.org", "jenny@lala.org"],
@@ -959,9 +954,7 @@ class TestDataFreshnessStatus:
                 ],
             ]
 
-            sheet.issues_spreadsheet = (
-                TestDataFreshnessStatus.TestSpreadsheet_Broken3
-            )
+            sheet.issues_spreadsheet = TestDataFreshnessStatus.TestSpreadsheet_Broken3
             sheet.dutyofficer = {"name": "Peter", "email": "peter@lala.org"}
             TestDataFreshnessStatus.email_users_result = list()
             TestDataFreshnessStatus.cells_result = None
@@ -1194,9 +1187,7 @@ class TestDataFreshnessStatus:
             freshness.process_broken()
             assert TestDataFreshnessStatus.cells_result == result[:6]
 
-            now = parse_date(
-                "2017-01-31 19:07:30.333492", include_microseconds=True
-            )
+            now = parse_date("2017-01-31 19:07:30.333492", include_microseconds=True)
             TestDataFreshnessStatus.email_users_result = list()
             TestDataFreshnessStatus.cells_result = None
             databasequeries = DatabaseQueries(
@@ -1208,9 +1199,7 @@ class TestDataFreshnessStatus:
                 sheet=sheet,
             )
 
-            sheet.issues_spreadsheet = (
-                TestDataFreshnessStatus.TestSpreadsheet_Broken1
-            )
+            sheet.issues_spreadsheet = TestDataFreshnessStatus.TestSpreadsheet_Broken1
             sheet.dutyofficer = {"name": "Peter", "email": "peter@lala.org"}
             TestDataFreshnessStatus.email_users_result = list()
             TestDataFreshnessStatus.cells_result = None
@@ -1223,16 +1212,15 @@ class TestDataFreshnessStatus:
     ):
         site_url = "http://lala"
         sysadmin_emails = ["blah2@blah.com", "blah4@blah.com"]
-        now = parse_date(
-            "2017-02-02 19:07:30.333492", include_microseconds=True
-        )
+        now = parse_date("2017-02-02 19:07:30.333492", include_microseconds=True)
         sheet = Sheet(now)
         email = Email(
             now,
             sysadmin_emails=sysadmin_emails,
             send_emails=self.email_users,
         )
-        with Database(**database_status, table_base=Base) as session:
+        with Database(**database_status, table_base=Base) as database:
+            session = database.get_session()
             hdxhelper = HDXHelper(
                 site_url=site_url, users=users, organizations=organizations
             )
@@ -1364,9 +1352,7 @@ class TestDataFreshnessStatus:
 
             TestDataFreshnessStatus.email_users_result = list()
             freshness.process_overdue()
-            assert (
-                TestDataFreshnessStatus.email_users_result == expected_result
-            )
+            assert TestDataFreshnessStatus.email_users_result == expected_result
             TestDataFreshnessStatus.email_users_result = list()
             freshness.process_overdue(sysadmins=["elizabeth@lala.org"])
             restuple = expected_result[3]
@@ -1378,9 +1364,7 @@ class TestDataFreshnessStatus:
                 None,
                 restuple[5],
             )
-            assert (
-                TestDataFreshnessStatus.email_users_result == expected_result
-            )
+            assert TestDataFreshnessStatus.email_users_result == expected_result
             TestDataFreshnessStatus.email_users_result = list()
             sheet.dutyofficer = None
             freshness.process_overdue()
@@ -1393,9 +1377,7 @@ class TestDataFreshnessStatus:
                 None,
                 restuple[5],
             )
-            assert (
-                TestDataFreshnessStatus.email_users_result == expected_result
-            )
+            assert TestDataFreshnessStatus.email_users_result == expected_result
             TestDataFreshnessStatus.email_users_result = list()
             sheet.dutyofficer = {"name": "Paul", "email": "paul@lala.org"}
             freshness.process_overdue(recipients=["lizzy@lala.org"])
@@ -1434,9 +1416,7 @@ class TestDataFreshnessStatus:
                 ),
             ]
 
-            now = parse_date(
-                "2017-01-31 19:07:30.333492", include_microseconds=True
-            )
+            now = parse_date("2017-01-31 19:07:30.333492", include_microseconds=True)
             databasequeries = DatabaseQueries(
                 session=session, now=now, hdxhelper=hdxhelper
             )
@@ -1464,16 +1444,15 @@ class TestDataFreshnessStatus:
     ):
         site_url = "http://lala"
         sysadmin_emails = ["blah2@blah.com", "blah4@blah.com"]
-        now = parse_date(
-            "2017-02-02 19:07:30.333492", include_microseconds=True
-        )
+        now = parse_date("2017-02-02 19:07:30.333492", include_microseconds=True)
         sheet = Sheet(now)
         email = Email(
             now,
             sysadmin_emails=sysadmin_emails,
             send_emails=self.email_users,
         )
-        with Database(**database_maintainer, table_base=Base) as session:
+        with Database(**database_maintainer, table_base=Base) as database:
+            session = database.get_session()
             hdxhelper = HDXHelper(
                 site_url=site_url, users=users, organizations=organizations
             )
@@ -1647,9 +1626,7 @@ class TestDataFreshnessStatus:
                 }
             )
             neworgs[1]["users"] = list()
-            hdxhelper = HDXHelper(
-                site_url=site_url, users=users, organizations=neworgs
-            )
+            hdxhelper = HDXHelper(site_url=site_url, users=users, organizations=neworgs)
             databasequeries = DatabaseQueries(
                 session=session, now=now, hdxhelper=hdxhelper
             )
@@ -1692,9 +1669,7 @@ class TestDataFreshnessStatus:
             )
             neworgs[1]["users"][0]["id"] = "NOTEXIST1"
             neworgs[1]["users"][1]["id"] = "NOTEXIST2"
-            hdxhelper = HDXHelper(
-                site_url=site_url, users=users, organizations=neworgs
-            )
+            hdxhelper = HDXHelper(site_url=site_url, users=users, organizations=neworgs)
             databasequeries = DatabaseQueries(
                 session=session, now=now, hdxhelper=hdxhelper
             )
@@ -1729,15 +1704,14 @@ class TestDataFreshnessStatus:
     ):
         site_url = ""
         TestDataFreshnessStatus.email_users_result = list()
-        now = parse_date(
-            "2017-02-03 19:07:30.333492", include_microseconds=True
-        )
+        now = parse_date("2017-02-03 19:07:30.333492", include_microseconds=True)
         sheet = Sheet(now)
         email = Email(
             now,
             send_emails=self.email_users,
         )
-        with Database(**database_failure, table_base=Base) as session:
+        with Database(**database_failure, table_base=Base) as database:
+            session = database.get_session()
             hdxhelper = HDXHelper(
                 site_url=site_url, users=users, organizations=organizations
             )
@@ -1763,9 +1737,7 @@ class TestDataFreshnessStatus:
                 )
             ]
             TestDataFreshnessStatus.email_users_result = list()
-            now = parse_date(
-                "2017-02-02 19:07:30.333492", include_microseconds=True
-            )
+            now = parse_date("2017-02-02 19:07:30.333492", include_microseconds=True)
             databasequeries = DatabaseQueries(
                 session=session, now=now, hdxhelper=hdxhelper
             )
@@ -1775,9 +1747,7 @@ class TestDataFreshnessStatus:
                 sheet=sheet,
             )
             freshness.check_number_datasets(
-                parse_date(
-                    "2017-02-01 19:07:30.333492", include_microseconds=True
-                ),
+                parse_date("2017-02-01 19:07:30.333492", include_microseconds=True),
                 send_failures=["blah2@blah.com", "blah4@blah.com"],
             )
             assert TestDataFreshnessStatus.email_users_result == [
@@ -1791,9 +1761,7 @@ class TestDataFreshnessStatus:
                 )
             ]
             TestDataFreshnessStatus.email_users_result = list()
-            now = parse_date(
-                "2017-02-04 19:07:30.333492", include_microseconds=True
-            )
+            now = parse_date("2017-02-04 19:07:30.333492", include_microseconds=True)
             databasequeries = DatabaseQueries(
                 session=session, now=now, hdxhelper=hdxhelper
             )
@@ -1816,9 +1784,7 @@ class TestDataFreshnessStatus:
                 )
             ]
             TestDataFreshnessStatus.email_users_result = list()
-            now = parse_date(
-                "2017-02-04 19:07:30.333492", include_microseconds=True
-            )
+            now = parse_date("2017-02-04 19:07:30.333492", include_microseconds=True)
             # insert new run and dataset
             run_date = parse_date(
                 "2017-02-04 9:07:30.333492", include_microseconds=True
@@ -1870,16 +1836,15 @@ class TestDataFreshnessStatus:
     ):
         site_url = "http://lala"
         sysadmin_emails = ["blah2@blah.com", "blah4@blah.com"]
-        now = parse_date(
-            "2017-02-03 19:07:30.333492", include_microseconds=True
-        )
+        now = parse_date("2017-02-03 19:07:30.333492", include_microseconds=True)
         sheet = Sheet(now)
         email = Email(
             now,
             sysadmin_emails=sysadmin_emails,
             send_emails=self.email_users,
         )
-        with Database(**database_noresources, table_base=Base) as session:
+        with Database(**database_noresources, table_base=Base) as database:
+            session = database.get_session()
             hdxhelper = HDXHelper(
                 site_url=site_url, users=users, organizations=organizations
             )
@@ -1967,7 +1932,8 @@ class TestDataFreshnessStatus:
     #     now = parse_date('2017-02-02 19:07:30.333492', include_microseconds=True)
     #     sheet = Sheet(now)
     #     email = Email(now, send_emails=self.email_users, sysadmin_emails=sysadmin_emails)
-    #     with Database(**database_datasets_modified_yesterday) as session:
+    #     with Database(**database_datasets_modified_yesterday) as database:
+    #         session = database.get_session()
     #         hdxhelper = HDXHelper(site_url=site_url, users=users, organizations=organizations)
     #         databasequeries = DatabaseQueries(session=session, now=now, hdxhelper=hdxhelper)
     #         freshness = DataFreshnessStatus(hdxhelper=hdxhelper, databasequeries=databasequeries, email=email,
@@ -2023,13 +1989,9 @@ class TestDataFreshnessStatus:
     ):
         site_url = "http://lala"
         sysadmin_emails = ["blah3@blah.com"]
-        now = parse_date(
-            "2017-02-02 19:07:30.333492", include_microseconds=True
-        )
+        now = parse_date("2017-02-02 19:07:30.333492", include_microseconds=True)
         sheet = Sheet(now)
-        error = sheet.setup_gsheet(
-            configuration, getenv("GSHEET_AUTH"), True, False
-        )
+        error = sheet.setup_gsheet(configuration, getenv("GSHEET_AUTH"), True, False)
         assert error is None
         error = sheet.setup_input()
         assert error is None
@@ -2040,7 +2002,8 @@ class TestDataFreshnessStatus:
         )
         with Database(
             **database_datasets_modified_yesterday, table_base=Base
-        ) as session:
+        ) as database:
+            session = database.get_session()
             hdxhelper = HDXHelper(
                 site_url=site_url, users=users, organizations=organizations
             )
@@ -2052,9 +2015,7 @@ class TestDataFreshnessStatus:
                 email=email,
                 sheet=sheet,
             )
-            sheet.issues_spreadsheet = (
-                TestDataFreshnessStatus.TestSpreadsheet_Empty
-            )
+            sheet.issues_spreadsheet = TestDataFreshnessStatus.TestSpreadsheet_Empty
             sheet.dutyofficer = {"name": "Sharon", "email": "sharon@lala.org"}
 
             TestDataFreshnessStatus.email_users_result = list()
@@ -2105,11 +2066,7 @@ class TestDataFreshnessStatus:
                     "",
                 ],
             ]
-            assert (
-                TestDataFreshnessStatus.email_users_result == expected_result
-            )
-            assert (
-                TestDataFreshnessStatus.cells_result == expected_cells_result
-            )
+            assert TestDataFreshnessStatus.email_users_result == expected_result
+            assert TestDataFreshnessStatus.cells_result == expected_cells_result
             TestDataFreshnessStatus.email_users_result = list()
             TestDataFreshnessStatus.cells_result = None

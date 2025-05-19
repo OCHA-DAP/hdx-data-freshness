@@ -4,8 +4,8 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 from .freshnessemail import Email
+from hdx.api.utilities.date_helper import DateHelper
 from hdx.data.dataset import Dataset
-from hdx.data.date_helper import DateHelper
 from hdx.data.organization import Organization
 from hdx.data.user import User
 from hdx.utilities.dictandlist import dict_of_lists_add
@@ -48,9 +48,7 @@ class HDXHelper:
         for organization in organizations:
             users_per_capacity = dict()
             for user in organization["users"]:
-                dict_of_lists_add(
-                    users_per_capacity, user["capacity"], user["id"]
-                )
+                dict_of_lists_add(users_per_capacity, user["capacity"], user["id"])
             self.organizations[organization["id"]] = users_per_capacity
 
     @staticmethod
@@ -229,7 +227,7 @@ class HDXHelper:
         msg = list()
         htmlmsg = list()
         msg.append(f"{dataset['title']} ({url})")
-        htmlmsg.append(f"<a href=\"{url}\">{dataset['title']}</a>")
+        htmlmsg.append(f'<a href="{url}">{dataset["title"]}</a>')
         if sysadmin and include_org:
             orgmsg = f" from {dataset['organization_title']}"
             msg.append(orgmsg)
@@ -256,9 +254,7 @@ class HDXHelper:
                 user_name = orgadmin["name"]
                 user_email = orgadmin["email"]
                 usermsg.append(f"{user_name} ({user_email})")
-                userhtmlmsg.append(
-                    f'<a href="mailto:{user_email}">{user_name}</a>'
-                )
+                userhtmlmsg.append(f'<a href="mailto:{user_email}">{user_name}</a>')
             if sysadmin:
                 msg.append(", ".join(usermsg))
                 htmlmsg.append(", ".join(userhtmlmsg))

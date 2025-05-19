@@ -446,9 +446,7 @@ class DatabaseQueries:
                 .limit(1)
             )
             delta = self.now - self.run_number_to_run_date[result.run_number]
-            if delta > timedelta(
-                days=datasets[dataset_id]["update_frequency"]
-            ):
+            if delta > timedelta(days=datasets[dataset_id]["update_frequency"]):
                 dsdates_not_changed_within_uf.append(dataset_id)
         datasets_dataset_date = list()
         for dataset_id in dsdates_not_changed_within_uf:

@@ -421,9 +421,7 @@ class Email:
         return cls.msg_close(msg, htmlmsg)
 
     @classmethod
-    def output_error(
-        cls, msg: List[str], htmlmsg: List[str], error: str
-    ) -> None:
+    def output_error(cls, msg: List[str], htmlmsg: List[str], error: str) -> None:
         """Add error message to plain text and html versions of email
 
         Args:
@@ -440,9 +438,7 @@ class Email:
         cls.output_newline(msg, htmlmsg)
 
     @classmethod
-    def output_org(
-        cls, msg: List[str], htmlmsg: List[str], title: str
-    ) -> None:
+    def output_org(cls, msg: List[str], htmlmsg: List[str], title: str) -> None:
         """Add organisation title to plain text and html versions of email
 
         Args:
@@ -505,9 +501,7 @@ class Email:
                     id,
                     (dataset_string, dataset_html_string),
                 )
-            row = sheet.construct_row(
-                hdxhelper, dataset, maintainer, orgadmins
-            )
+            row = sheet.construct_row(hdxhelper, dataset, maintainer, orgadmins)
             if include_time_period:
                 start_date, end_date = hdxhelper.get_time_period(dataset)
                 row["Dataset Start Date"] = start_date.isoformat()
@@ -622,9 +616,7 @@ class Email:
         for dataset in sorted(
             datasets, key=lambda d: (d["organization_title"], d["name"])
         ):
-            maintainer, orgadmins, _ = hdxhelper.get_maintainer_orgadmins(
-                dataset
-            )
+            maintainer, orgadmins, _ = hdxhelper.get_maintainer_orgadmins(dataset)
             (
                 dataset_string,
                 dataset_html_string,
@@ -636,9 +628,7 @@ class Email:
             datasets_flat.append(
                 sheet.construct_row(hdxhelper, dataset, maintainer, orgadmins)
             )
-        sheet.update(
-            sheetname, datasets_flat, dutyofficer_name=dutyofficer["name"]
-        )
+        sheet.update(sheetname, datasets_flat, dutyofficer_name=dutyofficer["name"])
         return msg, htmlmsg
 
     def email_admins(

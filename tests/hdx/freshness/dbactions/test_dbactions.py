@@ -74,18 +74,13 @@ class TestDBClean:
             delete_on_success=True,
             delete_on_failure=False,
         ) as folder:
-            with Database(**database, table_base=Base) as session:
+            with Database(**database, table_base=Base) as database:
+                session = database.get_session()
                 cleaner = DBClean(session)
 
-                self.check_results(
-                    folder, cleaner, "runs.csv", "2023-02-27", 2072, 898
-                )
-                self.check_results(
-                    folder, cleaner, "runs2.csv", "2023-02-28", 898, 897
-                )
-                self.check_results(
-                    folder, cleaner, "runs3.csv", "2023-03-01", 897, 897
-                )
+                self.check_results(folder, cleaner, "runs.csv", "2023-02-27", 2072, 898)
+                self.check_results(folder, cleaner, "runs2.csv", "2023-02-28", 898, 897)
+                self.check_results(folder, cleaner, "runs3.csv", "2023-03-01", 897, 897)
                 self.check_results(
                     folder,
                     cleaner,
@@ -128,9 +123,8 @@ class TestDBClean:
             delete_on_success=True,
             delete_on_failure=False,
         ) as folder:
-            with Database(
-                **database_brokenrun1351, table_base=Base
-            ) as session:
+            with Database(**database_brokenrun1351, table_base=Base) as database:
+                session = database.get_session()
                 cleaner = DBClean(session)
 
                 self.check_results(
