@@ -100,7 +100,7 @@ def main(
     if sysadmin_emails:
         sysadmin_emails = sysadmin_emails.split(",")
     logger.info(f"> Database parameters: {params}")
-    with Database(**params, table_base=Base) as session:
+    with Database(**params, table_base=Base) as database:
         now = now_utc()
         email = Email(
             now,
@@ -129,7 +129,7 @@ def main(
             else:
                 hdxhelper = HDXHelper(site_url=configuration.get_hdx_site_url())
                 databasequeries = DatabaseQueries(
-                    session=session, now=now, hdxhelper=hdxhelper
+                    session=database.get_session(), now=now, hdxhelper=hdxhelper
                 )
                 freshness = DataFreshnessStatus(
                     databasequeries=databasequeries,
