@@ -34,8 +34,8 @@ class Sheet:
         self.datagrids_spreadsheet = None
         self.issues_spreadsheet = None
         self.dutyofficer = None
-        self.datagrids = dict()
-        self.datagridccs = list()
+        self.datagrids = {}
+        self.datagridccs = []
 
     @staticmethod
     def add_category_to_datagrid(
@@ -97,7 +97,7 @@ class Sheet:
             return None
         datagrid = self.datagrids.get(datagridname)
         if datagrid is None:
-            datagrid = dict()
+            datagrid = {}
             self.datagrids[datagridname] = datagrid
             for row in rows:
                 if row[hxltags["#datagrid"]] == datagridname:
@@ -193,7 +193,7 @@ class Sheet:
             current_values = sheet.get_values()
             hxltags = {tag: i for i, tag in enumerate(current_values[1])}
             rows = current_values[2:]
-            defaultgrid = dict()
+            defaultgrid = {}
             for row in rows:
                 if row[hxltags["#datagrid"]] == "default":
                     self.add_category_to_datagrid(hxltags, defaultgrid, row)

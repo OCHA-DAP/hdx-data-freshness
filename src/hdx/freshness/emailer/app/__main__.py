@@ -112,7 +112,7 @@ def main(
         if failure_emails:
             failure_emails = failure_emails.split(",")
         else:
-            failure_emails = list()
+            failure_emails = []
         error = sheet.setup_gsheet(
             configuration, gsheet_auth, spreadsheet_test, no_spreadsheet
         )

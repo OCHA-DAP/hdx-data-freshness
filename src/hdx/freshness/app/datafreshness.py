@@ -67,18 +67,18 @@ class DataFreshness:
         self.never_update = 0
         self.live_update = 0
         self.asneeded_update = 0
-        self.dataset_what_updated = dict()
-        self.resource_what_updated = dict()
+        self.dataset_what_updated = {}
+        self.resource_what_updated = {}
         self.resource_last_modified_count = 0
         self.resource_broken_count = 0
         self.do_touch = do_touch
 
         self.url_internal = "data.humdata.org"
 
-        self.freshness_by_frequency = dict()
+        self.freshness_by_frequency = {}
         for key, value in configuration["aging"].items():
             update_frequency = int(key)
-            freshness_frequency = dict()
+            freshness_frequency = {}
             for status in value:
                 nodays = value[status]
                 freshness_frequency[status] = timedelta(days=nodays)
@@ -215,7 +215,7 @@ class DataFreshness:
         """
         last_resource_updated = None
         last_resource_modified = None
-        dataset_resources = list()
+        dataset_resources = []
         for resource in resources:
             resource_id = resource["id"]
             dict_of_lists_add(self.resource_what_updated, "total", resource_id)
@@ -333,8 +333,8 @@ class DataFreshness:
         Returns:
             Tuple[Dict[str, str], List[Tuple]]: (datasets to check, resources to check)
         """
-        resources_to_check = list()
-        datasets_to_check = dict()
+        resources_to_check = []
+        datasets_to_check = {}
         logger.info("Processing datasets")
         for dataset in self.datasets:
             resources = dataset.get_resources()
@@ -611,7 +611,7 @@ class DataFreshness:
             if self.testsession:
                 serialize_results(self.testsession, results)
 
-        hash_check = list()
+        hash_check = []
         for resource_id in results:
             (
                 url,
@@ -675,7 +675,7 @@ class DataFreshness:
                 return True
             return False
 
-        datasets_resourcesinfo = dict()
+        datasets_resourcesinfo = {}
         for resource_id in sorted(results):
             url, _, err, http_last_modified, hash, xlsx_hash = results[resource_id]
             dbresource = self.session.execute(

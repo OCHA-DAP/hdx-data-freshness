@@ -153,7 +153,7 @@ def deserialize_datasets(session: Session) -> Iterable[Dataset]:
     Returns:
         Iterable[Dataset]: HDX Dataset objects
     """
-    datasets = dict()
+    datasets = {}
     for dbtestdataset in session.scalars(select(DBTestDataset)):
         dataset_id = dbtestdataset.id
         organization = {
@@ -218,7 +218,7 @@ def deserialize_results(session: Session) -> List[Tuple]:
     Returns:
         List[Tuple]: Results of downloading and hashing urls (first time)
     """
-    results = dict()
+    results = {}
     for dbtestresult in session.scalars(select(DBTestResult)):
         results[dbtestresult.id] = (
             dbtestresult.url,
@@ -241,7 +241,7 @@ def deserialize_hashresults(session: Session) -> List[Tuple]:
     Returns:
         List[Tuple]: Results of downloading and hashing urls (second time)
     """
-    hash_results = dict()
+    hash_results = {}
     for dbtesthashresult in session.scalars(select(DBTestHashResult)):
         hash_results[dbtesthashresult.id] = (
             dbtesthashresult.url,

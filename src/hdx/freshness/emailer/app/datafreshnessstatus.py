@@ -165,7 +165,7 @@ class DataFreshnessStatus:
                 return True
             return False
 
-        datasets_flat = list()
+        datasets_flat = []
         for error_type in sorted(datasets):
             Email.output_error(msg, htmlmsg, error_type)
             datasets_error = datasets[error_type]
@@ -191,7 +191,7 @@ class DataFreshnessStatus:
                     row["Freshness"] = self.hdxhelper.freshness_status.get(
                         dataset["fresh"], "None"
                     )
-                    error = list()
+                    error = []
                     for resource in sorted(
                         dataset["resources"], key=lambda d: d["name"]
                     ):
@@ -319,7 +319,7 @@ class DataFreshnessStatus:
         Returns:
             None
         """
-        organizations_flat = list()
+        organizations_flat = []
         if len(invalid_orgadmins) == 0:
             logger.info("No invalid organisation administrators found.")
             return
@@ -468,9 +468,9 @@ class DataFreshnessStatus:
         datasets_modified_yesterday = (
             self.databasequeries.get_datasets_modified_yesterday()
         )
-        emails = dict()
+        emails = {}
         for datagridname in self.sheet.datagrids:
-            datasets = list()
+            datasets = []
             datagrid = self.sheet.datagrids[datagridname]
             for category in datagrid:
                 if category in ["datagrid", "owner"]:

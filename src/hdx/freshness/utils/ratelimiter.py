@@ -27,7 +27,7 @@ class RateLimiter:
     def __init__(self, session):
         self.session = session
         self.start_time = time.monotonic()
-        self.tokens = dict()
+        self.tokens = {}
 
     async def get(self, url: str, *args: Any, **kwargs: Any) -> _RequestContextManager:
         """Asynchronous code to download a resource after waiting for a token

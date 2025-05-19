@@ -195,7 +195,7 @@ class Retrieval:
         Returns:
             Dict[str, Tuple]: Resources information including hashes
         """
-        tasks = list()
+        tasks = []
 
         conn = aiohttp.TCPConnector(limit=100, limit_per_host=1)
         timeout = aiohttp.ClientTimeout(total=60 * 60, sock_connect=30, sock_read=30)
@@ -208,7 +208,7 @@ class Retrieval:
             for metadata in resources_to_check:
                 task = self.fetch(metadata, session)
                 tasks.append(task)
-            responses = dict()
+            responses = {}
             for f in tqdm.tqdm(asyncio.as_completed(tasks), total=len(tasks)):
                 (
                     resource_id,

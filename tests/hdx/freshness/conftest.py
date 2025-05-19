@@ -33,7 +33,7 @@ def resourcecls():
 
         @classmethod
         def populate_resourcedict(cls, datasets):
-            cls.resourcedict = dict()
+            cls.resourcedict = {}
             for dataset in datasets:
                 for resource in dataset.get_resources():
                     cls.resourcedict[resource["id"]] = resource

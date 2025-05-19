@@ -138,7 +138,7 @@ class DBClean:
                 group = list(group)
                 yield group[0][1], group[-1][1]
 
-        dates_ranges = list()
+        dates_ranges = []
         for start, end in to_ranges(runs_to_keep):
             start_date = run_number_to_run_date[start].date().isoformat()
             if start == end:

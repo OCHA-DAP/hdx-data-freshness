@@ -32,21 +32,21 @@ class HDXHelper:
         self.site_url = site_url
         if users is None:  # pragma: no cover
             users = User.get_all_users()
-        self.users: Dict[str, User] = dict()
-        self.sysadmins = dict()
+        self.users: Dict[str, User] = {}
+        self.sysadmins = {}
         for user in users:
             userid = user["id"]
             self.users[userid] = user
             if user["sysadmin"]:
                 self.sysadmins[userid] = user
 
-        self.organizations: Dict = dict()
+        self.organizations: Dict = {}
         if organizations is None:  # pragma: no cover
             organizations: List = Organization.get_all_organization_names(
                 all_fields=True, include_users=True
             )
         for organization in organizations:
-            users_per_capacity = dict()
+            users_per_capacity = {}
             for user in organization["users"]:
                 dict_of_lists_add(users_per_capacity, user["capacity"], user["id"])
             self.organizations[organization["id"]] = users_per_capacity
@@ -93,7 +93,7 @@ class HDXHelper:
             List[User]: Administrators of the organisation of the dataset
         """
         organization_id = dataset["organization_id"]
-        orgadmins = list()
+        orgadmins = []
         organization = self.organizations[organization_id]
         if "admin" in organization:
             for userid in self.organizations[organization_id]["admin"]:
@@ -115,7 +115,7 @@ class HDXHelper:
             Tuple[Dict[str, str], List[Dict[str, str]], List[User]]:
             (maintainer info, list of org admin info, list of users to email)
         """
-        users_to_email = list()
+        users_to_email = []
         maintainer = self.get_maintainer(dataset)
         if maintainer is not None:
             users_to_email.append(maintainer)
@@ -124,7 +124,7 @@ class HDXHelper:
                 "name": maintainer_name,
                 "email": maintainer["email"],
             }
-        orgadmins = list()
+        orgadmins = []
         for orgadmin in self.get_org_admins(dataset):
             if maintainer is None:
                 users_to_email.append(orgadmin)
@@ -224,8 +224,8 @@ class HDXHelper:
             Tuple[str, str]: (plain text string, HTML string) for output in email
         """
         url = self.get_dataset_url(dataset)
-        msg = list()
-        htmlmsg = list()
+        msg = []
+        htmlmsg = []
         msg.append(f"{dataset['title']} ({url})")
         htmlmsg.append(f'<a href="{url}">{dataset["title"]}</a>')
         if sysadmin and include_org:
@@ -248,8 +248,8 @@ class HDXHelper:
                 msg.append(missing_maintainer)
                 htmlmsg.append(missing_maintainer)
 
-            usermsg = list()
-            userhtmlmsg = list()
+            usermsg = []
+            userhtmlmsg = []
             for orgadmin in orgadmins:
                 user_name = orgadmin["name"]
                 user_email = orgadmin["email"]

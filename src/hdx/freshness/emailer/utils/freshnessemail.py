@@ -475,8 +475,8 @@ class Email:
             Dict[str, List]: Emails to users
         """
 
-        all_users_to_email = dict()
-        datasets_flat = list()
+        all_users_to_email = {}
+        datasets_flat = []
         for dataset in sorted(
             datasets, key=lambda d: (d["organization_title"], d["name"])
         ):
@@ -561,7 +561,7 @@ class Email:
                 "$dashboard",
                 '<a href="https://data.humdata.org/dashboard/datasets">dashboard</a>',
             )
-        emails = dict()
+        emails = {}
         for id in sorted(all_users_to_email.keys()):
             user = hdxhelper.users[id]
             username = hdxhelper.get_user_name(user)
@@ -610,7 +610,7 @@ class Email:
         Returns:
             None
         """
-        datasets_flat = list()
+        datasets_flat = []
         msg = [startmsg]
         htmlmsg = [Email.newline_to_br(startmsg)]
         for dataset in sorted(

@@ -135,9 +135,9 @@ class TestFreshnessCKAN:
         )
         broken_url = "file://lala:10"
 
-        datasets = list()
-        last_modifieds = list()
-        marked_broken = list()
+        datasets = []
+        last_modifieds = []
+        marked_broken = []
         fresh_dt = now_utc() - timedelta(days=1)
         due_dt = fresh_dt - timedelta(days=8)
         days7 = timedelta(days=7)
@@ -412,7 +412,7 @@ same hash: 3
                 "fresh": 0,
             },
         ]
-        nonmatching = list()
+        nonmatching = []
         for i, dataset in enumerate(datasets):
             dbdataset = (
                 session.execute(
