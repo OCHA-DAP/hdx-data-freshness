@@ -19,10 +19,12 @@ from sqlalchemy import select
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.database import Database
+from hdx.freshness.app.__main__ import main
 from hdx.freshness.app.datafreshness import DataFreshness
 from hdx.freshness.database import Base
 from hdx.freshness.database.dbdataset import DBDataset
 from hdx.utilities.dateparse import now_utc
+from hdx.utilities.path import script_dir_plus_file
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +32,7 @@ logger = logging.getLogger(__name__)
 class TestFreshnessCKAN:
     @pytest.fixture(scope="class")
     def configuration(self):
-        project_config_yaml = join(
-            "src", "hdx", "freshness", "app", "project_configuration.yaml"
-        )
+        project_config_yaml = script_dir_plus_file("project_configuration.yaml", main)
         hdx_key = getenv("HDX_KEY")
         Configuration._create(
             hdx_site="demo",
