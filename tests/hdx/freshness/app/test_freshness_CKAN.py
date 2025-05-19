@@ -40,6 +40,7 @@ class TestFreshnessCKAN:
             hdx_key=hdx_key,
             project_config_yaml=project_config_yaml,
         )
+        return Configuration.read()
 
     @pytest.fixture(scope="function")
     def datasetmetadata(self):
