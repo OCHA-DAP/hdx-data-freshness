@@ -113,7 +113,7 @@ gspread==6.2.1
     # via
     #   -c requirements.txt
     #   hdx-data-freshness (pyproject.toml)
-hdx-python-api==6.3.9
+hdx-python-api==6.4.0
     # via
     #   -c requirements.txt
     #   hdx-data-freshness (pyproject.toml)

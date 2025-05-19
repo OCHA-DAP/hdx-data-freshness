@@ -63,7 +63,7 @@ greenlet==3.2.2
     # via sqlalchemy
 gspread==6.2.1
     # via hdx-data-freshness (pyproject.toml)
-hdx-python-api==6.3.9
+hdx-python-api==6.4.0
     # via hdx-data-freshness (pyproject.toml)
 hdx-python-country==3.9.4
     # via
