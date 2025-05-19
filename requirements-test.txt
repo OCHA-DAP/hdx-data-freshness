@@ -210,7 +210,7 @@ more-itertools==10.7.0
     # via
     #   -c requirements.txt
     #   inflect
-multidict==6.4.3
+multidict==6.4.4
     # via
     #   -c requirements.txt
     #   aiohttp
