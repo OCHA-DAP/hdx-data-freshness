@@ -151,7 +151,7 @@ pyasn1==0.6.1
     #   rsa
 pyasn1-modules==0.4.2
     # via google-auth
-pycares==4.8.0
+pycares==4.9.0
     # via aiodns
 pycparser==2.22
     # via cffi
