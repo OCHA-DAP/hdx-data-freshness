@@ -8,7 +8,7 @@ aiohappyeyeballs==2.6.1
     # via
     #   -c requirements.txt
     #   aiohttp
-aiohttp==3.11.18
+aiohttp==3.12.14
     # via
     #   -c requirements.txt
     #   hdx-data-freshness (pyproject.toml)
