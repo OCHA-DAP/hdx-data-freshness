@@ -59,6 +59,7 @@ class DataFreshness:
         datasets: Optional[List[Dataset]] = None,
         now: datetime = None,
         do_touch: bool = False,
+        dont_hash: bool = True,
     ) -> None:
         """"""
         self.session = session
@@ -72,6 +73,7 @@ class DataFreshness:
         self.resource_last_modified_count = 0
         self.resource_broken_count = 0
         self.do_touch = do_touch
+        self.dont_hash = dont_hash
 
         self.url_internal = "data.humdata.org"
 
@@ -275,34 +277,42 @@ class DataFreshness:
                     pass
             self.session.add(dbresource)
 
-            should_hash = False
-            if updated_by_script:
-                netloc = urlparse(url).netloc
-                if netloc in self.updated_by_script_netlocs_checked:
-                    dict_of_lists_add(
-                        self.resource_what_updated,
-                        dbresource.what_updated,
-                        resource_id,
-                    )
-                    continue
-                else:
-                    should_hash = True
-                    self.updated_by_script_netlocs_checked.add(netloc)
-            if self.url_internal in url:
-                self.prefix_what_updated(dbresource, "internal")
+            if self.dont_hash:
                 dict_of_lists_add(
                     self.resource_what_updated,
                     dbresource.what_updated,
                     resource_id,
                 )
                 continue
-            if hash_ids:
-                should_hash = resource_id in hash_ids
-            elif not should_hash:
-                should_hash = self.urls_to_check_count < self.no_urls_to_check and (
-                    dbresource.when_checked is None
-                    or self.now - dbresource.when_checked > timedelta(days=30)
-                )
+            else:
+                should_hash = False
+                if updated_by_script:
+                    netloc = urlparse(url).netloc
+                    if netloc in self.updated_by_script_netlocs_checked:
+                        dict_of_lists_add(
+                            self.resource_what_updated,
+                            dbresource.what_updated,
+                            resource_id,
+                        )
+                        continue
+                    else:
+                        should_hash = True
+                        self.updated_by_script_netlocs_checked.add(netloc)
+                if self.url_internal in url:
+                    self.prefix_what_updated(dbresource, "internal")
+                    dict_of_lists_add(
+                        self.resource_what_updated,
+                        dbresource.what_updated,
+                        resource_id,
+                    )
+                    continue
+                if hash_ids:
+                    should_hash = resource_id in hash_ids
+                elif not should_hash:
+                    should_hash = self.urls_to_check_count < self.no_urls_to_check and (
+                        dbresource.when_checked is None
+                        or self.now - dbresource.when_checked > timedelta(days=30)
+                    )
             resource_format = resource["format"].lower()
             dataset_resources.append(
                 (

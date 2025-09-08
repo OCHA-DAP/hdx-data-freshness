@@ -199,6 +199,7 @@ class TestFreshnessCKAN:
                     session=session,
                     datasets=datasets,
                     do_touch=True,
+                    dont_hash=False,
                 )
                 freshness.spread_datasets()
                 freshness.add_new_run()
@@ -254,6 +255,7 @@ class TestFreshnessCKAN:
                     session=session,
                     datasets=datasets,
                     do_touch=True,
+                    dont_hash=False,
                 )
                 freshness.spread_datasets()
                 freshness.add_new_run()
