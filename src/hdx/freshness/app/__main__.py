@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 def main(
     db_uri: Optional[str] = None,
     db_params: Optional[str] = None,
-    do_touch: bool = True,
+    do_touch: bool = False,
     save: bool = False,
     **ignore,
 ) -> None:
