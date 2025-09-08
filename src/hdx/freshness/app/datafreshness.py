@@ -47,6 +47,7 @@ class DataFreshness:
         datasets (Optional[List[Dataset]]): List of datasets or read from HDX if None
         now (datetime): Date to use or take current time if None
         do_touch (bool): Whether to touch HDX resources whose hash has changed
+        dont_hash (bool): Whether to hash HDX resources
     """
 
     bracketed_date = re.compile(r"\((.*)\)")
