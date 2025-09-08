@@ -97,7 +97,7 @@ class TestFreshnessDayN:
                 datasets=datasets,
                 now=now,
                 do_touch=True,
-                dont_hash=False
+                dont_hash=False,
             )
             freshness.spread_datasets()
             freshness.add_new_run()
