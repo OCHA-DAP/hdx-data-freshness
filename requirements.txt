@@ -4,7 +4,7 @@ aiodns==3.5.0
     # via aiohttp
 aiohappyeyeballs==2.6.1
     # via aiohttp
-aiohttp==3.12.15
+aiohttp==3.13.3
     # via hdx-data-freshness (pyproject.toml)
 aiosignal==1.4.0
     # via aiohttp
