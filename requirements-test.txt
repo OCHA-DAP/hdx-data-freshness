@@ -259,7 +259,7 @@ psycopg-binary==3.2.9
     # via
     #   -c requirements.txt
     #   psycopg
-pyasn1==0.6.1
+pyasn1==0.6.2
     # via
     #   -c requirements.txt
     #   pyasn1-modules
