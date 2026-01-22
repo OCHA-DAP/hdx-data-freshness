@@ -465,7 +465,7 @@ validators==0.35.0
     # via
     #   -c requirements.txt
     #   frictionless
-wheel==0.45.1
+wheel==0.46.2
     # via
     #   -c requirements.txt
     #   libhxl
